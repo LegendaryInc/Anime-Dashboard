@@ -1,0 +1,349 @@
+/* --- BASE & UTILITIES --- */
+body {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    background-color: #F0F4F8; /* Fallback */
+    background-image: linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%);
+    overflow-x: hidden;
+    min-height: 100vh;
+    position: relative;
+    transition: background-color 0.5s ease;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #cdd2d8; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #b7bec6; }
+
+.anime-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: all 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.stat-card h3 { color: #4A5568; }
+.stat-card p { color: #2D3748; }
+
+.btn-primary {
+    background-color: #6366F1;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+}
+.btn-primary:hover {
+    background-color: #4F46E5;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(99, 102, 241, 0.3);
+}
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #475569;
+    transition: all 0.3s ease;
+}
+.btn-secondary:hover { background-color: #cbd5e1; }
+
+
+/* --- THEME-AGNOSTIC ANIMATIONS --- */
+.animate-blob { animation: blob 10s infinite; }
+.animation-delay-2000 { animation-delay: -2s; }
+.animation-delay-4000 { animation-delay: -4s; }
+@keyframes blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(20px, -30px) scale(1.1); }
+    50% { transform: translate(-20px, 40px) scale(0.9); }
+    75% { transform: translate(10px, -15px) scale(1.05); }
+}
+
+#dashboard-screen.loaded > div {
+    animation: fadeIn 0.6s ease-out forwards;
+    opacity: 0;
+}
+#dashboard-screen.loaded > div:nth-of-type(1) { animation-delay: 0.1s; }
+#dashboard-screen.loaded > div:nth-of-type(2) { animation-delay: 0.2s; }
+#dashboard-screen.loaded > div:nth-of-type(3) { animation-delay: 0.3s; }
+#dashboard-screen.loaded > div:nth-of-type(4) { animation-delay: 0.4s; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- THEME STYLES --- */
+.theme-btn {
+    padding: 6px 16px;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+.theme-btn.active {
+    border-color: #6366F1;
+    color: #6366F1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* --- SAKURA THEME --- */
+body.theme-sakura { background-image: linear-gradient(to top, #fff1f2 0%, #ffe4e6 100%); }
+body.theme-sakura .btn-primary { background-color: #F472B6; box-shadow: 0 4px 6px rgba(244, 114, 182, 0.2); }
+body.theme-sakura .btn-primary:hover { background-color: #EC4899; box-shadow: 0 7px 14px rgba(244, 114, 182, 0.3); }
+body.theme-sakura .upload-box { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23F9A8D4' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); }
+body.theme-sakura .upload-box:hover { background-color: #fff1f2; }
+body.theme-sakura .text-indigo-600 { color: #EC4899; }
+body.theme-sakura .theme-btn.active { border-color: #EC4899; color: #EC4899; box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.2); }
+
+/* --- SKY THEME --- */
+body.theme-sky { background-image: linear-gradient(to top, #e0f2fe 0%, #f0f9ff 100%); }
+body.theme-sky .btn-primary { background-color: #38BDF8; box-shadow: 0 4px 6px rgba(56, 189, 248, 0.2); }
+body.theme-sky .btn-primary:hover { background-color: #0EA5E9; box-shadow: 0 7px 14px rgba(56, 189, 248, 0.3); }
+body.theme-sky .upload-box { background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%237DD3FC' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); }
+body.theme-sky .upload-box:hover { background-color: #f0f9ff; }
+body.theme-sky .text-indigo-600 { color: #0EA5E9; }
+body.theme-sky .theme-btn.active { border-color: #0EA5E9; color: #0EA5E9; box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2); }
+
+/* --- NEON THEME --- */
+body.theme-neon { 
+    background-color: #0f172a;
+    background-image: linear-gradient(to top, #581c87 0%, #0f172a 60%);
+    color: #e2e8f0; 
+}
+body.theme-neon .anime-card { 
+    background-color: rgba(12, 10, 29, 0.6); 
+    border: 1px solid rgba(232, 121, 249, 0.4);
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px); 
+}
+body.theme-neon h1, body.theme-neon h3, body.theme-neon label { 
+    color: #f8fafc; 
+    text-shadow: 0 0 10px rgba(232, 121, 249, 0.5);
+}
+body.theme-neon p { color: #cbd5e1; }
+body.theme-neon .stat-card p { color: #f8fafc; }
+body.theme-neon .btn-primary { 
+    background-color: #e879f9;
+    color: #1e1b4b;
+    box-shadow: 0 0 15px rgba(232, 121, 249, 0.6), 0 0 5px rgba(232, 121, 249, 0.9); 
+}
+body.theme-neon .btn-primary:hover { 
+    background-color: #f0abfc; 
+    box-shadow: 0 0 25px rgba(232, 121, 249, 0.8), 0 0 10px rgba(232, 121, 249, 1); 
+}
+body.theme-neon .btn-secondary { background-color: #312e81; color: #e0e7ff; }
+body.theme-neon .btn-secondary:hover { background-color: #3730a3; }
+body.theme-neon .upload-box { 
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23e879f9' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); 
+}
+body.theme-neon .upload-box:hover { background-color: rgba(232, 121, 249, 0.1); }
+body.theme-neon .text-indigo-600 { color: #e879f9; }
+body.theme-neon .theme-btn.active { 
+    border-color: #e879f9; 
+    color: #e879f9; 
+    box-shadow: 0 0 0 2px rgba(232, 121, 249, 0.3); 
+}
+body.theme-neon .theme-btn { background-color: rgba(22, 28, 45, 0.6); color: #e2e8f0; }
+
+
+/* --- MODAL, LIST, AND FILTER STYLES --- */
+.tab-btn{border-color:transparent;transition:all .3s ease}.active-tab{color:#6366F1;border-color:#6366F1}.inactive-tab{color:#6b7280;border-color:transparent}.inactive-tab:hover{color:#4b5563;border-color:#d1d5db}body.theme-sakura .active-tab{color:#EC4899;border-color:#EC4899}body.theme-sky .active-tab{color:#0EA5E9;border-color:#0EA5E9}body.theme-neon .active-tab{color:#e879f9;border-color:#e879f9}body.theme-neon .inactive-tab{color:#94a3b8}body.theme-neon .inactive-tab:hover{color:#e2e8f0;border-color:#475569}.filter-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");background-position:right .5rem center;background-repeat:no-repeat;background-size:1.5em 1.5em;padding-right:2.5rem;border:1px solid #d1d5db;border-radius:.5rem;padding-left:1rem;padding-top:.5rem;padding-bottom:.5rem}body.theme-neon .filter-select,body.theme-neon #search-bar{background-color:#334155;border-color:#475569;color:#e2e8f0}body.theme-neon .filter-select{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23e2e8f0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")}body.theme-neon #search-bar::placeholder{color:#94a3b8}.modal-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;background-color:rgba(0,0,0,.5);display:flex;justify-content:center;align-items:center;z-index:50;opacity:0;transition:opacity .3s ease;pointer-events:none}.modal-backdrop.show{opacity:1;pointer-events:auto}.modal-content{max-width:500px;width:90%;transform:scale(.95);transition:transform .3s ease}.modal-backdrop.show .modal-content{transform:scale(1)}.sortable-header{cursor:pointer;position:relative;padding-right:1.5em}.sortable-header::after{content:' ';position:absolute;right:.5em;top:50%;transform:translateY(-50%);border:4px solid transparent;opacity:.5}.sortable-header.sort-asc::after{border-bottom-color:currentColor;opacity:1}.sortable-header.sort-desc::after{border-top-color:currentColor;opacity:1}
+
+/* --- NEW GACHA CARD STYLES --- */
+
+/* Base layout for the new card structure */
+.gacha-card {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: 4px solid transparent;
+    background-color: #fff; /* Default clean background */
+}
+
+.gacha-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.card-image-container {
+    height: 160px; /* Gives a consistent image height */
+    border-radius: 0.25rem;
+    overflow: hidden;
+    position: relative;
+    background-color: #e2e8f0;
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-name {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.25rem;
+}
+
+.card-anime {
+    font-size: 0.75rem;
+    text-align: center;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.25rem;
+}
+
+/* New styles for the star display at the bottom */
+.card-stars {
+    font-size: 1.2rem;
+    line-height: 1;
+    text-align: center;
+    margin-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* --- UNIVERSAL RARITY STYLES --- */
+
+/* 1 Star (Bronze) */
+.rarity-1 { border-color: #a97142; }
+.rarity-1 .card-stars { color: #a97142; }
+
+/* 2 Stars (Silver) */
+.rarity-2 { border-color: #a8a29e; }
+.rarity-2 .card-stars { color: #a8a29e; }
+
+/* 3 Stars (Blue) with a subtle pulse */
+.rarity-3 {
+    border-color: #3b82f6;
+    animation: blue-pulse 4s infinite alternate;
+}
+.rarity-3 .card-stars { color: #3b82f6; }
+
+/* 4 Stars (Purple) with a stronger pulse */
+.rarity-4 {
+    border-color: #a855f7;
+    animation: purple-pulse 3s infinite alternate;
+}
+.rarity-4 .card-stars { color: #a855f7; }
+
+/* 5 Stars (Gold) with the strongest pulse */
+.rarity-5 {
+    border-color: #f59e0b;
+    animation: gold-pulse 2s infinite alternate;
+}
+.rarity-5 .card-stars { color: #f59e0b; }
+
+/* Prismatic (Rainbow) */
+.rarity-prismatic {
+    position: relative;
+    overflow: hidden;
+    border-width: 4px;
+    border-image: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6, #f43f5e) 1;
+    animation: prismatic-glow 2s infinite alternate;
+}
+.rarity-prismatic .card-stars {
+    font-size: 1.5rem; /* Make the prismatic icon bigger */
+    background: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6, #f43f5e);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: prismatic-text-cycle 4s infinite linear;
+    background-size: 400% 100%;
+}
+.rarity-prismatic::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 150%;
+    height: 100%;
+    background-image: linear-gradient(100deg, rgba(255,255,255,0) 10%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 90%);
+    transform: skewX(-20deg);
+    animation: holo-shine 5s infinite;
+    z-index: 1;
+}
+
+/* --- KEYFRAME ANIMATIONS FOR BORDER GLOWS --- */
+@keyframes blue-pulse {
+    from { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
+    to { box-shadow: 0 0 12px rgba(59, 130, 246, 0.8); }
+}
+@keyframes purple-pulse {
+    from { box-shadow: 0 0 6px rgba(168, 85, 247, 0.5); }
+    to { box-shadow: 0 0 15px rgba(168, 85, 247, 0.9); }
+}
+@keyframes gold-pulse {
+    from { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+    to { box-shadow: 0 0 20px rgba(245, 158, 11, 1); }
+}
+@keyframes holo-shine {
+    0% { left: -150%; }
+    40% { left: 150%; }
+    100% { left: 150%; }
+}
+@keyframes prismatic-glow {
+    from { box-shadow: 0 0 15px #f43f5e, 0 0 5px #fff; }
+    to { box-shadow: 0 0 25px #22d3ee, 0 0 10px #fff; }
+}
+@keyframes prismatic-text-cycle {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* --- THEME-AWARE CARD BACKGROUNDS --- */
+body.theme-sakura .gacha-card { background-color: #fff5f7; }
+body.theme-sky .gacha-card { background-color: #f0f9ff; }
+body.theme-neon .gacha-card { background-color: rgba(12, 10, 29, 0.7); }
+body.theme-neon .card-name, body.theme-neon .card-anime { color: #e2e8f0; }
+
+
+/* --- NEW CALENDAR CARD STYLES --- */
+.calendar-card {
+    transition: all 0.3s ease;
+    overflow: hidden; /* For image zoom effect */
+}
+.calendar-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.calendar-card img {
+    transition: transform 0.4s ease;
+}
+.calendar-card:hover img {
+    transform: scale(1.1);
+}
+
+.calendar-card-title {
+    color: #1f2937; /* Default dark title color */
+}
+.calendar-card-text {
+    color: #4b5563; /* Default lighter text color */
+}
+
+/* Theme overrides for Calendar Cards */
+body.theme-sakura .calendar-card-title { color: #c12b6b; }
+body.theme-sakura .calendar-card-text { color: #db5c92; }
+
+body.theme-sky .calendar-card-title { color: #026aa2; }
+body.theme-sky .calendar-card-text { color: #0ea5e9; }
+
+body.theme-neon .calendar-card-title { color: #f0abfc; }
+body.theme-neon .calendar-card-text { color: #a5b4fc; }
+
+body.theme-sakura-night .calendar-card-title { color: #f9a8d4; }
+body.theme-sakura-night .calendar-card-text { color: #fce7f3; }
+

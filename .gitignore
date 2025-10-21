@@ -1,0 +1,8 @@
+# Dependencies
+/node_modules
+
+# Environment Variables File
+.env
+
+# Frontend Configuration with API Key
+config.js

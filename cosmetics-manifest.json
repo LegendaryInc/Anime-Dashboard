@@ -1,0 +1,46 @@
+{
+  "packs": {
+    "neon_pack": {
+      "name": "Neon Pack",
+      "cost": 600,
+      "items": [
+        {
+          "id": "border-neon-animated",
+          "name": "Border Neon Animated",
+          "type": "border",
+          "rarity": "rare"
+        },
+        {
+          "id": "border-neon-solid",
+          "name": "Border Neon Solid",
+          "type": "border",
+          "rarity": "common"
+        }
+      ]
+    },
+    "sakura_pack": {
+      "name": "Sakura Pack",
+      "cost": 750,
+      "items": [
+        {
+          "id": "border-sakura-animated",
+          "name": "Border Sakura Animated",
+          "type": "border",
+          "rarity": "rare"
+        },
+        {
+          "id": "border-sakura-solid",
+          "name": "Border Sakura Solid",
+          "type": "border",
+          "rarity": "common"
+        },
+        {
+          "id": "theme-sakura-night",
+          "name": "Theme Sakura Night",
+          "type": "theme",
+          "rarity": "epic"
+        }
+      ]
+    }
+  }
+}
