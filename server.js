@@ -6,22 +6,19 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
-const session = require('express-session'); // <-- Import express-session
-const { PrismaClient } = require('@prisma/client'); // <-- Import Prisma Client
-
-const prisma = new PrismaClient(); // <-- Initialize Prisma Client
-const app = express();
-const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
-// IMPORTANT: Use a real secret in production! Put it in your .env file
-const SESSION_SECRET = process.env.SESSION_SECRET || 'a-bad-secret-for-dev';
-
-// --- Session Middleware Setup ---
+const session = require('express-session');
+const { PrismaClient } = require('@prisma/client');
 const pgSession = require('connect-pg-simple')(session); // <-- Import connect-pg-simple
 const { Pool } = require('pg'); // <-- Import pg Pool
 
+const prisma = new PrismaClient();
+const app = express();
+const PORT = process.env.PORT || 3000;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const SESSION_SECRET = process.env.SESSION_SECRET || 'a-bad-secret-for-dev';
+
+// --- Session Middleware Setup ---
 // Create a Pool using the DATABASE_URL from .env
-// Ensure DATABASE_URL is set correctly in your environment
 const pgPool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false // <-- Add SSL for Render connections
@@ -30,7 +27,7 @@ const pgPool = new Pool({
 app.use(session({
     store: new pgSession({ // <-- Use pgSession store
         pool: pgPool,                // Connection pool
-        tableName: 'user_sessions'   // Table name for sessions (will be created automatically)
+        tableName: 'Session'         // <-- Explicitly set table name
     }),
     secret: SESSION_SECRET,
     resave: false,
@@ -74,11 +71,10 @@ app.get('/auth/anilist/callback', async (req, res) => {
             code: code,
         });
         const accessToken = tokenResponse.data.access_token;
-        // const refreshToken = tokenResponse.data.refresh_token; // Store this if you plan to refresh tokens
 
         // --- 2. Get AniList User ID ---
         const viewerResponse = await axios.post('https://graphql.anilist.co', {
-            query: `query { Viewer { id name } }` // Get name too, just for potential future use
+            query: `query { Viewer { id name } }`
         }, {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -93,15 +89,15 @@ app.get('/auth/anilist/callback', async (req, res) => {
 
         // --- 3. Find or Create User in DB (Upsert) ---
         const user = await prisma.user.upsert({
-            where: { anilistId: anilistId }, // Find user by their unique AniList ID
-            update: { accessToken: accessToken }, // If found, update their token
-            create: { anilistId: anilistId, accessToken: accessToken }, // If not found, create a new user record
+            where: { anilistId: anilistId },
+            update: { accessToken: accessToken },
+            create: { anilistId: anilistId, accessToken: accessToken },
         });
 
         // --- 4. Store User ID in Session ---
-        req.session.userId = user.id; // Store *our* database user ID in the session
+        req.session.userId = user.id;
 
-        res.redirect('/'); // Redirect back to the main dashboard page
+        res.redirect('/');
 
     } catch (error) {
         console.error('Error during AniList callback:', error.response ? error.response.data : error.message);
@@ -111,26 +107,23 @@ app.get('/auth/anilist/callback', async (req, res) => {
 
 // PART C: Securely fetches data (UPDATED TO USE SESSION & DB TOKEN)
 app.get('/api/get-anilist-data', async (req, res) => {
-    // --- 1. Check if user is logged in (via session) ---
     if (!req.session.userId) {
         return res.status(401).json({ error: 'Not authenticated. Please log in.' });
     }
 
     try {
-        // --- 2. Get user's data (including token) from DB ---
         const user = await prisma.user.findUnique({
             where: { id: req.session.userId },
         });
 
         if (!user || !user.accessToken) {
              console.error(`User ${req.session.userId} not found in DB or missing token.`);
-             req.session.destroy(); // Clear potentially invalid session
+             req.session.destroy();
              return res.status(401).json({ error: 'Authentication error. Please log in again.' });
         }
-        const userAccessToken = user.accessToken; // Use the token specific to this user
-        const userAnilistId = user.anilistId; // We already have this from the user record
+        const userAccessToken = user.accessToken;
+        const userAnilistId = user.anilistId;
 
-        // --- 3. Fetch data from AniList using the user's token ---
         const listQuery = `
           query ($userId: Int) {
             MediaListCollection(userId: $userId, type: ANIME, status_in: [CURRENT, COMPLETED], sort: SCORE_DESC) {
@@ -151,10 +144,10 @@ app.get('/api/get-anilist-data', async (req, res) => {
 
         const listResponse = await axios.post('https://graphql.anilist.co', {
             query: listQuery,
-            variables: { userId: userAnilistId } // Use the AniList ID from the user record
+            variables: { userId: userAnilistId }
         }, {
             headers: {
-                'Authorization': `Bearer ${userAccessToken}`, // Use the specific user's token
+                'Authorization': `Bearer ${userAccessToken}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
             }
@@ -184,10 +177,9 @@ app.get('/api/get-anilist-data', async (req, res) => {
 
     } catch (error) {
         console.error('Error fetching data from AniList:', error.response ? error.response.data : error.message);
-        // Handle potential token expiration or invalidation
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
              console.log(`Token likely invalid for user ${req.session.userId}. Logging out.`);
-             req.session.destroy(); // Clear the session on token error
+             req.session.destroy();
              return res.status(401).json({ error: 'Authentication failed with AniList. Please log in again.' });
         }
         res.status(500).json({ error: 'Failed to fetch data from AniList.' });
@@ -196,12 +188,12 @@ app.get('/api/get-anilist-data', async (req, res) => {
 
 // PART D: Logout route (UPDATED TO USE SESSION)
 app.get('/logout', (req, res) => {
-    req.session.destroy(err => { // Destroy the session
+    req.session.destroy(err => {
         if (err) {
             console.error("Error destroying session:", err);
             return res.status(500).send("Could not log out.");
         }
-        res.clearCookie('connect.sid'); // Optional: Clear the session cookie
+        res.clearCookie('connect.sid');
         res.status(200).send('Logged out successfully.');
     });
 });
@@ -211,10 +203,7 @@ app.get('/logout', (req, res) => {
 app.use(express.static(path.join(__dirname, '')));
 
 // Handle SPA routing: For any GET request not handled by static files or API routes, send index.html
-// This MUST come AFTER your API routes (/api/*, /auth/*) and AFTER app.use(express.static(...))
-// FIX: Use regex catch-all to avoid path-to-regexp error
 app.get(/^(?!\/(api|auth)).*$/, (req, res) => {
-  // This regex matches any path that DOES NOT start with /api or /auth
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
