@@ -22,3 +22,10 @@ model User {
   createdAt     DateTime @default(now()) // Timestamp when the user record was created
   updatedAt     DateTime @updatedAt      // Timestamp when the record was last updated
 }
+model Session {
+  sid    String   @id // Session ID (primary key)
+  sess   Json     // Session data stored as JSON
+  expire DateTime // Timestamp when the session expires
+
+  @@index([expire]) // Add an index to the expire column for performance
+}
