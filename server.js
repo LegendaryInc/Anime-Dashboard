@@ -20,15 +20,24 @@ if (process.env.DATABASE_URL) {
   });
 
   // Auto-create session table if it doesn't exist
-  pgPool.query(`
-    CREATE TABLE IF NOT EXISTS "user_sessions" (
-      "sid" varchar NOT NULL COLLATE "default",
-      "sess" json NOT NULL,
-      "expire" timestamp(6) NOT NULL,
-      PRIMARY KEY ("sid")
-    );
-    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "user_sessions" ("expire");
-  `).catch(err => console.warn('Session table setup warning:', err.message));
+  (async () => {
+    try {
+      await pgPool.query(`
+        CREATE TABLE IF NOT EXISTS "user_sessions" (
+          "sid" varchar NOT NULL COLLATE "default",
+          "sess" json NOT NULL,
+          "expire" timestamp(6) NOT NULL,
+          PRIMARY KEY ("sid")
+        );
+      `);
+      await pgPool.query(`
+        CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "user_sessions" ("expire");
+      `);
+      console.log('✅ Session table ready');
+    } catch (err) {
+      console.warn('⚠️  Session table setup warning:', err.message);
+    }
+  })();
 }
 
 const app = express();
@@ -58,10 +67,141 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // =====================================================================
+// Jikan API Rate Limiter with Caching
+// =====================================================================
+
+// In-memory cache for Jikan results (lasts for server lifetime)
+const jikanCache = new Map();
+const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+
+// Rate limiting: Jikan allows 3 req/sec, 60 req/min
+// We'll be conservative: 2 req/sec with delays
+class JikanRateLimiter {
+  constructor() {
+    this.queue = [];
+    this.processing = false;
+    this.lastRequestTime = 0;
+    this.minDelayMs = 500; // 2 requests per second (conservative)
+    this.requestCount = 0;
+    this.minuteStart = Date.now();
+  }
+
+  async add(fn) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ fn, resolve, reject });
+      this.process();
+    });
+  }
+
+  async process() {
+    if (this.processing || this.queue.length === 0) return;
+    
+    this.processing = true;
+
+    while (this.queue.length > 0) {
+      const now = Date.now();
+      
+      // Reset counter every minute
+      if (now - this.minuteStart > 60000) {
+        this.requestCount = 0;
+        this.minuteStart = now;
+      }
+
+      // Check if we've hit per-minute limit (50 to be safe, limit is 60)
+      if (this.requestCount >= 50) {
+        const waitTime = 60000 - (now - this.minuteStart);
+        console.log(`⏳ Jikan rate limit: waiting ${Math.ceil(waitTime / 1000)}s`);
+        await this.sleep(waitTime);
+        this.requestCount = 0;
+        this.minuteStart = Date.now();
+      }
+
+      // Enforce minimum delay between requests
+      const timeSinceLastRequest = now - this.lastRequestTime;
+      if (timeSinceLastRequest < this.minDelayMs) {
+        await this.sleep(this.minDelayMs - timeSinceLastRequest);
+      }
+
+      const { fn, resolve, reject } = this.queue.shift();
+      this.lastRequestTime = Date.now();
+      this.requestCount++;
+
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    }
+
+    this.processing = false;
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+const jikanLimiter = new JikanRateLimiter();
+
+// Fetch English title from Jikan with rate limiting, caching, and retry logic
+async function fetchEnglishFromJikan(idMal, retries = 3) {
+  if (!idMal) return null;
+
+  // Check cache first
+  const cacheKey = `jikan_${idMal}`;
+  const cached = jikanCache.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    return cached.title;
+  }
+
+  // Add to rate-limited queue
+  return jikanLimiter.add(async () => {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const r = await axios.get(`https://api.jikan.moe/v4/anime/${idMal}`, {
+          timeout: 5000,
+          headers: { 'User-Agent': 'Anime-Dashboard/1.0' }
+        });
+        
+        const title = r?.data?.data?.title_english?.trim() || null;
+        
+        // Cache the result
+        jikanCache.set(cacheKey, {
+          title,
+          timestamp: Date.now()
+        });
+        
+        return title;
+      } catch (error) {
+        // Handle rate limit (429) or server errors (5xx)
+        if (error.response?.status === 429 || error.response?.status >= 500) {
+          const waitTime = Math.min(1000 * Math.pow(2, attempt), 8000); // Exponential backoff, max 8s
+          console.warn(`⚠️  Jikan error for MAL ${idMal}, retry ${attempt + 1}/${retries} after ${waitTime}ms`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          continue;
+        }
+        
+        // 404 or other errors - cache as null to avoid repeated requests
+        if (error.response?.status === 404) {
+          jikanCache.set(cacheKey, { title: null, timestamp: Date.now() });
+        }
+        
+        return null;
+      }
+    }
+    
+    // All retries failed
+    console.warn(`❌ Jikan failed for MAL ${idMal} after ${retries} attempts`);
+    return null;
+  });
+}
+
+// =====================================================================
 // Helpers
 // =====================================================================
 
-// Light-weight concurrency limiter to avoid hammering Jikan.
+// Light-weight concurrency limiter for parallel operations
 function pLimit(max) {
   const queue = [];
   let active = 0;
@@ -87,18 +227,7 @@ function pLimit(max) {
       else queue.push(run);
     });
 }
-const limit = pLimit(5);
-
-// Fetch English title from Jikan using MAL id; returns null if not available.
-async function fetchEnglishFromJikan(idMal) {
-  if (!idMal) return null;
-  try {
-    const r = await axios.get(`https://api.jikan.moe/v4/anime/${idMal}`);
-    return r?.data?.data?.title_english?.trim() || null;
-  } catch {
-    return null; // Swallow errors (rate limits/404s)
-  }
-}
+const limit = pLimit(10); // Can process more in parallel since Jikan has its own queue
 
 // Refresh AniList token a bit early if we have a refresh token.
 async function maybeRefreshToken(sess) {
@@ -231,6 +360,8 @@ app.get('/api/get-anilist-data', async (req, res) => {
     const lists = listResp.data?.data?.MediaListCollection?.lists || [];
     const allEntries = lists.flatMap(l => l.entries || []);
 
+    console.log(`📊 Processing ${allEntries.length} anime entries...`);
+
     // 3) Build base objects; fill title with best English (AniList → Jikan → Romaji)
     let formatted = allEntries.map(entry => {
       const m = entry.media || {};
@@ -265,7 +396,14 @@ app.get('/api/get-anilist-data', async (req, res) => {
       };
     });
 
-    // Enrich missing/weak English titles with Jikan (limited concurrency)
+    // Count how many need Jikan lookup
+    const needsJikan = formatted.filter(obj => !obj._english && obj._idMal).length;
+    if (needsJikan > 0) {
+      console.log(`🔍 Fetching English titles from Jikan for ${needsJikan} anime (this may take a moment)...`);
+    }
+
+    // Enrich missing/weak English titles with Jikan (rate-limited)
+    const startTime = Date.now();
     await Promise.all(formatted.map(obj => limit(async () => {
       // If AniList English exists, prefer it
       if (obj._english) {
@@ -277,6 +415,11 @@ app.get('/api/get-anilist-data', async (req, res) => {
       obj.title = jikanTitle || obj._romaji || 'Unknown Title';
     })));
 
+    if (needsJikan > 0) {
+      const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.log(`✅ Jikan lookups completed in ${duration}s`);
+    }
+
     // Strip temp fields
     formatted = formatted.map(({ _english, _romaji, _idMal, ...rest }) => rest);
 
@@ -285,6 +428,17 @@ app.get('/api/get-anilist-data', async (req, res) => {
     console.error('get-anilist-data error:', err?.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch anime list' });
   }
+});
+
+// =====================================================================
+// Cache management endpoint (optional - for debugging)
+// =====================================================================
+app.get('/api/cache-stats', (req, res) => {
+  res.json({
+    cacheSize: jikanCache.size,
+    queueLength: jikanLimiter.queue.length,
+    requestCount: jikanLimiter.requestCount
+  });
 });
 
 // =====================================================================
