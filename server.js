@@ -8,34 +8,38 @@ const axios = require('axios');
 const path = require('path');
 const session = require('express-session');
 const { PrismaClient } = require('@prisma/client');
-const pgSession = require('connect-pg-simple')(session); // <-- Import connect-pg-simple
-const { Pool } = require('pg'); // <-- Import pg Pool
+const pgSession = require('connect-pg-simple')(session);
+const { Pool } = require('pg');
 
 const prisma = new PrismaClient();
 const app = express();
+
+// *** ADD THIS LINE ***
+app.set('trust proxy', 1); // Trust the first proxy (Render)
+
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'a-bad-secret-for-dev';
 
 // --- Session Middleware Setup ---
-// Create a Pool using the DATABASE_URL from .env
 const pgPool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false // <-- Add SSL for Render connections
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 app.use(session({
-    store: new pgSession({ // <-- Use pgSession store
-        pool: pgPool,                // Connection pool
-        tableName: 'Session'         // <-- Explicitly set table name
+    store: new pgSession({
+        pool: pgPool,
+        tableName: 'Session' // Use the table name Prisma created
     }),
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production', // Should be true on Render
+        httpOnly: true, // <-- Added for security
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        sameSite: 'lax' // Recommended for security
+        sameSite: 'lax' // <-- Keep as 'lax'
     }
 }));
 
@@ -96,20 +100,17 @@ app.get('/auth/anilist/callback', async (req, res) => {
 
         // --- 4. Store User ID in Session ---
         req.session.userId = user.id;
-        // *** ADDED LOG ***
         console.log(`Session Set: User ID ${user.id} stored in session ${req.session.id}`);
 
-        // Ensure session is saved before redirecting (optional but sometimes helpful)
+        // Ensure session is saved before redirecting
         req.session.save(err => {
             if (err) {
                 console.error("Error saving session before redirect:", err);
                 return res.status(500).send('Failed to save session.');
             }
-             // *** ADDED LOG ***
             console.log(`Session ${req.session.id} saved, redirecting...`);
-            res.redirect('/'); // Redirect back to the main dashboard page
+            res.redirect('/');
         });
-
 
     } catch (error) {
         console.error('Error during AniList callback:', error.response ? error.response.data : error.message);
@@ -119,18 +120,13 @@ app.get('/auth/anilist/callback', async (req, res) => {
 
 // PART C: Securely fetches data (UPDATED TO USE SESSION & DB TOKEN)
 app.get('/api/get-anilist-data', async (req, res) => {
-    // *** ADDED LOG ***
     console.log(`API Request: Session ID = ${req.session.id}, User ID in session = ${req.session.userId}`);
-
-    // --- 1. Check if user is logged in (via session) ---
     if (!req.session.userId) {
-        // *** ADDED LOG ***
         console.log('API Denied: No userId found in session. Sending 401.');
         return res.status(401).json({ error: 'Not authenticated. Please log in.' });
     }
 
     try {
-        // --- 2. Get user's data (including token) from DB ---
         const user = await prisma.user.findUnique({
             where: { id: req.session.userId },
         });
@@ -143,7 +139,6 @@ app.get('/api/get-anilist-data', async (req, res) => {
         const userAccessToken = user.accessToken;
         const userAnilistId = user.anilistId;
 
-        // --- 3. Fetch data from AniList using the user's token ---
         const listQuery = `
           query ($userId: Int) {
             MediaListCollection(userId: $userId, type: ANIME, status_in: [CURRENT, COMPLETED], sort: SCORE_DESC) {
