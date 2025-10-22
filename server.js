@@ -1,5 +1,5 @@
 // =====================================================================
-// --- BACKEND SERVER (server.js) ---
+// --- BACKEND SERVER (server.js) - WITH GACHA API ROUTES ---
 // =====================================================================
 
 require('dotenv').config();
@@ -65,6 +65,290 @@ app.use(session({
 // --- Parsers ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// =====================================================================
+// GACHA SYSTEM - In-Memory Storage
+// =====================================================================
+// NOTE: This uses in-memory storage. Data will be lost on server restart.
+// For production, replace with a database (PostgreSQL, MongoDB, etc.)
+
+const gachaStates = new Map();
+
+// Helper: Get or initialize gacha state for user
+function getUserGachaState(userId) {
+  if (!gachaStates.has(userId)) {
+    gachaStates.set(userId, {
+      tokens: 5,              // Initial tokens
+      shards: 0,
+      totalPulls: 0,          // Track total rolls made
+      collection: [],         // Array of card objects
+      appliedCosmetics: {},   // { cardId: cosmeticName }
+      ownedCosmetics: []      // Array of cosmetic IDs
+    });
+  }
+  return gachaStates.get(userId);
+}
+
+// Helper: Calculate shards by rarity
+// 🎨 CUSTOMIZE: Change these values to adjust shard rewards
+function getShardsByRarity(rarity) {
+  const shardMap = {
+    'Common': 1,      // ⭐⭐ 2-star cards
+    'Rare': 3,        // ⭐⭐⭐ 3-star cards
+    'Epic': 5,        // ⭐⭐⭐⭐ 4-star cards
+    'Legendary': 10   // ⭐⭐⭐⭐⭐ 5-star & Prismatic cards
+  };
+  return shardMap[rarity] || 1; // Default to 1 if rarity not found
+}
+
+// Middleware: Require authentication
+function requireAuth(req, res, next) {
+  if (!req.session || !req.session.anilist?.access_token) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  // Create a userId from the session if it doesn't exist
+  if (!req.session.userId) {
+    req.session.userId = req.session.anilist.access_token.substring(0, 16);
+  }
+  next();
+}
+
+// =====================================================================
+// GACHA API ROUTES
+// =====================================================================
+
+// GET /api/gacha/state - Get user's gacha state
+app.get('/api/gacha/state', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const state = getUserGachaState(userId);
+    
+    console.log(`📊 Loading gacha state for user ${userId}`);
+    
+    res.json({
+      tokens: state.tokens,
+      shards: state.shards,
+      collection: state.collection,
+      appliedCosmetics: state.appliedCosmetics,
+      ownedCosmetics: state.ownedCosmetics
+    });
+  } catch (error) {
+    console.error('❌ Get state error:', error);
+    res.status(500).json({ error: 'Failed to get gacha state' });
+  }
+});
+
+// POST /api/gacha/calculate-tokens - Calculate tokens from episodes
+app.post('/api/gacha/calculate-tokens', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { totalEpisodes } = req.body;
+    const state = getUserGachaState(userId);
+    
+    if (typeof totalEpisodes !== 'number' || totalEpisodes < 0) {
+      return res.status(400).json({ error: 'Invalid totalEpisodes value' });
+    }
+    
+    // Calculate tokens: 1 token per 50 episodes (configurable)
+    const EPISODES_PER_TOKEN = 50;
+    const earnedTokens = Math.floor(totalEpisodes / EPISODES_PER_TOKEN);
+    
+    // Track total pulls if not already tracked
+    if (!state.totalPulls) {
+      state.totalPulls = 0;
+    }
+    
+    // Calculate available tokens: earned - already used
+    const availableTokens = Math.max(0, earnedTokens - state.totalPulls);
+    state.tokens = availableTokens;
+    
+    console.log(`🎟️  User ${userId}: ${availableTokens} tokens (earned: ${earnedTokens}, used: ${state.totalPulls})`);
+    
+    res.json({
+      tokens: state.tokens,
+      shards: state.shards
+    });
+  } catch (error) {
+    console.error('❌ Calculate tokens error:', error);
+    res.status(500).json({ error: 'Failed to calculate tokens' });
+  }
+});
+
+// POST /api/gacha/roll - Perform a gacha roll
+app.post('/api/gacha/roll', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { card } = req.body;
+    const state = getUserGachaState(userId);
+    
+    // Validate request
+    if (!card || !card.id || !card.name || !card.anime || !card.rarity) {
+      return res.status(400).json({ error: 'Invalid card data - missing required fields' });
+    }
+    
+    // Check if user has enough tokens
+    if (state.tokens < 1) {
+      return res.status(400).json({ error: 'Not enough tokens' });
+    }
+    
+    // Deduct token and increment pull counter
+    state.tokens -= 1;
+    state.totalPulls = (state.totalPulls || 0) + 1;
+    
+    // Check for duplicate
+    const existingCard = state.collection.find(c => c.id === card.id);
+    
+    if (existingCard) {
+      // Duplicate - award shards
+      const shardsAwarded = getShardsByRarity(card.rarity);
+      state.shards += shardsAwarded;
+      
+      // Increment count
+      existingCard.count = (existingCard.count || 1) + 1;
+      
+      console.log(`🔁 User ${userId}: Duplicate ${card.name} (+${shardsAwarded} shards) [Pull #${state.totalPulls}]`);
+      
+      res.json({
+        tokens: state.tokens,
+        shards: state.shards,
+        isDuplicate: true,
+        shardsAwarded
+      });
+    } else {
+      // New card - add to collection
+      state.collection.push({
+        id: card.id,
+        name: card.name,
+        anime: card.anime,
+        rarity: card.rarity,
+        imageUrl: card.imageUrl,
+        count: 1
+      });
+      
+      console.log(`✨ User ${userId}: New card ${card.name} (${card.rarity}) [Pull #${state.totalPulls}]`);
+      
+      res.json({
+        tokens: state.tokens,
+        shards: state.shards,
+        isDuplicate: false
+      });
+    }
+  } catch (error) {
+    console.error('❌ Roll error:', error);
+    res.status(500).json({ error: 'Failed to perform roll' });
+  }
+});
+
+// POST /api/gacha/buy-pack - Buy a cosmetic pack
+app.post('/api/gacha/buy-pack', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { packCost, cosmetics } = req.body;
+    const state = getUserGachaState(userId);
+    
+    // Validate
+    if (typeof packCost !== 'number' || !Array.isArray(cosmetics)) {
+      return res.status(400).json({ error: 'Invalid pack data' });
+    }
+    
+    // Check if user has enough shards
+    if (state.shards < packCost) {
+      return res.status(400).json({ error: 'Not enough shards' });
+    }
+    
+    // Deduct shards
+    state.shards -= packCost;
+    
+    // Add cosmetics to owned (avoid duplicates)
+    cosmetics.forEach(cosmeticId => {
+      if (!state.ownedCosmetics.includes(cosmeticId)) {
+        state.ownedCosmetics.push(cosmeticId);
+      }
+    });
+    
+    console.log(`🎨 User ${userId}: Bought pack for ${packCost} shards`);
+    
+    res.json({
+      shards: state.shards,
+      cosmetics: state.ownedCosmetics
+    });
+  } catch (error) {
+    console.error('❌ Buy pack error:', error);
+    res.status(500).json({ error: 'Failed to buy pack' });
+  }
+});
+
+// POST /api/gacha/apply-cosmetic - Apply a cosmetic to a card
+app.post('/api/gacha/apply-cosmetic', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { cardId, cosmeticName } = req.body;
+    const state = getUserGachaState(userId);
+    
+    // Validate
+    if (!cardId || !cosmeticName) {
+      return res.status(400).json({ error: 'Invalid cosmetic data' });
+    }
+    
+    // Apply or remove cosmetic
+    if (cosmeticName === 'Default') {
+      delete state.appliedCosmetics[cardId];
+      console.log(`🖌️  User ${userId}: Removed cosmetic from card`);
+    } else {
+      // Check if user owns this cosmetic
+      if (!state.ownedCosmetics.includes(cosmeticName)) {
+        return res.status(400).json({ error: 'Cosmetic not owned' });
+      }
+      state.appliedCosmetics[cardId] = cosmeticName;
+      console.log(`🖌️  User ${userId}: Applied ${cosmeticName} to card`);
+    }
+    
+    res.json({
+      appliedCosmetics: state.appliedCosmetics
+    });
+  } catch (error) {
+    console.error('❌ Apply cosmetic error:', error);
+    res.status(500).json({ error: 'Failed to apply cosmetic' });
+  }
+});
+
+// POST /api/gacha/reset - Reset user's gacha collection
+app.post('/api/gacha/reset', requireAuth, (req, res) => {
+  try {
+    const userId = req.session.userId;
+    
+    console.log(`🔄 Resetting gacha collection for user ${userId}`);
+    
+    // Reset to initial state
+    gachaStates.set(userId, {
+      tokens: 5,
+      shards: 0,
+      totalPulls: 0,
+      collection: [],
+      appliedCosmetics: {},
+      ownedCosmetics: []
+    });
+    
+    console.log(`✅ User ${userId}: Gacha collection reset`);
+    
+    res.json({
+      success: true,
+      message: 'Gacha collection reset successfully',
+      tokens: 5,
+      shards: 0,
+      collection: [],
+      appliedCosmetics: {},
+      ownedCosmetics: []
+    });
+  } catch (error) {
+    console.error('❌ Reset error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to reset gacha collection',
+      message: error.message 
+    });
+  }
+});
 
 // =====================================================================
 // Jikan API Rate Limiter with Caching
@@ -324,6 +608,9 @@ app.get('/api/get-anilist-data', async (req, res) => {
     const userId = viewerResp.data?.data?.Viewer?.id;
     if (!userId) return res.status(500).json({ error: 'Failed to fetch user id' });
 
+    // Store userId in session for gacha system
+    req.session.userId = userId.toString();
+
     // 2) Fetch lists – request english + romaji + MAL id for Jikan lookup
     const listQuery = `
       query ($userId: Int) {
@@ -435,9 +722,10 @@ app.get('/api/get-anilist-data', async (req, res) => {
 // =====================================================================
 app.get('/api/cache-stats', (req, res) => {
   res.json({
-    cacheSize: jikanCache.size,
-    queueLength: jikanLimiter.queue.length,
-    requestCount: jikanLimiter.requestCount
+    jikanCacheSize: jikanCache.size,
+    jikanQueueLength: jikanLimiter.queue.length,
+    jikanRequestCount: jikanLimiter.requestCount,
+    gachaUsers: gachaStates.size
   });
 });
 
@@ -464,4 +752,5 @@ app.get(/^(?!\/(api|auth)).*$/, (req, res) => {
 // =====================================================================
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server listening on ${PORT}`);
+  console.log(`🎮 Gacha system active (in-memory storage)`);
 });

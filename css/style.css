@@ -344,13 +344,239 @@ body.theme-sky .calendar-card-text { color: #0ea5e9; }
 body.theme-neon .calendar-card-title { color: #f0abfc; }
 body.theme-neon .calendar-card-text { color: #a5b4fc; }
 
-/* Remove this theme or define styles for it if needed */
-/* body.theme-sakura-night .calendar-card-title { color: #f9a8d4; } */
-/* body.theme-sakura-night .calendar-card-text { color: #fce7f3; } */
+/* --- TOAST NOTIFICATION STYLES --- */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
 
-/* --- REMOVED PAGINATION STYLES --- */
-/*
-.pagination { ... }
-.page-btn { ... }
-.page-btn:disabled { ... }
-*/
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  min-width: 300px;
+  max-width: 400px;
+  opacity: 0;
+  transform: translateX(400px);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: auto;
+  font-size: 14px;
+}
+
+.toast-show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-hide {
+  opacity: 0;
+  transform: translateX(400px);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.toast-message {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Success Toast (Green) */
+.toast-success {
+  background-color: rgba(16, 185, 129, 0.95);
+  color: white;
+  border-left: 4px solid #059669;
+}
+.toast-success .toast-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Error Toast (Red) */
+.toast-error {
+  background-color: rgba(239, 68, 68, 0.95);
+  color: white;
+  border-left: 4px solid #dc2626;
+}
+.toast-error .toast-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Warning Toast (Orange) */
+.toast-warning {
+  background-color: rgba(245, 158, 11, 0.95);
+  color: white;
+  border-left: 4px solid #d97706;
+}
+.toast-warning .toast-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Info Toast (Blue) */
+.toast-info {
+  background-color: rgba(59, 130, 246, 0.95);
+  color: white;
+  border-left: 4px solid #2563eb;
+}
+.toast-info .toast-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .toast-container {
+    right: 10px;
+    left: 10px;
+    top: 10px;
+  }
+  
+  .toast {
+    min-width: auto;
+    max-width: none;
+  }
+}
+
+/* --- CONFIRM DIALOG STYLES --- */
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.confirm-overlay.confirm-show {
+  opacity: 1;
+}
+
+.confirm-overlay.confirm-show .confirm-dialog {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.confirm-dialog {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: scale(0.9);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.confirm-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.confirm-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.confirm-message {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #374151;
+  margin-bottom: 24px;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.confirm-btn {
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.confirm-btn-cancel {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.confirm-btn-cancel:hover {
+  background-color: #d1d5db;
+}
+
+.confirm-btn-confirm {
+  background-color: #ef4444;
+  color: white;
+}
+
+.confirm-btn-confirm:hover {
+  background-color: #dc2626;
+}
+
+/* Theme-specific confirm dialog styles */
+body.theme-neon .confirm-dialog {
+  background-color: #1e1b4b;
+  border: 1px solid rgba(232, 121, 249, 0.4);
+}
+
+body.theme-neon .confirm-message {
+  color: #e2e8f0;
+}
+
+body.theme-neon .confirm-btn-cancel {
+  background-color: #312e81;
+  color: #e0e7ff;
+}
+
+body.theme-neon .confirm-btn-cancel:hover {
+  background-color: #3730a3;
+}
+
+body.theme-sakura .confirm-btn-confirm {
+  background-color: #ec4899;
+}
+
+body.theme-sakura .confirm-btn-confirm:hover {
+  background-color: #db2777;
+}
+
+body.theme-sky .confirm-btn-confirm {
+  background-color: #0ea5e9;
+}
+
+body.theme-sky .confirm-btn-confirm:hover {
+  background-color: #0284c7;
+}

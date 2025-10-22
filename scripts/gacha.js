@@ -1,9 +1,8 @@
 // =====================================================================
 // --- GACHA FEATURE SCRIPT (gacha.js) - WITH BACKEND INTEGRATION ---
 // =====================================================================
-// This module contains all logic for the gacha system,
-// cosmetics, and shard shop. Now uses backend persistence.
-// =====================================================================
+
+import { showToast, showConfirm } from './toast.js';
 
 // --- Backend API Integration ---
 const GachaAPI = {
@@ -60,20 +59,28 @@ const GachaAPI = {
       throw new Error(error.error || 'Failed to apply cosmetic');
     }
     return await response.json();
+  },
+
+  async resetCollection() {
+    const response = await fetch('/api/gacha/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to reset collection');
+    }
+    return await response.json();
   }
 };
 
 // --- State Management ---
-// Global state is now synced with backend
 let gachaManifest = null;
 let cosmeticsManifest = null;
 let currentlyCustomizingCardUrl = null;
 
 // --- Helper Functions ---
 
-/**
- * Formats a slug (e.g., "one-piece") into a proper name ("One Piece").
- */
 function formatName(slug) {
   if (!slug) return '';
   const minorWords = new Set(['a', 'an', 'the', 'of', 'in', 'on', 'at', 'for', 'to', 'with']);
@@ -86,12 +93,9 @@ function formatName(slug) {
   return formattedWords.join(' ');
 }
 
-/**
- * Convert card format from manifest to backend format
- */
 function convertCardToBackendFormat(card) {
   return {
-    id: card.image_url, // Use image URL as unique ID
+    id: card.image_url,
     name: card.name,
     anime: card.anime,
     rarity: getRarityString(card.rarity),
@@ -99,18 +103,12 @@ function convertCardToBackendFormat(card) {
   };
 }
 
-/**
- * Convert rarity number to string
- */
 function getRarityString(rarity) {
   if (rarity === 'Prismatic') return 'Legendary';
   const rarityMap = { 1: 'Common', 2: 'Common', 3: 'Rare', 4: 'Epic', 5: 'Legendary' };
   return rarityMap[rarity] || 'Common';
 }
 
-/**
- * Convert backend collection to display format
- */
 function convertBackendCollectionToDisplay(backendCollection) {
   return backendCollection.map(card => ({
     name: card.name || card.card_name,
@@ -125,9 +123,6 @@ function convertBackendCollectionToDisplay(backendCollection) {
 
 // --- Core Gacha & UI Functions ---
 
-/**
- * Loads the gacha and cosmetics manifest files.
- */
 export async function loadGachaData() {
   try {
     const [gachaRes, cosmeticRes] = await Promise.all([
@@ -148,17 +143,14 @@ export async function loadGachaData() {
     if (gachaResultDisplay) {
       gachaResultDisplay.innerHTML = `<p class="text-red-500 font-semibold">Error: Could not load gacha data.</p>`;
     }
+    showToast('Failed to load gacha data', 'error');
   }
 }
 
-/**
- * Load gacha state from backend and sync with window object.
- */
 export async function loadGachaState() {
   try {
     const state = await GachaAPI.getState();
     
-    // Sync with window object for compatibility with existing code
     window.gachaTokens = state.tokens;
     window.gachaShards = state.shards;
     window.waifuCollection = convertBackendCollectionToDisplay(state.collection);
@@ -169,7 +161,6 @@ export async function loadGachaState() {
     return state;
   } catch (error) {
     console.error('❌ Failed to load gacha state:', error);
-    // Initialize empty state on error
     window.gachaTokens = 0;
     window.gachaShards = 0;
     window.waifuCollection = [];
@@ -179,10 +170,6 @@ export async function loadGachaState() {
   }
 }
 
-/**
- * Calculates and updates the user's gacha tokens based on episodes watched.
- * Now syncs with backend instead of localStorage.
- */
 export async function updateGachaTokens(totalEpisodes, totalPulls) {
   try {
     const result = await GachaAPI.calculateTokens(totalEpisodes);
@@ -191,16 +178,12 @@ export async function updateGachaTokens(totalEpisodes, totalPulls) {
     console.log(`✅ Tokens updated: ${result.tokens} tokens, ${result.shards} shards`);
   } catch (error) {
     console.error('❌ Failed to update tokens:', error);
-    // Fallback to local calculation if backend fails
     const tokensPerEpisode = window.CONFIG.GACHA_EPISODES_PER_TOKEN || 50;
     const earnedTokens = Math.floor(totalEpisodes / tokensPerEpisode);
     window.gachaTokens = Math.max(0, earnedTokens - totalPulls);
   }
 }
 
-/**
- * Renders the entire gacha UI based on the current global state.
- */
 export function renderGachaState() {
   const gachaTokenCount = document.getElementById('gacha-token-count');
   const gachaShardCount = document.getElementById('gacha-shard-count');
@@ -208,7 +191,6 @@ export function renderGachaState() {
   const gachaCollectionDisplay = document.getElementById('gacha-collection-display');
   const gachaStatsDisplay = document.getElementById('gacha-stats-display');
 
-  // Update token and shard counts
   if (gachaTokenCount) gachaTokenCount.textContent = window.gachaTokens;
   if (gachaShardCount) gachaShardCount.textContent = window.gachaShards;
   if (gachaRollButton) {
@@ -216,7 +198,6 @@ export function renderGachaState() {
     gachaRollButton.classList.toggle('opacity-50', gachaRollButton.disabled);
   }
 
-  // Update collection stats
   if (gachaStatsDisplay) {
     if (window.waifuCollection.length > 0) {
       const uniqueCharacters = new Set(window.waifuCollection.map(card => card.name)).size;
@@ -226,7 +207,6 @@ export function renderGachaState() {
     }
   }
 
-  // Render the collection
   if (gachaCollectionDisplay) {
     gachaCollectionDisplay.innerHTML = '';
     if (window.waifuCollection.length === 0) {
@@ -268,24 +248,60 @@ export function renderGachaState() {
 }
 
 /**
- * Resets the user's gacha collection (backend version).
- * Note: This would need a backend endpoint to fully implement.
- * For now, it just reloads the state.
+ * 🆕 Resets the user's gacha collection (backend version).
  */
 export async function resetGachaCollection() {
-  if (confirm('Reset is not implemented with backend persistence. Contact admin to reset your collection.')) {
-    // Reload state from backend
-    await loadGachaState();
-    renderGachaState();
-    return true;
+  const confirmMessage = '⚠️ Are you sure you want to reset your entire gacha collection?\n\nThis will:\n- Delete all cards\n- Remove all cosmetics\n- Reset tokens to 5\n- Reset shards to 0\n\nThis action CANNOT be undone!';
+  
+  const confirmed = await showConfirm(confirmMessage);
+  if (!confirmed) {
+    return false;
   }
-  return false;
+
+  try {
+    const result = await GachaAPI.resetCollection();
+    
+    // Update local state
+    window.gachaTokens = result.tokens;
+    window.gachaShards = result.shards;
+    window.waifuCollection = [];
+    window.appliedCosmetics = {};
+    window.ownedCosmetics = [];
+    window.totalPulls = 0;
+    
+    // Re-render UI
+    renderGachaState();
+    
+    // Clear result display
+    const gachaResultDisplay = document.getElementById('gacha-result-display');
+    if (gachaResultDisplay) {
+      gachaResultDisplay.innerHTML = `
+        <div class="text-center">
+          <p class="text-xl font-bold mb-2 text-blue-600">🔄 RESET COMPLETE</p>
+          <p class="text-sm text-gray-600">Your collection has been cleared!</p>
+        </div>`;
+    }
+    
+    showToast('Collection reset successfully!', 'success');
+    console.log('✅ Gacha collection reset successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to reset collection:', error);
+    
+    // Check if user needs to re-authenticate
+    if (error.message.includes('<!DOCTYPE') || error.message.includes('is not valid JSON')) {
+      showToast('Your session has expired. Please log out and log back in.', 'error', 5000);
+      // Optionally auto-redirect to logout
+      setTimeout(() => {
+        window.location.href = '/logout';
+      }, 2000);
+    } else {
+      showToast(`Failed to reset collection: ${error.message}`, 'error');
+    }
+    return false;
+  }
 }
 
-/**
- * Performs the gacha roll logic and calls the backend.
- * Returns the result with updated state.
- */
 export async function rollGacha() {
   const gachaResultDisplay = document.getElementById('gacha-result-display');
   
@@ -303,7 +319,6 @@ export async function rollGacha() {
     return { status: 'error', message: 'Gacha manifest not loaded' };
   }
 
-  // Generate random card (same logic as before)
   const animeNames = Object.keys(gachaManifest);
   const randomAnimeName = animeNames[Math.floor(Math.random() * animeNames.length)];
   const characterNames = Object.keys(gachaManifest[randomAnimeName]);
@@ -319,11 +334,9 @@ export async function rollGacha() {
   };
 
   try {
-    // Call backend to process the roll
     const backendCard = convertCardToBackendFormat(finalCharacter);
     const result = await GachaAPI.roll(backendCard);
 
-    // Update local state with backend response
     window.gachaTokens = result.tokens;
     window.gachaShards = result.shards;
 
@@ -334,7 +347,6 @@ export async function rollGacha() {
         card: finalCharacter
       };
     } else {
-      // Add to local collection
       window.waifuCollection.unshift(finalCharacter);
       return {
         status: 'new',
@@ -350,9 +362,6 @@ export async function rollGacha() {
   }
 }
 
-/**
- * Renders the result of a gacha roll to the DOM.
- */
 export function displayGachaResult(result) {
   const gachaResultDisplay = document.getElementById('gacha-result-display');
   if (!gachaResultDisplay) return;
@@ -378,11 +387,6 @@ export function displayGachaResult(result) {
   }
 }
 
-// --- Cosmetic & Shard Shop Functions ---
-
-/**
- * Renders the shard shop UI from the manifest.
- */
 function renderShardShop() {
   const packContainer = document.getElementById('cosmetic-pack-container');
   if (!cosmeticsManifest || !packContainer) return;
@@ -403,26 +407,19 @@ function renderShardShop() {
   }
 }
 
-/**
- * Logic for buying a cosmetic pack (backend version).
- */
 export async function buyCosmeticPack(packId) {
   const pack = cosmeticsManifest.packs[packId];
   if (!pack) return null;
 
   if (window.gachaShards < pack.cost) {
-    alert("Not enough shards!");
+    showToast("Not enough shards!", "error");
     return null;
   }
 
   try {
-    // Get cosmetic names from pack
     const cosmeticNames = pack.items.map(item => item.id);
-    
-    // Call backend
     const result = await GachaAPI.buyPack(pack.cost, cosmeticNames);
     
-    // Update local state
     window.gachaShards = result.shards;
     result.cosmetics.forEach(cosmeticId => {
       if (!window.ownedCosmetics.includes(cosmeticId)) {
@@ -430,7 +427,6 @@ export async function buyCosmeticPack(packId) {
       }
     });
 
-    // Display the result
     const wonItem = pack.items[Math.floor(Math.random() * pack.items.length)];
     const resultDisplay = document.getElementById('cosmetic-result-display');
     const rewardsContainer = document.getElementById('cosmetic-rewards');
@@ -443,17 +439,15 @@ export async function buyCosmeticPack(packId) {
         </div>`;
     }
 
+    showToast(`Purchased ${pack.name}!`, 'success');
     return wonItem;
   } catch (error) {
     console.error('❌ Failed to buy pack:', error);
-    alert(`Failed to buy pack: ${error.message}`);
+    showToast(`Failed to buy pack: ${error.message}`, 'error');
     return null;
   }
 }
 
-/**
- * Opens the cosmetic modal for a specific card.
- */
 export function openCosmeticModal(cardUrl) {
   currentlyCustomizingCardUrl = cardUrl;
   const modal = document.getElementById('cosmetic-modal-backdrop');
@@ -462,14 +456,12 @@ export function openCosmeticModal(cardUrl) {
 
   selectionContainer.innerHTML = '';
 
-  // Add default option
   const defaultOption = document.createElement('button');
   defaultOption.className = 'p-2 border rounded hover:bg-gray-100';
   defaultOption.textContent = 'Default';
   defaultOption.onclick = () => applyCosmetic('default');
   selectionContainer.appendChild(defaultOption);
 
-  // Add owned borders
   window.ownedCosmetics.forEach(cosmeticId => {
     if (cosmeticId.startsWith('border-')) {
       const cosmeticOption = document.createElement('button');
@@ -483,36 +475,28 @@ export function openCosmeticModal(cardUrl) {
   modal.classList.add('show');
 }
 
-/**
- * Applies a cosmetic to the currently selected card (backend version).
- */
 export async function applyCosmetic(cosmeticId) {
   if (!currentlyCustomizingCardUrl) return false;
 
   try {
     const cosmeticName = cosmeticId === 'default' ? 'Default' : cosmeticId;
-    
-    // Call backend
     await GachaAPI.applyCosmetic(currentlyCustomizingCardUrl, cosmeticName);
     
-    // Update local state
     if (cosmeticId === 'default') {
       delete window.appliedCosmetics[currentlyCustomizingCardUrl];
     } else {
       window.appliedCosmetics[currentlyCustomizingCardUrl] = cosmeticId;
     }
 
-    // Close the modal
     const modal = document.getElementById('cosmetic-modal-backdrop');
     if (modal) modal.classList.remove('show');
     
-    // Re-render to show the change
     renderGachaState();
-    
+    showToast('Cosmetic applied!', 'success');
     return true;
   } catch (error) {
     console.error('❌ Failed to apply cosmetic:', error);
-    alert(`Failed to apply cosmetic: ${error.message}`);
+    showToast(`Failed to apply cosmetic: ${error.message}`, 'error');
     return false;
   }
 }

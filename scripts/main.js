@@ -1,12 +1,12 @@
 // =====================================================================
-// --- MAIN APPLICATION SCRIPT (main.js) ---
-// =====================================================================
-// This is the new entry point. It imports all other modules
-// and connects them to the DOM.
+// --- MAIN APPLICATION SCRIPT (main.js) - UPDATED FOR BACKEND GACHA ---
 // =====================================================================
 
 // --- 1. Module Imports ---
-// We will create all of these files next.
+import { 
+  showToast, 
+  showConfirm 
+} from './toast.js';
 import {
   showError,
   showLoading,
@@ -50,20 +50,21 @@ import {
   fetchSeasonalAnime
 } from './calendar.js';
 
-// Gacha functions are imported from gacha.js
+// ðŸ†• UPDATED: Import backend-enabled gacha functions
 import {
   rollGacha,
   renderGachaState,
   updateGachaTokens,
-  displayGachaResult, // <-- ADD THIS
-  loadGachaData       // <-- ADD THIS
+  displayGachaResult,
+  loadGachaData,
+  loadGachaState,      // ðŸ†• ADD: Load state from backend
+  buyCosmeticPack,     // ðŸ†• ADD: For cosmetic pack purchases
+  openCosmeticModal,   // ðŸ†• ADD: For cosmetic customization
+  resetGachaCollection // ðŸ†• ADD: For reset functionality
 } from './gacha.js';
 
 
 // --- 2. State Variables ---
-// All top-level state for the application lives here.
-
-// Pull from global config set in index.html
 let GEMINI_API_KEY = window.CONFIG.GEMINI_API_KEY || '';
 let ITEMS_PER_PAGE = window.CONFIG.EPISODES_PER_PAGE || 25;
 
@@ -77,12 +78,53 @@ let currentSort = {
 };
 window.episodesWatchedTotal = 0;
 
+// ðŸ†• ADD: Track if gacha is initialized
+let isGachaInitialized = false;
+
 
 // --- 3. Core Application Flow ---
 
 /**
+ * ðŸ†• NEW: Initialize gacha system from backend
+ */
+async function initializeGacha() {
+  if (isGachaInitialized) return;
+  
+  try {
+    showLoading(true, 'Loading your gacha collection...');
+    
+    // Load manifest files
+    await loadGachaData();
+    
+    // Load state from backend
+    await loadGachaState();
+    
+    // Render the UI
+    renderGachaState();
+    
+    isGachaInitialized = true;
+    console.log('âœ… Gacha system initialized from backend');
+    
+  } catch (error) {
+    console.error('âŒ Failed to initialize gacha:', error);
+    const gachaResultDisplay = document.getElementById('gacha-result-display');
+    if (gachaResultDisplay) {
+      gachaResultDisplay.innerHTML = `
+        <p class="text-red-500 font-semibold">
+          Failed to load gacha data: ${error.message}
+        </p>
+        <p class="text-sm text-gray-600 mt-2">
+          Please try logging out and back in.
+        </p>
+      `;
+    }
+  } finally {
+    showLoading(false);
+  }
+}
+
+/**
  * Fetches data from the backend /api/get-anilist-data endpoint.
- * Handles auth errors and processes the successful response.
  */
 async function syncWithAnilist() {
   const loginScreen = document.getElementById('login-screen');
@@ -97,17 +139,13 @@ async function syncWithAnilist() {
     const response = await fetch('/api/get-anilist-data');
 
     if (response.status === 401) {
-      // Not authenticated, force a login screen
+      // Not authenticated, reset everything
       localStorage.removeItem('animeDashboardData');
-      localStorage.removeItem('animeGachaState');
       animeData = [];
-      window.gachaTokens = window.CONFIG.GACHA_INITIAL_TOKENS || 5;
-      window.gachaShards = 0;
-      window.totalPulls = 0;
-      window.episodesWatchedTotal = 0;
-      window.waifuCollection = [];
-      window.ownedCosmetics = [];
-      window.appliedCosmetics = {};
+      
+      // ðŸ†• CHANGED: Don't initialize gacha state locally anymore
+      // Backend handles initialization on first login
+      isGachaInitialized = false;
 
       showLoading(false);
       if (loginScreen) loginScreen.classList.remove('hidden');
@@ -129,9 +167,12 @@ async function syncWithAnilist() {
       throw new Error("Received invalid data format from server.");
     }
     
-    // Success! Save data and render
     animeData = data;
     saveDataToLocalStorage(animeData);
+    
+    // ðŸ†• ADD: Initialize gacha after successful sync
+    await initializeGacha();
+    
     processAndRenderDashboard(animeData);
 
   } catch (err) {
@@ -158,17 +199,12 @@ async function logout() {
   } finally {
     // Clear all local data
     localStorage.removeItem('animeDashboardData');
-    localStorage.removeItem('animeGachaState');
     animeData = [];
     lastStats = null;
     seasonalAnimeData = null;
-    window.gachaTokens = window.CONFIG.GACHA_INITIAL_TOKENS || 5;
-    window.gachaShards = 0;
-    window.totalPulls = 0;
-    window.episodesWatchedTotal = 0;
-    window.waifuCollection = [];
-    window.ownedCosmetics = [];
-    window.appliedCosmetics = {};
+    
+    // ðŸ†• CHANGED: Don't clear gacha state locally - backend handles it
+    isGachaInitialized = false;
 
     // Redirect to home to force re-login
     window.location.href = '/';
@@ -177,8 +213,6 @@ async function logout() {
 
 /**
  * Main callback function after data is loaded.
- * Triggers all rendering functions.
- * @param {Array} data - The user's anime data.
  */
 function processAndRenderDashboard(data) {
   const loginScreen = document.getElementById('login-screen');
@@ -192,38 +226,40 @@ function processAndRenderDashboard(data) {
     return;
   }
 
-  // Hide login/welcome screens
   if (loginScreen) loginScreen.classList.add('hidden');
   if (welcomeScreen) welcomeScreen.classList.add('hidden');
 
-  // --- Trigger all render functions ---
   populateFilters(data);
   lastStats = calculateStatistics(data);
   renderStats(lastStats);
   
-  // Pass instances to renderCharts so it can destroy them
   const chartInstances = renderCharts(lastStats, genreChartInstance, scoreChartInstance);
   genreChartInstance = chartInstances.genreChartInstance;
   scoreChartInstance = chartInstances.scoreChartInstance;
 
   renderAnimeTable(data, currentSort);
-  renderWatchingTab(data, (title) => {
-    // Pass incrementEpisode as a callback to renderWatchingTab
+  renderWatchingTab(data, async (title) => {
     animeData = incrementEpisode(title, animeData);
     lastStats = calculateStatistics(animeData);
-    updateGachaTokens(lastStats.totalEpisodes, window.totalPulls);
+    
+    // ðŸ†• CHANGED: Made async to work with backend
+    await updateGachaTokens(lastStats.totalEpisodes, window.totalPulls || 0);
+    
     saveDataToLocalStorage(animeData);
     renderStats(lastStats);
     renderAnimeTable(animeData, currentSort);
   });
 
-  // Gacha setup
-  updateGachaTokens(lastStats.totalEpisodes, window.totalPulls);
-  renderGachaState();
+  // ðŸ†• CHANGED: Gacha setup is now handled by initializeGacha()
+  // Just render the UI here
+  if (isGachaInitialized) {
+    renderGachaState();
+  }
 
-  // Show dashboard
   setActiveTab('watching');
-  if (document.getElementById('gemini-response')) document.getElementById('gemini-response').innerHTML = '';
+  if (document.getElementById('gemini-response')) {
+    document.getElementById('gemini-response').innerHTML = '';
+  }
   showLoading(false);
   if (dashboardScreen) dashboardScreen.classList.remove('hidden');
   setTimeout(() => {
@@ -233,9 +269,8 @@ function processAndRenderDashboard(data) {
 
 
 // --- 4. Event Listeners ---
-// This is the main bootstrapper for the application.
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // --- Get Elements ---
   const settingsButton = document.getElementById('settings-button');
   const viewDashboardBtn = document.getElementById('view-dashboard-btn');
@@ -254,23 +289,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const geminiButton = document.getElementById('gemini-button');
   const gachaRollButton = document.getElementById('gacha-roll-button');
   const cosmeticModalClose = document.getElementById('cosmetic-modal-close');
+  const gachaResetButton = document.getElementById('gacha-reset-button');
+if (gachaResetButton) {
+  gachaResetButton.addEventListener('click', async () => {
+    const success = await resetGachaCollection();
+    if (success) {
+      // Optionally reload gacha state to ensure everything is fresh
+      await loadGachaState();
+      renderGachaState();
+    }
+  });
+}
 
   // --- Initial Setup ---
   applyConfigToUI();
   loadTheme();
   
-  // Load saved data and update gacha state
+  // ðŸ†• CHANGED: Don't load gacha state from localStorage anymore
   const loadedData = checkForSavedData();
   animeData = loadedData.animeData;
-  if (loadedData.gachaState) {
-    window.gachaTokens = loadedData.gachaState.gachaTokens;
-    window.gachaShards = loadedData.gachaState.gachaShards;
-    window.totalPulls = loadedData.gachaState.totalPulls;
-    window.episodesWatchedTotal = loadedData.gachaState.episodesWatchedTotal;
-    window.waifuCollection = loadedData.gachaState.waifuCollection;
-    window.ownedCosmetics = loadedData.gachaState.ownedCosmetics;
-    window.appliedCosmetics = loadedData.gachaState.appliedCosmetics;
-  }
   
   if (animeData.length > 0) {
     lastStats = calculateStatistics(animeData);
@@ -278,11 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Auth Flow ---
   if (animeData.length > 0) {
-    // Saved data exists, show welcome screen
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('welcome-back-screen').classList.remove('hidden');
   } else {
-    // No data, try to sync (which will show login if unauthorized)
     syncWithAnilist();
   }
 
@@ -290,17 +325,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Main Auth/Data Buttons
   if (viewDashboardBtn) {
-    viewDashboardBtn.addEventListener('click', () => {
+    viewDashboardBtn.addEventListener('click', async () => {
       const storedData = localStorage.getItem('animeDashboardData');
       if (storedData) {
         animeData = JSON.parse(storedData);
         document.getElementById('welcome-back-screen').classList.add('hidden');
+        
+        // ðŸ†• ADD: Initialize gacha when returning
+        await initializeGacha();
+        
         processAndRenderDashboard(animeData);
       } else {
         syncWithAnilist();
       }
     });
   }
+  
   if (resyncBtn) resyncBtn.addEventListener('click', syncWithAnilist);
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
   if (downloadJsonBtn) {
@@ -309,14 +349,20 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Tab Navigation
   if (tabNav) {
-    tabNav.addEventListener('click', (e) => {
+    tabNav.addEventListener('click', async (e) => {
       if (e.target.tagName === 'BUTTON') {
         const tab = e.target.dataset.tab;
         setActiveTab(tab);
+        
         if (tab === 'calendar' && !seasonalAnimeData) {
           fetchSeasonalAnime().then(data => {
             seasonalAnimeData = data;
           });
+        }
+        
+        // ðŸ†• ADD: Initialize gacha when tab is opened
+        if (tab === 'gacha' && !isGachaInitialized) {
+          await initializeGacha();
         }
       }
     });
@@ -328,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.tagName === 'BUTTON') {
         const newTheme = e.target.dataset.theme;
         setTheme(newTheme);
-        // Re-render charts with new theme colors
         if (lastStats) {
           const chartInstances = renderCharts(lastStats, genreChartInstance, scoreChartInstance);
           genreChartInstance = chartInstances.genreChartInstance;
@@ -342,18 +387,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (settingsButton) settingsButton.addEventListener('click', showSettingsModal);
   if (settingsSaveButton) {
     settingsSaveButton.addEventListener('click', () => {
-        // Save config generates a file, but also updates the live config
-        const newConfig = saveAndGenerateConfigFile();
-        window.CONFIG = newConfig.CONFIG;
-        GEMINI_API_KEY = newConfig.GEMINI_API_KEY;
-        ITEMS_PER_PAGE = newConfig.ITEMS_PER_PAGE;
-        // Re-apply UI and re-render charts
-        applyConfigToUI();
-        if (lastStats) {
-            const chartInstances = renderCharts(lastStats, genreChartInstance, scoreChartInstance);
-            genreChartInstance = chartInstances.genreChartInstance;
-            scoreChartInstance = chartInstances.scoreChartInstance;
-        }
+      const newConfig = saveAndGenerateConfigFile();
+      window.CONFIG = newConfig.CONFIG;
+      GEMINI_API_KEY = newConfig.GEMINI_API_KEY;
+      ITEMS_PER_PAGE = newConfig.ITEMS_PER_PAGE;
+      applyConfigToUI();
+      if (lastStats) {
+        const chartInstances = renderCharts(lastStats, genreChartInstance, scoreChartInstance);
+        genreChartInstance = chartInstances.genreChartInstance;
+        scoreChartInstance = chartInstances.scoreChartInstance;
+      }
     });
   }
   if (settingsCancelButton) {
@@ -401,36 +444,43 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-// Gacha Tab
+  // ðŸ†• UPDATED: Gacha Tab - Now async
   if (gachaRollButton) {
-    // Load gacha manifests first
-    loadGachaData(); 
-
-    gachaRollButton.addEventListener('click', () => {
-        // 1. Roll for the card.
-        const result = rollGacha(); // No parameter needed
+    gachaRollButton.addEventListener('click', async () => {
+      const button = gachaRollButton;
+      button.disabled = true; // Prevent double-clicks
+      
+      try {
+        // 1. Roll for the card (now async!)
+        const result = await rollGacha();
 
         if (result.status === 'error') {
-            console.error(result.message);
-            return; // Don't do anything if the roll failed
+          console.error('Roll failed:', result.message);
+          return;
         }
 
-        // 2. Display the result card/message
+        // 2. Display the result
         displayGachaResult(result);
 
-        // 3. Update the global state based on the result
-        if (result.status === 'new') {
-            window.waifuCollection.push(result.card);
-        } else if (result.status === 'duplicate') {
-            window.gachaShards += result.shardsAwarded;
+        // 3. Re-render the UI (backend already updated state)
+        renderGachaState();
+
+        // 4. Update stats if needed
+        if (lastStats) {
+          await updateGachaTokens(lastStats.totalEpisodes, window.totalPulls || 0);
         }
 
-        // 4. Recalculate tokens (rollGacha increments totalPulls)
-        updateGachaTokens(window.episodesWatchedTotal, window.totalPulls);
-
-        // 5. Save and re-render
-        saveDataToLocalStorage(animeData); // Save the new gacha state
-        renderGachaState(); // Re-render the gacha UI
+      } catch (error) {
+        console.error('âŒ Gacha roll error:', error);
+        const gachaResultDisplay = document.getElementById('gacha-result-display');
+        if (gachaResultDisplay) {
+          gachaResultDisplay.innerHTML = `
+            <p class="text-red-500 font-semibold">Roll failed: ${error.message}</p>
+          `;
+        }
+      } finally {
+        button.disabled = false;
+      }
     });
   }
 
@@ -454,34 +504,45 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Event delegation for dynamically created buttons
-  document.body.addEventListener('click', (e) => {
+  document.body.addEventListener('click', async (e) => {
     // Watching Tab: "+1 Episode" button
     if (e.target.classList.contains('add-episode-btn')) {
       const title = e.target.dataset.title;
       animeData = incrementEpisode(title, animeData);
       lastStats = calculateStatistics(animeData);
-      updateGachaTokens(lastStats.totalEpisodes, window.totalPulls);
+      
+      // ðŸ†• CHANGED: Made async
+      await updateGachaTokens(lastStats.totalEpisodes, window.totalPulls || 0);
+      
       saveDataToLocalStorage(animeData);
       renderStats(lastStats);
-      renderWatchingTab(animeData, (title) => {
-          // Re-pass the callback
-          animeData = incrementEpisode(title, animeData);
-          lastStats = calculateStatistics(animeData);
-          updateGachaTokens(lastStats.totalEpisodes, window.totalPulls);
-          saveDataToLocalStorage(animeData);
-          renderStats(lastStats);
-          renderAnimeTable(animeData, currentSort);
+      renderWatchingTab(animeData, async (title) => {
+        animeData = incrementEpisode(title, animeData);
+        lastStats = calculateStatistics(animeData);
+        await updateGachaTokens(lastStats.totalEpisodes, window.totalPulls || 0);
+        saveDataToLocalStorage(animeData);
+        renderStats(lastStats);
+        renderAnimeTable(animeData, currentSort);
       });
       renderAnimeTable(animeData, currentSort);
     }
     
     // List Tab: "Find Similar" button
     if (e.target.classList.contains('similar-btn')) {
-        const title = e.target.dataset.title;
-        const anime = animeData.find(a => a.title === title);
-        if (anime) {
-            getSimilarAnime(anime, GEMINI_API_KEY);
-        }
+      const title = e.target.dataset.title;
+      const anime = animeData.find(a => a.title === title);
+      if (anime) {
+        getSimilarAnime(anime, GEMINI_API_KEY);
+      }
+    }
+    
+    // ðŸ†• ADD: Cosmetic pack purchase buttons
+    if (e.target.classList.contains('buy-pack-btn')) {
+      const packId = e.target.dataset.packId;
+      const wonItem = await buyCosmeticPack(packId);
+      if (wonItem) {
+        renderGachaState(); // Update UI with new shard count
+      }
     }
   });
 });

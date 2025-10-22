@@ -10,6 +10,7 @@
  * @param {object} anime - The anime object to find similar ones for.
  * @param {string} GEMINI_API_KEY - The user's Gemini API key.
  */
+import { showToast, showConfirm } from './toast.js';
 export async function getSimilarAnime(anime, GEMINI_API_KEY) {
   const similarModalBody = document.getElementById('similar-modal-body');
   const similarModalBackdrop = document.getElementById('similar-modal-backdrop');

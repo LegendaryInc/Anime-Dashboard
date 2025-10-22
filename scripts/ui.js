@@ -12,6 +12,7 @@
  * @param {HTMLElement} errorMessageElement - The DOM element for the error.
  * @param {string | null} message - The message to display, or null to hide.
  */
+import { showToast, showConfirm } from './toast.js';
 export function showError(errorMessageElement, message) {
   if (errorMessageElement) {
     errorMessageElement.textContent = message || '';

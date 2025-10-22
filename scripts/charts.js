@@ -89,8 +89,12 @@ export function renderCharts({ genreCounts, scoreCounts }, genreChartInstance, s
     if (genreChartFallback) genreChartFallback.classList.remove('hidden');
   }
 
-  // --- 4. Score Chart ---
-  const scoreLabels = Object.keys(scoreCounts).sort((a, b) => Number(a) - Number(b));
+  // --- 4. Score Chart (excluding scores of 0) ---
+  // Filter out scores that are "0" or 0
+  const scoreLabels = Object.keys(scoreCounts)
+    .filter(score => Number(score) !== 0)  // ✅ Exclude zero scores
+    .sort((a, b) => Number(a) - Number(b));
+  
   const scoreData = scoreLabels.map(label => scoreCounts[label]);
 
   let barColor = '#6366F1';
