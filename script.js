@@ -12,7 +12,7 @@ window.CONFIG = window.CONFIG || {
     DASHBOARD_TITLE: "My Anime Dashboard",
     DASHBOARD_SUBTITLE: "Visualize your anime watching journey.",
     GEMINI_API_KEY: "",
-    EPISODES_PER_PAGE: 25,
+    EPISODES_PER_PAGE: 25, // Kept for config consistency, but not used for list tab
     ACTIVE_TRACKER_LIMIT: 3,
     CHART_GENRE_LIMIT: 10,
     GACHA_EPISODES_PER_TOKEN: 50,
@@ -26,7 +26,7 @@ let genreChartInstance, scoreChartInstance;
 let lastStats = null;
 let currentSort = { column: 'title', direction: 'asc' };
 // let currentPage = 1; // Removed for scrolling list
-let ITEMS_PER_PAGE = window.CONFIG.EPISODES_PER_PAGE || 25; // Keep for potential future use or other features
+let ITEMS_PER_PAGE = window.CONFIG.EPISODES_PER_PAGE || 25; // Kept for potential future use
 window.episodesWatchedTotal = 0;
 
 
@@ -189,7 +189,7 @@ function applyConfigToUI() {
     }
     if (animeData.length > 0) {
         renderWatchingTab();
-        renderAnimeTable(animeData);
+        renderAnimeTable(animeData); // Initial render without filters
     }
     if (typeof renderGachaState === 'function') {
         renderGachaState();
@@ -381,8 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
     checkForSavedData(); // Load saved data and gacha state
 
     // Check if user needs to login vs welcome back
-    // This logic relies on whether an initial sync attempt fails due to 401
-    // or if checkForSavedData found previous data. A more robust check might be needed.
     const savedDataExists = localStorage.getItem('animeDashboardData') !== null;
     if (savedDataExists && animeData.length > 0) { // Check if loaded data is actually valid
         document.getElementById('login-screen').classList.add('hidden');
@@ -394,14 +392,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (viewDashboardBtn) {
         viewDashboardBtn.addEventListener('click', () => {
-            // Re-parse just in case, though checkForSavedData should have done it
             const storedData = localStorage.getItem('animeDashboardData');
             if (storedData) {
                animeData = JSON.parse(storedData);
                document.getElementById('welcome-back-screen').classList.add('hidden');
-               processAndRenderDashboard(animeData); // Render dashboard with loaded data
+               processAndRenderDashboard(animeData);
             } else {
-                // If data somehow disappeared, force a sync/login
                 syncWithAnilist();
             }
         });
@@ -431,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentSort.column = column;
                     currentSort.direction = 'asc';
                 }
-                // currentPage = 1; // Removed for scrolling list
+                // No need to reset page for scrolling list
                 renderAnimeTable(animeData, searchBar.value, statusFilter.value, genreFilter.value);
             }
         });
@@ -456,13 +452,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('similar-modal-backdrop');
         if (modal) modal.classList.remove('show');
     });
-    // Add event listener for cosmetic modal close button
     const cosmeticModalClose = document.getElementById('cosmetic-modal-close');
     if (cosmeticModalClose) cosmeticModalClose.addEventListener('click', () => {
          const modal = document.getElementById('cosmetic-modal-backdrop');
          if (modal) modal.classList.remove('show');
     });
-    // Add event listener for clicking outside modals
     document.addEventListener('click', (e) => {
         if (e.target.id === 'similar-modal-backdrop') {
             e.target.classList.remove('show');
@@ -474,8 +468,6 @@ document.addEventListener('DOMContentLoaded', () => {
              e.target.classList.remove('show');
          }
     });
-
-    // Event listener for the +1 Episode button (delegated)
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('add-episode-btn')) {
             incrementEpisode(e.target.dataset.title);
@@ -491,21 +483,19 @@ document.addEventListener('DOMContentLoaded', () => {
 async function syncWithAnilist() {
     const loginScreen = document.getElementById('login-screen');
     const welcomeScreen = document.getElementById('welcome-back-screen');
-    const errorMessageElement = document.getElementById('error-message'); // Get error element
+    const errorMessageElement = document.getElementById('error-message');
 
     showLoading(true, 'Syncing with AniList...');
     if (welcomeScreen) welcomeScreen.classList.add('hidden');
-    if (errorMessageElement) showError(errorMessageElement, null); // Clear previous errors
+    if (errorMessageElement) showError(errorMessageElement, null);
 
     try {
       const response = await fetch('/api/get-anilist-data');
 
       if (response.status === 401) {
-        // Unauthorized: Clear local data and show login screen
         localStorage.removeItem('animeDashboardData');
         localStorage.removeItem('animeGachaState');
-        animeData = []; // Clear in-memory data
-        // Reset gacha state as well
+        animeData = [];
         window.gachaTokens = window.CONFIG.GACHA_INITIAL_TOKENS || 5;
         window.gachaShards = 0;
         window.totalPulls = 0;
@@ -514,19 +504,16 @@ async function syncWithAnilist() {
         window.ownedCosmetics = [];
         window.appliedCosmetics = {};
 
-        showLoading(false); // Stop loading indicator
-        if (loginScreen) loginScreen.classList.remove('hidden'); // Show login box
-        // Ensure welcome screen is hidden
+        showLoading(false);
+        if (loginScreen) loginScreen.classList.remove('hidden');
         if(welcomeScreen) welcomeScreen.classList.add('hidden');
-        // Ensure dashboard is hidden
         const dashboardScreen = document.getElementById('dashboard-screen');
         if (dashboardScreen) dashboardScreen.classList.add('hidden');
 
-        return; // Stop execution, user needs to login
+        return;
       }
 
       if (!response.ok) {
-        // Handle other server errors (like 500)
         const errorData = await response.json().catch(() => ({ error: `Server error: ${response.statusText}` }));
         throw new Error(errorData.error || `Server error: ${response.statusText}`);
       }
@@ -536,14 +523,13 @@ async function syncWithAnilist() {
          throw new Error("Received invalid data format from server.");
       }
       animeData = data;
-      saveDataToLocalStorage(animeData); // Save fetched data
-      processAndRenderDashboard(animeData); // Render dashboard with new data
+      saveDataToLocalStorage(animeData);
+      processAndRenderDashboard(animeData);
 
     } catch (err) {
       console.error("Sync Error:", err);
       showError(errorMessageElement, `Sync failed: ${err.message}. Please try logging in again.`);
-      showLoading(false); // Stop loading indicator
-      // Ensure login screen is visible on error if no data is present
+      showLoading(false);
        if (!localStorage.getItem('animeDashboardData')) {
            if (loginScreen) loginScreen.classList.remove('hidden');
            if (welcomeScreen) welcomeScreen.classList.add('hidden');
@@ -556,15 +542,12 @@ async function syncWithAnilist() {
 
 async function logout() {
     try {
-        await fetch('/logout'); // Call the backend logout route
+        await fetch('/logout');
     } catch (error) {
         console.error("Failed to communicate with logout endpoint:", error);
-        // Proceed with client-side cleanup even if backend call fails
     } finally {
-        // Clear all local storage data
         localStorage.removeItem('animeDashboardData');
         localStorage.removeItem('animeGachaState');
-        // Clear in-memory data
         animeData = [];
         lastStats = null;
         seasonalAnimeData = null;
@@ -576,7 +559,6 @@ async function logout() {
         window.ownedCosmetics = [];
         window.appliedCosmetics = {};
 
-        // Redirect to root, which should trigger showing the login screen
         window.location.href = '/';
     }
 }
@@ -589,8 +571,7 @@ function processAndRenderDashboard(data) {
     if (!Array.isArray(data)) {
         console.error("Invalid data provided to processAndRenderDashboard:", data);
         showError(document.getElementById('error-message'), "Failed to process data.");
-        // Potentially force logout or show login screen
-        logout(); // Force clean state
+        logout();
         return;
     }
 
@@ -599,36 +580,32 @@ function processAndRenderDashboard(data) {
 
 
     populateFilters(data);
-    lastStats = calculateStatistics(data); // Calculate stats based on the data
+    lastStats = calculateStatistics(data);
     renderStats(lastStats);
     renderCharts(lastStats);
-    renderAnimeTable(data); // Render the full list table
-    renderWatchingTab(); // Render the "Watching" tab content
+    renderAnimeTable(data);
+    renderWatchingTab();
 
-    // Update gacha tokens based on the latest stats
     if(typeof updateGachaTokens === 'function') {
         updateGachaTokens();
     } else {
         console.warn("updateGachaTokens function not found. Gacha state might be incorrect.");
     }
-     // Render the initial gacha state (tokens, collection)
     if (typeof renderGachaState === 'function') {
         renderGachaState();
     } else {
          console.warn("renderGachaState function not found.");
     }
 
-    setActiveTab('watching'); // Default to the watching tab
-    if (document.getElementById('gemini-response')) document.getElementById('gemini-response').innerHTML = ''; // Clear previous AI responses
-    showLoading(false); // Hide loading indicator
-    if (dashboardScreen) dashboardScreen.classList.remove('hidden'); // Show dashboard
-    // Add fade-in animation class after a short delay
+    setActiveTab('watching');
+    if (document.getElementById('gemini-response')) document.getElementById('gemini-response').innerHTML = '';
+    showLoading(false);
+    if (dashboardScreen) dashboardScreen.classList.remove('hidden');
     setTimeout(() => { if (dashboardScreen) dashboardScreen.classList.add('loaded'); }, 10);
 }
 
 
 function applyTableFiltersAndSort() {
-    // currentPage = 1; // Removed for scrolling list
     const searchBar = document.getElementById('search-bar');
     const statusFilter = document.getElementById('status-filter');
     const genreFilter = document.getElementById('genre-filter');
@@ -653,31 +630,16 @@ async function fetchSeasonalAnime() {
         let year = today.getFullYear();
         let season;
 
-        if (month >= 3 && month <= 5) { season = 'spring'; }
-        else if (month >= 6 && month <= 8) { season = 'summer'; }
-        else if (month >= 9 && month <= 11) { season = 'fall'; }
-        else {
-            season = 'winter';
-            // Correct logic: If it's Jan/Feb, season is winter of CURRENT year.
-            // If it's Dec, season is winter of NEXT year. Jikan uses year the season starts.
-            // Jikan API expects the year the season *starts*. Winter starts in Jan.
-            // So if month is Dec (12), we should query for next year's winter season.
-            // This logic seems slightly off in the original, adjusting:
-            // Winter: Jan, Feb, Mar -> use current year
-            // Spring: Apr, May, Jun -> use current year
-            // Summer: Jul, Aug, Sep -> use current year
-            // Fall: Oct, Nov, Dec -> use current year
-             if (month >= 1 && month <= 3) { season = 'winter'; }
-             else if (month >= 4 && month <= 6) { season = 'spring'; }
-             else if (month >= 7 && month <= 9) { season = 'summer'; }
-             else { season = 'fall'; } // Oct, Nov, Dec
-        }
+         if (month >= 1 && month <= 3) { season = 'winter'; }
+         else if (month >= 4 && month <= 6) { season = 'spring'; }
+         else if (month >= 7 && month <= 9) { season = 'summer'; }
+         else { season = 'fall'; } // Oct, Nov, Dec
 
         const apiUrl = `https://api.jikan.moe/v4/seasons/${year}/${season}`;
         const response = await fetch(apiUrl);
 
-        if (response.status === 429) { // Handle rate limiting
-             await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+        if (response.status === 429) {
+             await new Promise(resolve => setTimeout(resolve, 2000));
              const retryResponse = await fetch(apiUrl);
              if (!retryResponse.ok) {
                  throw new Error(`Failed to fetch season schedule (retry): ${retryResponse.statusText}`);
@@ -719,20 +681,15 @@ function renderSeasonalAnime(season, year, data) {
         return;
     }
 
-    // Display a reasonable number, e.g., first 20
     const displayData = data.slice(0, 20);
 
     displayData.forEach(anime => {
         const card = document.createElement('div');
-        // Use the new calendar-card styles from style.css
         card.className = 'anime-card calendar-card p-4 rounded-lg flex flex-col group';
-
         const imageUrl = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || 'https://placehold.co/225x350/cccccc/333333?text=No+Image';
         const title = anime.title || 'Unknown Title';
         const score = anime.score ? `⭐ ${anime.score.toFixed(1)}` : 'N/A';
         const genres = anime.genres?.map(g => g.name).slice(0, 3).join(', ') || 'Unknown';
-
-        // Updated card structure matching style.css hover effects
         card.innerHTML = `
             <div class="w-full h-48 mb-3 overflow-hidden rounded-lg">
                 <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
@@ -806,7 +763,7 @@ async function getGeminiRecommendations() {
 
     const topGenres = Object.entries(lastStats.genreCounts)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, window.CONFIG.CHART_GENRE_LIMIT || 10); // Use config limit
+        .slice(0, window.CONFIG.CHART_GENRE_LIMIT || 10);
 
     if (topGenres.length === 0) {
         if (geminiResponse) geminiResponse.innerHTML = `<p>Your anime list doesn't contain enough genre information for recommendations.</p>`;
@@ -849,7 +806,7 @@ async function getGeminiRecommendations() {
 // ************************************************************
 
 function parseDurationToMinutes(durationStr, episodesWatched) {
-    if (!durationStr || typeof durationStr !== 'string') return episodesWatched * 24; // Default if no duration
+    if (!durationStr || typeof durationStr !== 'string') return episodesWatched * 24;
 
     const perEpisodeMatch = durationStr.match(/(\d+)\s*min.*per ep/i);
     if (perEpisodeMatch) {
@@ -857,38 +814,32 @@ function parseDurationToMinutes(durationStr, episodesWatched) {
         return minutesPerEp * episodesWatched;
     }
 
-    // Handle cases like "1 hr 30 min" or just "90 min"
     let totalMinutes = 0;
     const hourMatch = durationStr.match(/(\d+)\s*hr/i);
     const minMatch = durationStr.match(/(\d+)\s*min/i);
     if (hourMatch) totalMinutes += parseInt(hourMatch[1], 10) * 60;
     if (minMatch) totalMinutes += parseInt(minMatch[1], 10);
 
-    // If only a number is present, assume it's total minutes for the whole series (e.g., movie)
     if (totalMinutes === 0 && /^\d+$/.test(durationStr.trim())) {
         totalMinutes = parseInt(durationStr.trim(), 10);
-        // If it's a movie/single ep, return the duration directly, otherwise estimate per ep
-        return (episodesWatched <= 1) ? totalMinutes : episodesWatched * 24; // Fallback if format unknown
+        return (episodesWatched <= 1) ? totalMinutes : episodesWatched * 24;
     }
 
-    return totalMinutes > 0 ? totalMinutes : episodesWatched * 24; // Fallback to estimate
+    return totalMinutes > 0 ? totalMinutes : episodesWatched * 24;
 }
 
 
 function calculateStatistics(data) {
     if (!Array.isArray(data)) {
       console.error("Invalid data type passed to calculateStatistics:", data);
-      // Return default/empty stats to prevent further errors
       return { totalAnime: 0, totalEpisodes: 0, timeWatchedDays: 0, totalMinutes: 0, timeWatchedHours: 0, timeWatchedMinutes: 0, meanScore: 0, genreCounts: {}, scoreCounts: {} };
     }
-    // Filter only currently watching or completed
     const watchedAnime = data.filter(a => a.status && (a.status.toLowerCase() === 'completed' || a.status.toLowerCase() === 'current'));
     const scoredAnime = watchedAnime.filter(a => a.score > 0);
 
     const totalAnime = watchedAnime.length;
-    // Ensure episodesWatched is treated as a number, default to 0 if null/undefined
     const totalEpisodes = watchedAnime.reduce((sum, a) => sum + (Number(a.episodesWatched) || 0), 0);
-    window.episodesWatchedTotal = totalEpisodes; // Update global total for gacha
+    window.episodesWatchedTotal = totalEpisodes;
 
     const totalMinutes = watchedAnime.reduce((sum, anime) => sum + parseDurationToMinutes(anime.duration, Number(anime.episodesWatched) || 0), 0);
 
@@ -908,16 +859,14 @@ function calculateStatistics(data) {
     });
 
     const scoreCounts = { '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0 };
-    // Include 0 scores if they exist, map scores to strings for keys
      watchedAnime.forEach(a => {
         const scoreKey = a.score !== null && a.score !== undefined ? Math.round(a.score).toString() : '0';
         if (scoreCounts[scoreKey] !== undefined) {
              scoreCounts[scoreKey]++;
          } else {
-             scoreCounts['0']++; // Count unscored as 0
+             scoreCounts['0']++;
          }
      });
-     // Remove the 0 score count if it's empty and not needed for the chart
      if (scoreCounts['0'] === 0) {
          delete scoreCounts['0'];
      }
@@ -941,32 +890,25 @@ function incrementEpisode(title) {
     const anime = animeData.find(a => a.title === title);
     if (!anime) return;
 
-    // Ensure episodesWatched and totalEpisodes are numbers
     let currentProgress = Number(anime.episodesWatched) || 0;
-    const totalEps = Number(anime.totalEpisodes) || 0; // Treat 0 or null as unknown total
+    const totalEps = Number(anime.totalEpisodes) || 0;
 
-    // Increment only if total is unknown (0) or progress is less than total
     if (totalEps === 0 || currentProgress < totalEps) {
         currentProgress++;
-        anime.episodesWatched = currentProgress; // Update the data
+        anime.episodesWatched = currentProgress;
     }
 
-    // Update status to Completed if progress reaches total (and total is known)
     if (totalEps > 0 && currentProgress >= totalEps) {
         anime.status = 'Completed';
     }
 
-    // Recalculate stats immediately to get updated total episodes
     lastStats = calculateStatistics(animeData);
-
-    // Update gacha tokens based on the new total episodes watched
     if(typeof updateGachaTokens === 'function') updateGachaTokens();
 
-    saveDataToLocalStorage(animeData); // Save updated data
-    renderStats(lastStats); // Re-render the stats display
-    renderWatchingTab(); // Re-render the watching tab to show new progress/status
+    saveDataToLocalStorage(animeData);
+    renderStats(lastStats);
+    renderWatchingTab();
 
-    // If the list tab is currently visible, re-render the table
     const listTab = document.getElementById('list-tab');
     if (listTab && !listTab.classList.contains('hidden')) {
         applyTableFiltersAndSort();
@@ -976,11 +918,11 @@ function incrementEpisode(title) {
 
 function formatAiringTime(airingAt) {
     if (!airingAt) return "Airing time unknown";
-    const now = Date.now() / 1000; // Current time in seconds
+    const now = Date.now() / 1000;
     const diffInSeconds = airingAt - now;
 
     if (diffInSeconds <= 0) {
-        return "Aired"; // Or "Aired recently" if diffInSeconds > -some_threshold
+        return "Aired";
     }
 
     const days = Math.floor(diffInSeconds / 86400);
@@ -1007,11 +949,10 @@ function renderWatchingTab() {
     const watchingContent = document.getElementById('watching-content');
     if (!watchingContent) return;
 
-    // Filter for 'Current' status (AniList API uses uppercase)
     const activeShows = animeData.filter(a => a.status === 'Current')
-        .sort((a, b) => (a.title.toLowerCase() > b.title.toLowerCase()) ? 1 : -1); // Sort alphabetically by title
+        .sort((a, b) => (a.title.toLowerCase() > b.title.toLowerCase()) ? 1 : -1);
 
-    watchingContent.innerHTML = ''; // Clear previous content
+    watchingContent.innerHTML = '';
 
     if (activeShows.length === 0) {
         watchingContent.innerHTML = `<p class="col-span-full text-center text-gray-500 py-8">You are not currently watching any anime.</p>`;
@@ -1019,41 +960,39 @@ function renderWatchingTab() {
     }
 
     activeShows.forEach(anime => {
-        const total = Number(anime.totalEpisodes) || 0; // Treat null/0 as unknown
+        const total = Number(anime.totalEpisodes) || 0;
         const progress = Number(anime.episodesWatched) || 0;
         const percentage = total > 0 ? Math.min(100, (progress / total) * 100) : 0;
         const score = anime.score > 0 ? `⭐ ${anime.score}` : 'Not Scored';
-        const totalDisplay = total > 0 ? total : '?'; // Display '?' if total is unknown
+        const totalDisplay = total > 0 ? total : '?';
 
         const card = document.createElement('div');
-        // Apply theme-aware card styles
         card.className = 'anime-card p-4 rounded-lg flex flex-col group';
 
         const imageUrl = anime.coverImage || 'https://placehold.co/300x450/cccccc/333333?text=No+Image';
 
-        // Airing schedule info
         let airingInfoHtml = '';
+        let airingInfoText = ''; // For the overlay
         if (anime.airingSchedule && anime.airingSchedule.airingAt) {
-            airingInfoHtml = `<div class="text-xs text-blue-500 font-semibold mt-2">Ep ${anime.airingSchedule.episode || '?'} ${formatAiringTime(anime.airingSchedule.airingAt)}</div>`;
+            airingInfoText = `Ep ${anime.airingSchedule.episode || '?'} ${formatAiringTime(anime.airingSchedule.airingAt)}`;
+            airingInfoHtml = `<div class="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">${airingInfoText}</div>`;
         }
 
-        // External streaming links
         let linksHtml = '';
         if (anime.externalLinks && Array.isArray(anime.externalLinks) && anime.externalLinks.length > 0) {
-            const streamingSites = ['Crunchyroll', 'Funimation', 'Netflix', 'HIDIVE', 'Hulu', 'Amazon Prime Video', 'VRV', 'AnimeLab']; // Add more as needed
+            const streamingSites = ['Crunchyroll', 'Funimation', 'Netflix', 'HIDIVE', 'Hulu', 'Amazon Prime Video', 'VRV', 'AnimeLab'];
             const streamingLinks = anime.externalLinks.filter(link =>
                 link.site && streamingSites.some(site => link.site.includes(site))
             );
             if (streamingLinks.length > 0) {
                 linksHtml = '<div class="flex flex-wrap gap-2 mt-2">';
-                streamingLinks.slice(0, 3).forEach(link => { // Limit displayed links
+                streamingLinks.slice(0, 3).forEach(link => {
                     linksHtml += `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full hover:bg-gray-300 transition-colors">${link.site}</a>`;
                 });
                 linksHtml += '</div>';
             }
         }
 
-        // Disable button if progress >= total (and total is known)
         const isCompleted = total > 0 && progress >= total;
         const buttonDisabled = isCompleted ? 'disabled' : '';
         const buttonText = isCompleted ? 'Completed' : '+1 Episode';
@@ -1061,7 +1000,7 @@ function renderWatchingTab() {
         card.innerHTML = `
             <div class="w-full h-64 mb-3 overflow-hidden rounded-lg relative">
                 <img src="${imageUrl}" alt="${anime.title}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                 ${airingInfoHtml ? `<div class="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">${airingInfoHtml}</div>` : ''}
+                 ${airingInfoHtml}
             </div>
             <h3 class="font-bold text-md mb-1 line-clamp-2 calendar-card-title">${anime.title}</h3>
             <div class="flex items-center justify-between text-sm text-gray-600 calendar-card-text">
@@ -1072,7 +1011,7 @@ function renderWatchingTab() {
                 <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: ${percentage}%"></div>
             </div>
             <div class="mt-auto pt-3 flex flex-col justify-between flex-grow">
-                 ${linksHtml || '<div class="h-6"></div>'} {/* Placeholder for consistent height */}
+                 ${linksHtml || '<div class="h-6"></div>'}
                  <button class="add-episode-btn btn-primary text-sm font-medium py-1 px-3 rounded-lg mt-3 w-full ${buttonDisabled ? 'opacity-50 cursor-not-allowed' : ''}" data-title="${anime.title}" ${buttonDisabled}>
                      ${buttonText}
                  </button>
@@ -1083,17 +1022,15 @@ function renderWatchingTab() {
 }
 
 
-
 function renderAnimeTable(fullData, titleFilter = '', statusFilter = 'all', genreFilter = 'all') {
     const animeListBody = document.getElementById('anime-list-body');
     const animeTableHead = document.getElementById('anime-table-head');
-    if (!animeListBody || !animeTableHead) return; // Exit if elements not found
+    if (!animeListBody || !animeTableHead) return;
 
     const lowerCaseTitleFilter = titleFilter.toLowerCase();
 
     let filteredData = fullData.filter(a => {
         const titleMatch = a.title && a.title.toLowerCase().includes(lowerCaseTitleFilter);
-        // Ensure status matches case-insensitively if needed, assuming stored status is capitalized correctly
         const statusMatch = statusFilter === 'all' || (a.status && a.status.toLowerCase() === statusFilter.toLowerCase());
         const genreMatch = genreFilter === 'all' || (a.genres && Array.isArray(a.genres) && a.genres.includes(genreFilter));
         return titleMatch && statusMatch && genreMatch;
@@ -1102,22 +1039,17 @@ function renderAnimeTable(fullData, titleFilter = '', statusFilter = 'all', genr
     filteredData.sort((a, b) => {
         const valA = a[currentSort.column];
         const valB = b[currentSort.column];
-
         let comparison = 0;
-        // Handle potentially null/undefined values for sorting
         const safeValA = (typeof valA === 'string' ? valA : (valA || ''));
         const safeValB = (typeof valB === 'string' ? valB : (valB || ''));
-
         if (typeof safeValA === 'string' && typeof safeValB === 'string') {
             comparison = safeValA.localeCompare(safeValB);
         } else {
-            // Treat null/undefined numbers as 0 for comparison
             comparison = (Number(valA) || 0) - (Number(valB) || 0);
         }
         return currentSort.direction === 'desc' ? comparison * -1 : comparison;
     });
 
-    // Update sort indicators on headers
     animeTableHead.querySelectorAll('.sortable-header').forEach(header => {
         header.classList.remove('sort-asc', 'sort-desc');
         if (header.dataset.sort === currentSort.column) {
@@ -1125,14 +1057,13 @@ function renderAnimeTable(fullData, titleFilter = '', statusFilter = 'all', genr
         }
     });
 
-    // Render all filtered data (no pagination)
+    // --- RENDER ALL FILTERED DATA ---
     animeListBody.innerHTML = filteredData.length === 0 ? `<tr><td colspan="5" class="text-center p-4 text-gray-500">No anime found matching your filters.</td></tr>` : '';
 
     filteredData.forEach(anime => {
         const mainRow = document.createElement('tr');
         mainRow.className = 'main-row border-b border-gray-200 hover:bg-gray-100 cursor-pointer transition duration-150 ease-in-out';
         mainRow.setAttribute('data-anime-title', anime.title);
-        // Ensure values are displayed correctly, handle nulls
         const displayScore = anime.score > 0 ? anime.score : 'N/A';
         const displayProgress = `${Number(anime.episodesWatched) || 0}/${Number(anime.totalEpisodes) > 0 ? anime.totalEpisodes : '?'}`;
         const displayGenres = anime.genres && anime.genres.length > 0
@@ -1153,12 +1084,13 @@ function renderAnimeTable(fullData, titleFilter = '', statusFilter = 'all', genr
         animeListBody.appendChild(mainRow);
         animeListBody.appendChild(drawerRow);
     });
+    // --- END RENDER ---
 
-    // Re-attach event listener for drawers
     animeListBody.removeEventListener('click', toggleDetailsDrawer);
     animeListBody.addEventListener('click', toggleDetailsDrawer);
 
-    // renderPaginationControls(filteredData.length); // Removed pagination call
+    // --- REMOVED PAGINATION CALL ---
+    // renderPaginationControls(filteredData.length);
 }
 
 
@@ -1175,11 +1107,10 @@ function toggleDetailsDrawer(e) {
 
     const drawerContent = drawerRow.querySelector('.drawer-content');
     const arrowIcon = mainRow.querySelector('.drawer-arrow');
-    if (!drawerContent || !arrowIcon) return; // Ensure elements exist
+    if (!drawerContent || !arrowIcon) return;
 
     const isHidden = drawerRow.classList.contains('hidden');
 
-    // Close any other open drawers first
     document.querySelectorAll('.drawer-row:not(.hidden)').forEach(openDrawer => {
         const openMainRow = openDrawer.previousElementSibling;
         if (openMainRow !== mainRow && openMainRow) {
@@ -1197,16 +1128,11 @@ function toggleDetailsDrawer(e) {
         arrowIcon.classList.add('rotate-180');
         mainRow.classList.add('bg-gray-100');
 
-        // Escape single quotes in title for the onclick attribute
         const escapedTitle = anime.title ? anime.title.replace(/'/g, "\\'") : '';
-
-        // Generate button HTML safely
         const similarButtonHtml = `<button class="similar-btn btn-primary text-sm font-medium py-1 px-3 rounded-lg mt-3" onclick="getSimilarAnime(animeData.find(a => a.title === '${escapedTitle}'))" title="Find Similar Anime">Find Similar Anime ✨</button>`;
-
-        // Populate drawer content
         const genresText = anime.genres && anime.genres.length > 0 ? anime.genres.join(', ') : 'N/A';
         const formatText = anime.type || 'N/A';
-        const durationText = anime.duration || 'Approx. 24 min/ep'; // Provide a default if null
+        const durationText = anime.duration || 'Approx. 24 min/ep';
 
         drawerContent.innerHTML = `
             <p class="text-sm">
@@ -1216,17 +1142,12 @@ function toggleDetailsDrawer(e) {
             </p>
             ${similarButtonHtml}
         `;
-
-        // Animate open
         setTimeout(() => { drawerContent.style.maxHeight = drawerContent.scrollHeight + 'px'; }, 10);
 
     } else {
-        // Animate close
         drawerContent.style.maxHeight = '0px';
         arrowIcon.classList.remove('rotate-180');
         mainRow.classList.remove('bg-gray-100');
-
-        // Add hidden class after transition completes
         drawerContent.addEventListener('transitionend', e => {
             if (e.propertyName === 'max-height' && drawerContent.style.maxHeight === '0px') {
                 drawerRow.classList.add('hidden');
@@ -1235,7 +1156,8 @@ function toggleDetailsDrawer(e) {
     }
 }
 
-/* // Removed pagination function
+// --- REMOVED PAGINATION FUNCTION ---
+/*
 function renderPaginationControls(totalItems) {
     // ... function content deleted ...
 }
@@ -1252,18 +1174,15 @@ function renderCharts({ genreCounts, scoreCounts }) {
     const scoreChartCanvas = document.getElementById('score-chart');
     if (!genreChartCanvas || !scoreChartCanvas) return;
 
-    // Destroy previous instances if they exist
     if (genreChartInstance) genreChartInstance.destroy();
     if (scoreChartInstance) scoreChartInstance.destroy();
 
-    // Chart styling based on theme
     const theme = document.body.className;
     const chartFontColor = theme.includes('neon') ? '#e2e8f0' : '#4A5568';
     const chartGridColor = theme.includes('neon') ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb';
-    const chartBorderColor = theme.includes('neon') ? '#0f172a' : (theme.includes('sakura') ? '#fff1f2' : (theme.includes('sky') ? '#f0f9ff' : '#F0F4F8')); // Match background
+    const chartBorderColor = theme.includes('neon') ? '#0f172a' : (theme.includes('sakura') ? '#fff1f2' : (theme.includes('sky') ? '#f0f9ff' : '#F0F4F8'));
 
 
-    // Genre Chart (Doughnut)
     const sortedGenres = Object.entries(genreCounts)
         .sort(([, a], [, b]) => b - a)
         .slice(0, window.CONFIG.CHART_GENRE_LIMIT || 10);
@@ -1277,7 +1196,7 @@ function renderCharts({ genreCounts, scoreCounts }) {
                 labels: sortedGenres.map(g => g[0]),
                 datasets: [{
                     data: sortedGenres.map(g => g[1]),
-                    backgroundColor: ['#818cf8', '#f472b6', '#60a5fa', '#fb923c', '#a78bfa', '#f87171', '#4ade80', '#2dd4bf', '#fbbf24', '#93c5fd', '#fde047', '#d946ef'], // Added more colors
+                    backgroundColor: ['#818cf8', '#f472b6', '#60a5fa', '#fb923c', '#a78bfa', '#f87171', '#4ade80', '#2dd4bf', '#fbbf24', '#93c5fd', '#fde047', '#d946ef'],
                     borderColor: chartBorderColor,
                     borderWidth: 3,
                     hoverOffset: 4
@@ -1285,14 +1204,14 @@ function renderCharts({ genreCounts, scoreCounts }) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Allow resizing height
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'right',
                         labels: {
                            color: chartFontColor,
-                           boxWidth: 12, // Smaller color boxes
-                           padding: 10 // Spacing between items
+                           boxWidth: 12,
+                           padding: 10
                         }
                     },
                      tooltip: {
@@ -1307,15 +1226,13 @@ function renderCharts({ genreCounts, scoreCounts }) {
         if (genreChartFallback) genreChartFallback.classList.remove('hidden');
     }
 
-    // Score Chart (Bar)
-    const scoreLabels = Object.keys(scoreCounts).sort((a,b) => Number(a) - Number(b)); // Sort labels numerically
+    const scoreLabels = Object.keys(scoreCounts).sort((a,b) => Number(a) - Number(b));
     const scoreData = scoreLabels.map(label => scoreCounts[label]);
 
-     // Determine bar color based on theme
-    let barColor = '#6366F1'; // Default
+    let barColor = '#6366F1';
     if (theme.includes('theme-sakura')) barColor = '#F472B6';
     else if (theme.includes('theme-sky')) barColor = '#38BDF8';
-    else if (theme.includes('theme-neon')) barColor = '#e879f9'; // Adjusted neon color
+    else if (theme.includes('theme-neon')) barColor = '#e879f9';
 
 
     scoreChartInstance = new Chart(scoreChartCanvas.getContext('2d'), {
@@ -1326,17 +1243,17 @@ function renderCharts({ genreCounts, scoreCounts }) {
                 label: 'Number of Anime',
                 data: scoreData,
                 backgroundColor: barColor,
-                borderColor: barColor, // Match border
+                borderColor: barColor,
                 borderWidth: 1,
                 borderRadius: 4,
-                hoverBackgroundColor: barColor // Keep color on hover
+                hoverBackgroundColor: barColor
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // Allow resizing height
+            maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }, // Hide legend for single dataset
+                legend: { display: false },
                  tooltip: {
                       callbacks: {
                           label: function(context) {
@@ -1356,7 +1273,7 @@ function renderCharts({ genreCounts, scoreCounts }) {
                     grid: { color: chartGridColor },
                     ticks: {
                        color: chartFontColor,
-                       precision: 0 // Show whole numbers only
+                       precision: 0
                     },
                     title: {
                         display: true,
@@ -1376,7 +1293,6 @@ function renderCharts({ genreCounts, scoreCounts }) {
                      }
                 }
             },
-            // Add hover effect for bars
             onHover: (event, chartElement) => {
                 event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
             }
@@ -1388,11 +1304,10 @@ function renderCharts({ genreCounts, scoreCounts }) {
 function populateFilters(data) {
     const statusFilterEl = document.getElementById('status-filter');
     const genreFilterEl = document.getElementById('genre-filter');
-    if (!statusFilterEl || !genreFilterEl) return; // Exit if elements not found
+    if (!statusFilterEl || !genreFilterEl) return;
 
-    // Use Set to get unique values, filter out null/undefined, and convert Set back to array
     const statuses = [...new Set(data.map(a => a.status).filter(Boolean))].sort();
-    const genres = [...new Set(data.flatMap(a => a.genres || []).filter(Boolean))].sort(); // Handle potential undefined genres
+    const genres = [...new Set(data.flatMap(a => a.genres || []).filter(Boolean))].sort();
 
 
     statusFilterEl.innerHTML = '<option value="all">All Statuses</option>';
@@ -1400,8 +1315,8 @@ function populateFilters(data) {
 
     statuses.forEach(status => {
         const option = document.createElement('option');
-        option.value = status; // Use the actual status value
-        option.textContent = status; // Display the status
+        option.value = status;
+        option.textContent = status;
         statusFilterEl.appendChild(option);
     });
 
