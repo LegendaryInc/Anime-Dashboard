@@ -108,43 +108,43 @@ body.theme-sky .text-indigo-600 { color: #0EA5E9; }
 body.theme-sky .theme-btn.active { border-color: #0EA5E9; color: #0EA5E9; box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2); }
 
 /* --- NEON THEME --- */
-body.theme-neon { 
+body.theme-neon {
     background-color: #0f172a;
     background-image: linear-gradient(to top, #581c87 0%, #0f172a 60%);
-    color: #e2e8f0; 
+    color: #e2e8f0;
 }
-body.theme-neon .anime-card { 
-    background-color: rgba(12, 10, 29, 0.6); 
+body.theme-neon .anime-card {
+    background-color: rgba(12, 10, 29, 0.6);
     border: 1px solid rgba(232, 121, 249, 0.4);
-    backdrop-filter: blur(8px); 
-    -webkit-backdrop-filter: blur(8px); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
-body.theme-neon h1, body.theme-neon h3, body.theme-neon label { 
-    color: #f8fafc; 
+body.theme-neon h1, body.theme-neon h3, body.theme-neon label {
+    color: #f8fafc;
     text-shadow: 0 0 10px rgba(232, 121, 249, 0.5);
 }
 body.theme-neon p { color: #cbd5e1; }
 body.theme-neon .stat-card p { color: #f8fafc; }
-body.theme-neon .btn-primary { 
+body.theme-neon .btn-primary {
     background-color: #e879f9;
     color: #1e1b4b;
-    box-shadow: 0 0 15px rgba(232, 121, 249, 0.6), 0 0 5px rgba(232, 121, 249, 0.9); 
+    box-shadow: 0 0 15px rgba(232, 121, 249, 0.6), 0 0 5px rgba(232, 121, 249, 0.9);
 }
-body.theme-neon .btn-primary:hover { 
-    background-color: #f0abfc; 
-    box-shadow: 0 0 25px rgba(232, 121, 249, 0.8), 0 0 10px rgba(232, 121, 249, 1); 
+body.theme-neon .btn-primary:hover {
+    background-color: #f0abfc;
+    box-shadow: 0 0 25px rgba(232, 121, 249, 0.8), 0 0 10px rgba(232, 121, 249, 1);
 }
 body.theme-neon .btn-secondary { background-color: #312e81; color: #e0e7ff; }
 body.theme-neon .btn-secondary:hover { background-color: #3730a3; }
-body.theme-neon .upload-box { 
-    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23e879f9' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e"); 
+body.theme-neon .upload-box {
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='24' ry='24' stroke='%23e879f9' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
 }
 body.theme-neon .upload-box:hover { background-color: rgba(232, 121, 249, 0.1); }
 body.theme-neon .text-indigo-600 { color: #e879f9; }
-body.theme-neon .theme-btn.active { 
-    border-color: #e879f9; 
-    color: #e879f9; 
-    box-shadow: 0 0 0 2px rgba(232, 121, 249, 0.3); 
+body.theme-neon .theme-btn.active {
+    border-color: #e879f9;
+    color: #e879f9;
+    box-shadow: 0 0 0 2px rgba(232, 121, 249, 0.3);
 }
 body.theme-neon .theme-btn { background-color: rgba(22, 28, 45, 0.6); color: #e2e8f0; }
 
@@ -344,6 +344,13 @@ body.theme-sky .calendar-card-text { color: #0ea5e9; }
 body.theme-neon .calendar-card-title { color: #f0abfc; }
 body.theme-neon .calendar-card-text { color: #a5b4fc; }
 
-body.theme-sakura-night .calendar-card-title { color: #f9a8d4; }
-body.theme-sakura-night .calendar-card-text { color: #fce7f3; }
+/* Remove this theme or define styles for it if needed */
+/* body.theme-sakura-night .calendar-card-title { color: #f9a8d4; } */
+/* body.theme-sakura-night .calendar-card-text { color: #fce7f3; } */
 
+/* --- REMOVED PAGINATION STYLES --- */
+/*
+.pagination { ... }
+.page-btn { ... }
+.page-btn:disabled { ... }
+*/
