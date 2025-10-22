@@ -96,8 +96,20 @@ app.get('/auth/anilist/callback', async (req, res) => {
 
         // --- 4. Store User ID in Session ---
         req.session.userId = user.id;
+        // *** ADDED LOG ***
+        console.log(`Session Set: User ID ${user.id} stored in session ${req.session.id}`);
 
-        res.redirect('/');
+        // Ensure session is saved before redirecting (optional but sometimes helpful)
+        req.session.save(err => {
+            if (err) {
+                console.error("Error saving session before redirect:", err);
+                return res.status(500).send('Failed to save session.');
+            }
+             // *** ADDED LOG ***
+            console.log(`Session ${req.session.id} saved, redirecting...`);
+            res.redirect('/'); // Redirect back to the main dashboard page
+        });
+
 
     } catch (error) {
         console.error('Error during AniList callback:', error.response ? error.response.data : error.message);
@@ -107,11 +119,18 @@ app.get('/auth/anilist/callback', async (req, res) => {
 
 // PART C: Securely fetches data (UPDATED TO USE SESSION & DB TOKEN)
 app.get('/api/get-anilist-data', async (req, res) => {
+    // *** ADDED LOG ***
+    console.log(`API Request: Session ID = ${req.session.id}, User ID in session = ${req.session.userId}`);
+
+    // --- 1. Check if user is logged in (via session) ---
     if (!req.session.userId) {
+        // *** ADDED LOG ***
+        console.log('API Denied: No userId found in session. Sending 401.');
         return res.status(401).json({ error: 'Not authenticated. Please log in.' });
     }
 
     try {
+        // --- 2. Get user's data (including token) from DB ---
         const user = await prisma.user.findUnique({
             where: { id: req.session.userId },
         });
@@ -124,6 +143,7 @@ app.get('/api/get-anilist-data', async (req, res) => {
         const userAccessToken = user.accessToken;
         const userAnilistId = user.anilistId;
 
+        // --- 3. Fetch data from AniList using the user's token ---
         const listQuery = `
           query ($userId: Int) {
             MediaListCollection(userId: $userId, type: ANIME, status_in: [CURRENT, COMPLETED], sort: SCORE_DESC) {
