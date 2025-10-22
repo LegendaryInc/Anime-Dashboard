@@ -12,7 +12,10 @@ const axios = require('axios');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+// FIX: Use Render's assigned port or 3000 for local dev
+const PORT = process.env.PORT || 3000;
+// FIX: Use an environment variable for the base URL
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 // --- 2. IN-MEMORY TOKEN STORAGE (SIMPLIFIED FOR EXAMPLE) ---
 // IMPORTANT: In a real-world, production application, you must securely store the
@@ -24,9 +27,11 @@ let accessToken = null;
 // PART A: Redirects the user to AniList to grant permission
 app.get('/auth/anilist', (req, res) => {
   const anilistAuthUrl = 'https://anilist.co/api/v2/oauth/authorize';
+  // FIX: Construct redirect_uri using BASE_URL
+  const redirectUri = `${BASE_URL}/auth/anilist/callback`;
   const params = new URLSearchParams({
     client_id: process.env.ANILIST_CLIENT_ID,
-    redirect_uri: `http://localhost:${PORT}/auth/anilist/callback`,
+    redirect_uri: redirectUri,
     response_type: 'code',
   });
 
@@ -41,12 +46,15 @@ app.get('/auth/anilist/callback', async (req, res) => {
     return res.status(400).send('Error: Authorization code is missing. Please try again.');
   }
 
+  // FIX: Construct redirect_uri using BASE_URL
+  const redirectUri = `${BASE_URL}/auth/anilist/callback`;
+
   try {
     const response = await axios.post('https://anilist.co/api/v2/oauth/token', {
       grant_type: 'authorization_code',
       client_id: process.env.ANILIST_CLIENT_ID,
       client_secret: process.env.ANILIST_CLIENT_SECRET,
-      redirect_uri: `http://localhost:${PORT}/auth/anilist/callback`,
+      redirect_uri: redirectUri, // Use the constructed URI
       code: code,
     });
 
@@ -64,7 +72,7 @@ app.get('/api/get-anilist-data', async (req, res) => {
     if (!accessToken) {
       return res.status(401).json({ error: 'Not authenticated. Please log in.' });
     }
-  
+
     try {
       const viewerIdResponse = await axios.post('https://graphql.anilist.co', {
         query: `query { Viewer { id } }`
@@ -76,11 +84,11 @@ app.get('/api/get-anilist-data', async (req, res) => {
         }
       });
       const userId = viewerIdResponse.data.data.Viewer.id;
-  
+
       if (!userId) {
         throw new Error("Could not retrieve viewer ID.");
       }
-      
+
       const listQuery = `
         query ($userId: Int) {
           MediaListCollection(userId: $userId, type: ANIME, status_in: [CURRENT, COMPLETED], sort: SCORE_DESC) {
@@ -112,7 +120,7 @@ app.get('/api/get-anilist-data', async (req, res) => {
           }
         }
       `;
-  
+
       const listResponse = await axios.post('https://graphql.anilist.co', {
         query: listQuery,
         variables: {
@@ -125,10 +133,10 @@ app.get('/api/get-anilist-data', async (req, res) => {
           'Accept': 'application/json',
         }
       });
-  
+
       const anilistLists = listResponse.data.data.MediaListCollection.lists;
       const allEntries = anilistLists.flatMap(list => list.entries);
-  
+
       // **FIXED**: Make data mapping null-safe for coverImage
       const formattedData = allEntries.map(entry => ({
           title: entry.media.title.romaji,
@@ -143,9 +151,9 @@ app.get('/api/get-anilist-data', async (req, res) => {
           airingSchedule: entry.media.airingSchedule.nodes.length > 0 ? entry.media.airingSchedule.nodes[0] : null,
           externalLinks: entry.media.externalLinks
       }));
-      
+
       res.json(formattedData);
-  
+
     } catch (error) {
       console.error('Error fetching data from AniList:', error.response ? error.response.data : error.message);
       res.status(500).json({ error: 'Failed to fetch data from AniList.' });
@@ -164,7 +172,7 @@ app.use(express.static(path.join(__dirname, '')));
 
 
 // --- 5. START SERVER ---
+// FIX: Update log message
 app.listen(PORT, () => {
-  console.log(`✅ Server is running at http://localhost:${PORT}`);
+  console.log(`✅ Server is running on port ${PORT}`);
 });
-
