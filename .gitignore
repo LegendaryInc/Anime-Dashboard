@@ -6,3 +6,4 @@
 
 # Frontend Configuration with API Key
 config.js
+/generated/prisma

@@ -1,0 +1,24 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Loads the connection URL from your .env file
+}
+
+// Define the User model
+model User {
+  id            Int     @id @default(autoincrement()) // Unique ID for each user in our database
+  anilistId     Int     @unique // The user's ID from AniList, must be unique
+  accessToken   String  // The access token from AniList OAuth
+  // refreshToken String? // Optional: For refreshing tokens later (we might add this)
+  createdAt     DateTime @default(now()) // Timestamp when the user record was created
+  updatedAt     DateTime @updatedAt      // Timestamp when the record was last updated
+}
