@@ -17,13 +17,28 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'a-bad-secret-for-dev';
 
 // --- Session Middleware Setup ---
+const pgSession = require('connect-pg-simple')(session); // <-- Import connect-pg-simple
+const { Pool } = require('pg'); // <-- Import pg Pool
+
+// Create a Pool using the DATABASE_URL from .env
+// Ensure DATABASE_URL is set correctly in your environment
+const pgPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false // <-- Add SSL for Render connections
+});
+
 app.use(session({
+    store: new pgSession({ // <-- Use pgSession store
+        pool: pgPool,                // Connection pool
+        tableName: 'user_sessions'   // Table name for sessions (will be created automatically)
+    }),
     secret: SESSION_SECRET,
     resave: false,
-    saveUninitialized: false, // Don't save sessions until login
+    saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production (HTTPS)
-        maxAge: 1000 * 60 * 60 * 24 * 7 // Cookie expires in 7 days
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        sameSite: 'lax' // Recommended for security
     }
 }));
 
