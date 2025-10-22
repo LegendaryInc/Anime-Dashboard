@@ -580,3 +580,60 @@ body.theme-sky .confirm-btn-confirm {
 body.theme-sky .confirm-btn-confirm:hover {
   background-color: #0284c7;
 }
+/* === AI Recommendation Card Styles === */
+#gemini-response { max-width: 920px; margin: 0 auto; }
+
+.rec-list {
+  display: grid;
+  gap: 14px;
+  padding: 4px 2px 6px 2px;
+  list-style: none;
+}
+
+.rec-item {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.rec-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 24px rgba(186,85,211,0.18);
+}
+.rec-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #ffd2ff, #c084fc, #7c3aed);
+  box-shadow: 0 0 10px rgba(124,58,237,0.7);
+}
+.rec-badge {
+  margin-left: auto;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #d6bbfb;
+  background: rgba(124,58,237,0.15);
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.rec-reason {
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.insights-empty {
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+}

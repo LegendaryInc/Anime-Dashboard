@@ -1,137 +1,237 @@
 // =====================================================================
-// --- AI MODULE (ai.js) ---
-// =====================================================================
-// Handles all API calls to the Google Gemini AI
-// for recommendations and insights.
+// ai.js — Google Gemini helpers + Clean AI Card Output (v2.5-flash ready)
 // =====================================================================
 
-/**
- * Fetches recommendations for anime similar to a given one.
- * @param {object} anime - The anime object to find similar ones for.
- * @param {string} GEMINI_API_KEY - The user's Gemini API key.
- */
-import { showToast, showConfirm } from './toast.js';
-export async function getSimilarAnime(anime, GEMINI_API_KEY) {
-  const similarModalBody = document.getElementById('similar-modal-body');
-  const similarModalBackdrop = document.getElementById('similar-modal-backdrop');
-  const similarModalTitle = document.getElementById('similar-modal-title');
+const DEFAULT_MODEL =
+  (window.CONFIG && window.CONFIG.GEMINI_MODEL) || "gemini-1.5-flash";
+const FALLBACK_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
+const API_ROOT = "https://generativelanguage.googleapis.com/v1beta";
 
-  if (!GEMINI_API_KEY) {
-    if (similarModalBody) similarModalBody.innerHTML = `<p class="text-red-500">AI features disabled. Please set your key in Settings ⚙️.</p>`;
-    if (similarModalBackdrop) similarModalBackdrop.classList.add('show');
-    return;
+// --- Utilities ---
+function escapeHtml(str = "") {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+// Safe number coercion
+function num(val, fallback = 0) {
+  const n = Number(val);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+// --- Core Gemini Callers ---
+async function geminiGenerate(prompt, apiKey, modelId) {
+  if (!apiKey) throw new Error("Missing Gemini API key.");
+
+  const url = `${API_ROOT}/models/${encodeURIComponent(
+    modelId
+  )}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const body = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    if (res.status === 404 || res.status === 400)
+      throw new Error(`Model error for "${modelId}": ${text || res.statusText}`);
+    throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
   }
 
-  if (similarModalTitle) similarModalTitle.textContent = `Anime similar to "${anime.title}"`;
-  if (similarModalBody) similarModalBody.innerHTML = `<svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
-  if (similarModalBackdrop) similarModalBackdrop.classList.add('show');
+  const data = await res.json();
+  const candidate = data.candidates?.[0];
+  const part = candidate?.content?.parts?.[0];
+  return part?.text || "";
+}
 
-  const genresText = anime.genres && anime.genres.length > 0 ? `which has the genres: ${anime.genres.join(', ')}` : "which has unknown genres";
-  const prompt = `I enjoyed the anime "${anime.title}", ${genresText}. Please recommend three other anime series that have a similar theme, tone, or style. For each, provide a title and a one-sentence synopsis. Format the response as simple HTML with <h4> for titles and <p> for the synopsis. Do not include markdown like \`\`\`html.`;
+async function callGeminiWithFallbacks(prompt, apiKey) {
+  const tried = new Set();
+  const tryOrder = [DEFAULT_MODEL, ...FALLBACK_MODELS].filter(
+    (m, i, a) => a.indexOf(m) === i
+  );
+  let lastErr = null;
+
+  for (const model of tryOrder) {
+    if (tried.has(model)) continue;
+    tried.add(model);
+    try {
+      return await geminiGenerate(prompt, apiKey, model);
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[Gemini] Failed with "${model}":`, e.message);
+    }
+  }
+  throw lastErr || new Error("All Gemini model attempts failed.");
+}
+
+// --- Formatting Helpers ---
+function parseRecommendations(text = "") {
+  if (!text) return [];
+
+  // 1) Strip markdown code fences like ```json ... ```
+  text = text
+    .replace(/```(?:json)?/gi, "") // opening fences
+    .replace(/```/g, "") // closing fences
+    .replace(/^`+|`+$/g, "") // stray backticks
+    .trim();
+
+  // 2) Try to extract a JSON array if present
+  try {
+    const start = text.indexOf("[");
+    const end = text.lastIndexOf("]");
+    if (start !== -1 && end !== -1 && end > start) {
+      const slice = text.slice(start, end + 1);
+      const j = JSON.parse(slice);
+      if (Array.isArray(j)) {
+        return j
+          .map((x) => ({
+            title: (x.title || "").toString().trim(),
+            reason: (x.reason || "").toString().trim(),
+            vibe: (x.vibe || "").toString().trim(),
+          }))
+          .filter((x) => x.title);
+      }
+    }
+  } catch (err) {
+    console.warn("[Gemini] JSON parse failed, falling back to text:", err.message);
+  }
+
+  // 3) Fallback: parse bullet / plain text lines
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !/^here are/i.test(l));
+
+  const items = [];
+  for (const l of lines) {
+    const clean = l.replace(/^[-*•]\s*/, "");
+    // **Title** — reason
+    let m = clean.match(/^\*\*([^*]+)\*\*\s*[-–—:]\s*(.+)$/);
+    // Title — reason  |  Title - reason  |  Title: reason
+    if (!m) m = clean.match(/^\**([^*]+?)\**\s*[-–—:]\s*(.+)$/);
+
+    if (m) items.push({ title: m[1].trim(), reason: m[2].trim(), vibe: "" });
+    else items.push({ title: clean, reason: "", vibe: "" });
+  }
+  return items.slice(0, 8);
+}
+
+function renderRecommendations(items = []) {
+  if (!items.length) return `<p class="insights-empty">No recommendations found.</p>`;
+  return `
+    <ul class="rec-list">
+      ${items
+        .map(
+          (it) => `
+        <li class="rec-item">
+          <div class="rec-title">
+            <span class="rec-dot"></span>
+            <span>${escapeHtml(it.title)}</span>
+            ${it.vibe ? `<span class="rec-badge">${escapeHtml(it.vibe)}</span>` : ""}
+          </div>
+          ${it.reason ? `<div class="rec-reason">${escapeHtml(it.reason)}</div>` : ""}
+        </li>`
+        )
+        .join("")}
+    </ul>`;
+}
+
+// --- Public APIs ---
+export async function getGeminiRecommendations(stats, apiKey) {
+  const out = document.getElementById("gemini-response");
+  if (out) out.innerHTML = '<div class="text-sm text-gray-500">Thinking...</div>';
 
   try {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-    const payload = {
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }]
-    };
-    // --- THIS IS THE MISSING PART ---
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    // ---------------------------------
-    if (!response.ok) throw new Error(`API error ${response.status}: ${await response.text()}`);
-    const result = await response.json();
-
-    if (!result.candidates || !result.candidates[0] || !result.candidates[0].content || !result.candidates[0].content.parts || !result.candidates[0].content.parts[0]) {
-      throw new Error("Invalid response structure from Gemini API.");
-    }
-
-    const text = result.candidates[0].content.parts[0].text;
-    if (similarModalBody) {
-      if (text) similarModalBody.innerHTML = text.replace(/\n/g, '<br>');
-      else throw new Error("No content from API.");
-    }
-  } catch (error) {
-    console.error("Gemini Similar Anime Error:", error);
-    if (similarModalBody) similarModalBody.innerHTML = `<p class="text-red-500">Sorry, could not get recommendations. ${error.message}</p>`;
+    const prompt = buildRecommendationPrompt(stats);
+    const text = await callGeminiWithFallbacks(
+      prompt,
+      apiKey || window.CONFIG?.GEMINI_API_KEY
+    );
+    const items = parseRecommendations(text);
+    out.innerHTML = renderRecommendations(items);
+  } catch (err) {
+    console.error("[Gemini] Recommendation error:", err);
+    if (out)
+      out.innerHTML = `<div class="text-red-600 text-sm font-medium">Gemini error: ${escapeHtml(
+        err.message
+      )}</div>`;
   }
 }
 
-/**
- * Fetches personalized recommendations based on the user's top genres.
- * @param {object | null} lastStats - The calculated statistics object.
- * @param {string} GEMINI_API_KEY - The user's Gemini API key.
- */
-export async function getGeminiRecommendations(lastStats, GEMINI_API_KEY) {
-  const geminiResponse = document.getElementById('gemini-response');
-  const geminiLoading = document.getElementById('gemini-loading');
-  const geminiButton = document.getElementById('gemini-button');
+export async function getSimilarAnime(anime, apiKey) {
+  const out = document.getElementById("similar-response");
+  if (out) out.innerHTML = '<div class="text-sm text-gray-500">Finding similar titles...</div>';
 
-  if (!GEMINI_API_KEY) {
-    if (geminiResponse) geminiResponse.innerHTML = `<p class="text-red-500"><strong>Error:</strong> AI features disabled. Please set your key in Settings ⚙️.</p>`;
-    return;
-  }
+  const key = apiKey || window.CONFIG?.GEMINI_API_KEY;
 
-  if (!lastStats || !lastStats.genreCounts || Object.keys(lastStats.genreCounts).length === 0) {
-    if (geminiResponse) geminiResponse.innerHTML = `<p>Please sync your anime list first to get personalized recommendations.</p>`;
-    return;
-  }
-
-  const topGenres = Object.entries(lastStats.genreCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, window.CONFIG.CHART_GENRE_LIMIT || 10);
-
-  if (topGenres.length === 0) {
-    if (geminiResponse) geminiResponse.innerHTML = `<p>Your anime list doesn't contain enough genre information for recommendations.</p>`;
-    return;
-  }
-
-  const prompt = `Based on my favorite anime genres (${topGenres.map(g => g[0]).join(', ')}), recommend three other anime series I might enjoy. For each, provide a title and a one-sentence synopsis explaining why I might like it based on my genres. Format as simple HTML with <h4> for titles and <p> for the synopsis. Do not include markdown like \`\`\`html.`;
-
-  if (geminiLoading) geminiLoading.classList.remove('hidden');
-  if (geminiButton) geminiButton.disabled = true;
-  if (geminiResponse) geminiResponse.innerHTML = '';
-
-  try {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
-    const payload = {
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }]
-    };
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!response.ok) throw new Error(`API error ${response.status}: ${await response.text()}`);
-    const result = await response.json();
-
-    if (!result.candidates || !result.candidates[0] || !result.candidates[0].content || !result.candidates[0].content.parts || !result.candidates[0].content.parts[0]) {
-      throw new Error("Invalid response structure from Gemini API.");
+  if (key) {
+    try {
+      const prompt = buildSimilarPrompt(anime);
+      const text = await callGeminiWithFallbacks(prompt, key);
+      const items = parseRecommendations(text);
+      out.innerHTML = renderRecommendations(items);
+      return;
+    } catch (err) {
+      console.warn("[Gemini] Similar failed, using local fallback:", err.message);
     }
-    const text = result.candidates[0].content.parts[0].text;
-    if (geminiResponse) {
-      if (text) geminiResponse.innerHTML = text.replace(/\n/g, '<br>');
-      else throw new Error("No content from API.");
-    }
-  } catch (error) {
-    console.error("Gemini API Recommendations Error:", error);
-    if (geminiResponse) geminiResponse.innerHTML = `<p class="text-red-500">Sorry, could not get recommendations. ${error.message}</p>`;
-  } finally {
-    if (geminiLoading) geminiLoading.classList.add('hidden');
-    if (geminiButton) geminiButton.disabled = false;
   }
+
+  // Local heuristic fallback (no API needed)
+  const list = Array.isArray(window.animeData) ? window.animeData : [];
+  const base = new Set((anime.genres || []).map((g) => g.toLowerCase()));
+  const scored = [];
+
+  for (const a of list) {
+    if (!a || a.title === anime.title) continue;
+    const g = new Set((a.genres || []).map((x) => x.toLowerCase()));
+    const inter = [...g].filter((x) => base.has(x)).length;
+    const union = new Set([...g, ...base]).size || 1;
+    const jaccard = inter / union;
+    const bias = (num(a.score) / 100) * 0.1;
+    const rec = a.year ? (Math.max(0, num(a.year) - 1990) / 40) * 0.05 : 0;
+    const score = jaccard * 0.85 + bias + rec;
+    if (score > 0) scored.push({ a, s: score });
+  }
+
+  scored.sort((x, y) => y.s - x.s);
+  const top = scored
+    .slice(0, 5)
+    .map(({ a }) => ({ title: a.title, reason: "shares similar genres." }));
+  out.innerHTML = renderRecommendations(top);
+}
+
+// --- Prompt Builders ---
+function buildRecommendationPrompt(stats) {
+  const total = num(stats?.totalSeries, 0);
+  const avg = num(stats?.meanScore, 0).toFixed(2);
+  const topGenres = stats?.genreCounts
+    ? Object.entries(stats.genreCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([g, c]) => `${g}(${c})`)
+        .join(", ")
+    : "N/A";
+
+  return `Suggest 5 anime in JSON format: [{"title":"","reason":"","vibe":""}]
+Avoid shows I’ve completed. Focus on fantasy/isekai and hidden gems.
+
+Stats:
+- Series: ${total}
+- Mean score: ${avg}
+- Top genres: ${topGenres}`;
+}
+
+function buildSimilarPrompt(anime) {
+  const title = anime?.title || "Unknown";
+  const genres = Array.isArray(anime?.genres) ? anime.genres.join(", ") : "N/A";
+  const synopsis = (anime?.synopsis || "").slice(0, 400);
+
+  return `Suggest 5 anime similar to "${title}" as JSON: [{"title":"","reason":""}]
+Genres: ${genres}
+Synopsis: ${synopsis}`;
 }
