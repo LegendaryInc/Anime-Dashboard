@@ -18,7 +18,7 @@ model User {
   id            Int     @id @default(autoincrement()) // Unique ID for each user in our database
   anilistId     Int     @unique // The user's ID from AniList, must be unique
   accessToken   String  // The access token from AniList OAuth
-  // refreshToken String? // Optional: For refreshing tokens later (we might add this)
+  refreshToken String? // Optional: For refreshing tokens later (we might add this)
   createdAt     DateTime @default(now()) // Timestamp when the user record was created
   updatedAt     DateTime @updatedAt      // Timestamp when the record was last updated
 }
