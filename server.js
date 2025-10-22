@@ -14,7 +14,6 @@ const { Pool } = require('pg');
 const prisma = new PrismaClient();
 const app = express();
 
-// *** ADD THIS LINE ***
 app.set('trust proxy', 1); // Trust the first proxy (Render)
 
 const PORT = process.env.PORT || 3000;
@@ -36,10 +35,10 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // Should be true on Render
-        httpOnly: true, // <-- Added for security
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        sameSite: 'lax' // <-- Keep as 'lax'
+        sameSite: 'lax'
     }
 }));
 
@@ -75,6 +74,7 @@ app.get('/auth/anilist/callback', async (req, res) => {
             code: code,
         });
         const accessToken = tokenResponse.data.access_token;
+        const refreshToken = tokenResponse.data.refresh_token; // <-- Get the refresh token
 
         // --- 2. Get AniList User ID ---
         const viewerResponse = await axios.post('https://graphql.anilist.co', {
@@ -94,8 +94,15 @@ app.get('/auth/anilist/callback', async (req, res) => {
         // --- 3. Find or Create User in DB (Upsert) ---
         const user = await prisma.user.upsert({
             where: { anilistId: anilistId },
-            update: { accessToken: accessToken },
-            create: { anilistId: anilistId, accessToken: accessToken },
+            update: { // <-- Update block
+                accessToken: accessToken,
+                refreshToken: refreshToken // <-- Store/update refresh token
+            },
+            create: { // <-- Create block
+                anilistId: anilistId,
+                accessToken: accessToken,
+                refreshToken: refreshToken // <-- Store refresh token on creation
+            },
         });
 
         // --- 4. Store User ID in Session ---
