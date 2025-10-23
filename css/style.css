@@ -918,3 +918,56 @@ thead th.sort-desc::after{ border-top:7px solid #fff; }
   .watch-thumb { width: 82px; height: 124px; }
   .watch-actions .btn-primary { padding: 8px 12px; }
 }
+/* --- Fix clipping of the "Next:" chip on Watching cards --- */
+
+/* Make sure nothing upstream clips child painting/shadows */
+.watch-card,
+.watch-info {
+  overflow: visible;            /* allow chip + glow to paint fully */
+}
+
+/* --- FIX: Next-episode chip should truncate cleanly, not "clip" --- */
+
+
+/* --- FIX: Show full 'Next Episode' text instead of truncating --- */
+
+.watch-info {
+  min-width: 0;            /* allow proper width calculation */
+  flex: 1 1 auto;
+}
+
+.watch-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;          /* allow multi-line text if needed */
+  white-space: normal;      /* allow wrapping instead of ellipsis */
+  line-height: 1.4;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(232,121,249,.18);
+  border: 1px solid rgba(232,121,249,.45);
+  box-shadow: 0 0 14px rgba(232,121,249,.26);
+  background-clip: padding-box;
+  max-width: 100%;
+  margin-top: 6px;
+  word-break: keep-all;
+}
+
+/* Remove clock icon and tighten left padding */
+.watch-next::before { display: none !important; }
+
+/* Theme variants */
+body.theme-sakura .watch-next {
+  background: rgba(236,72,153,.18);
+  border-color: rgba(236,72,153,.45);
+  box-shadow: 0 0 14px rgba(236,72,153,.26);
+}
+body.theme-sky .watch-next {
+  background: rgba(14,165,233,.18);
+  border-color: rgba(14,165,233,.45);
+  box-shadow: 0 0 14px rgba(14,165,233,.26);
+}
+
+
