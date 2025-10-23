@@ -1,0 +1,187 @@
+/* ===================================================================
+   WATCHING TAB FEATURE
+   Currently watching anime cards, airing info, and countdown timers
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   WATCHING CONTENT GRID
+   ------------------------------------------------------------------- */
+#watching-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 14px;
+}
+
+/* ------------------------------------------------------------------- 
+   AIRING INFO SECTION
+   ------------------------------------------------------------------- */
+.watch-airing {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+body.theme-neon .watch-airing {
+  background: linear-gradient(135deg, 
+    rgba(232, 121, 249, 0.15), 
+    rgba(124, 58, 237, 0.15)
+  );
+  border-color: rgba(232, 121, 249, 0.4);
+  box-shadow: 0 0 20px rgba(232, 121, 249, 0.2),
+              inset 0 0 20px rgba(124, 58, 237, 0.1);
+}
+
+body.theme-sakura .watch-airing {
+  background: linear-gradient(135deg,
+    rgba(236, 72, 153, 0.1),
+    rgba(244, 114, 182, 0.1)
+  );
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+body.theme-sky .watch-airing {
+  background: linear-gradient(135deg,
+    rgba(14, 165, 233, 0.1),
+    rgba(56, 189, 248, 0.1)
+  );
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   COUNTDOWN TIMER
+   ------------------------------------------------------------------- */
+.countdown-timer {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+}
+
+body.theme-neon .countdown-timer {
+  color: #f0abfc;
+  text-shadow: 0 0 15px rgba(232, 121, 249, 0.9);
+}
+
+body.theme-sakura .countdown-timer {
+  color: #ec4899;
+}
+
+body.theme-sky .countdown-timer {
+  color: #0ea5e9;
+}
+
+/* Urgent countdown (< 1 hour) */
+.countdown-urgent {
+  color: #ef4444 !important;
+  animation: pulse-urgent 1.5s ease-in-out infinite;
+  font-size: 1.2rem;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+@keyframes pulse-urgent {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+body.theme-neon .countdown-urgent {
+  color: #fca5a5 !important;
+  text-shadow: 0 0 20px rgba(248, 113, 113, 1);
+}
+
+/* Finished countdown */
+.countdown-finished {
+  color: #10b981 !important;
+  font-weight: 800;
+  animation: glow-green 2s ease-in-out infinite;
+}
+
+@keyframes glow-green {
+  0%, 100% { 
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  }
+  50% { 
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+  }
+}
+
+body.theme-neon .countdown-finished {
+  color: #6ee7b7 !important;
+  text-shadow: 0 0 25px rgba(110, 231, 183, 1);
+}
+
+/* ------------------------------------------------------------------- 
+   AIRING SETTINGS PANEL
+   ------------------------------------------------------------------- */
+#airing-settings-panel {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.05), 
+    rgba(168, 85, 247, 0.05)
+  );
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+#airing-settings-panel h3 {
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+#airing-settings-panel input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+body.theme-neon #airing-settings-panel {
+  background: linear-gradient(135deg,
+    rgba(124, 58, 237, 0.15),
+    rgba(232, 121, 249, 0.15)
+  );
+  border-color: rgba(232, 121, 249, 0.5);
+  box-shadow: 0 0 25px rgba(232, 121, 249, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 540px) {
+  #watching-content { 
+    grid-template-columns: 1fr; 
+  }
+}
+
+@media (max-width: 640px) {
+  .countdown-timer {
+    font-size: 1rem;
+  }
+  
+  .countdown-urgent {
+    font-size: 1.1rem;
+  }
+  
+  #airing-settings-panel {
+    padding: 12px;
+  }
+  
+  #airing-settings-panel .flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (min-width: 1280px) {
+  #watching-content { 
+    gap: 12px; 
+  }
+}

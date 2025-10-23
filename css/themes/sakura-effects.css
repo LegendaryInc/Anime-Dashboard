@@ -1,0 +1,97 @@
+/* ===================================================================
+   SAKURA THEME EFFECTS
+   Cherry blossom petals floating animation
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   BACKGROUND ANIMATIONS CONTAINER
+   ------------------------------------------------------------------- */
+#background-animations {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ------------------------------------------------------------------- 
+   SAKURA PETAL ANIMATION
+   ------------------------------------------------------------------- */
+.petal {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #ffc0cb 0%, #ffb6c1 50%, #ff69b4 100%);
+  border-radius: 50% 0 50% 0;
+  opacity: 0.7;
+  animation: sakura-fall linear infinite;
+  transform-origin: center;
+}
+
+@keyframes sakura-fall {
+  0% {
+    top: -10%;
+    transform: translateX(0) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% {
+    transform: translateX(15px) rotate(90deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateX(-10px) rotate(180deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateX(20px) rotate(270deg);
+    opacity: 0.8;
+  }
+  100% {
+    top: 110%;
+    transform: translateX(0) rotate(360deg);
+    opacity: 0.4;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   PETAL VARIATIONS
+   Different sizes and speeds
+   ------------------------------------------------------------------- */
+.petal:nth-child(odd) {
+  animation-duration: 8s;
+  width: 10px;
+  height: 10px;
+}
+
+.petal:nth-child(even) {
+  animation-duration: 12s;
+  width: 14px;
+  height: 14px;
+}
+
+.petal:nth-child(3n) {
+  background: linear-gradient(135deg, #ffb6c1 0%, #ff69b4 50%, #db7093 100%);
+  animation-duration: 10s;
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE OPTIMIZATION
+   Reduce number of petals on mobile
+   ------------------------------------------------------------------- */
+@media (max-width: 540px) {
+  .petal:nth-child(n+8) { 
+    display: none; 
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   REDUCED MOTION
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .petal {
+    display: none !important;
+  }
+}

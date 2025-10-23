@@ -1,0 +1,218 @@
+/* ===================================================================
+   RESPONSIVE DESIGN
+   Media queries and mobile-specific adjustments
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   LARGE DESKTOP (1280px+)
+   ------------------------------------------------------------------- */
+@media (min-width: 1280px) {
+  /* Tighter grid spacing on large screens */
+  #watching-content { 
+    gap: 12px; 
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   TABLET & SMALL DESKTOP (768px - 900px)
+   ------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  /* Adjust table cell widths */
+  #anime-table .main-title { 
+    max-width: 30vw; 
+  }
+  
+  #anime-table .genres { 
+    max-width: 20vw; 
+  }
+}
+
+@media (max-width: 768px) {
+  /* Calendar controls - stack vertically */
+  .calendar-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .calendar-nav {
+    justify-content: center;
+  }
+  
+  .calendar-filters {
+    justify-content: stretch;
+    flex-direction: column;
+  }
+  
+  .calendar-filter-select {
+    width: 100%;
+  }
+  
+  /* Calendar cards - stack content */
+  .calendar-card .flex {
+    flex-direction: column;
+  }
+  
+  .add-to-planning-btn {
+    width: 100%;
+  }
+  
+  /* Hide neon city buildings on mobile */
+  body.theme-neon .city-buildings {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE PORTRAIT (640px and below)
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* Countdown timer adjustments */
+  .countdown-timer {
+    font-size: 1rem;
+  }
+  
+  .countdown-urgent {
+    font-size: 1.1rem;
+  }
+  
+  /* Airing settings panel */
+  #airing-settings-panel {
+    padding: 12px;
+  }
+  
+  #airing-settings-panel .flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  /* Simplify neon scan lines on mobile */
+  body.theme-neon .container::before {
+    background-size: 100% 4px;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE SMALL (540px and below)
+   ------------------------------------------------------------------- */
+@media (max-width: 540px) {
+  /* Watching content - single column */
+  #watching-content { 
+    grid-template-columns: 1fr; 
+  }
+  
+  /* Watch cards - smaller thumbnails */
+  .watch-card { 
+    grid-template-columns: 82px 1fr auto; 
+  }
+  
+  .watch-thumb { 
+    width: 82px; 
+    height: 124px; 
+  }
+  
+  /* Toast notifications - full width */
+  .toast-container { 
+    left: 10px; 
+    right: 10px; 
+  }
+  
+  .toast { 
+    min-width: auto; 
+    max-width: none; 
+  }
+  
+  /* Reduce sakura petals */
+  .petal:nth-child(n+8) { 
+    display: none; 
+  }
+  
+  /* Reduce clouds */
+  .cloud:nth-child(n+3) { 
+    display: none; 
+  }
+  
+  /* Hide neon light streaks */
+  body.theme-neon .light-streak { 
+    display: none; 
+  }
+  
+  /* Simplify neon effects */
+  body.theme-neon .container::before {
+    opacity: 0.5;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE TINY (480px and below)
+   ------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  /* Further reduce font sizes if needed */
+  body { 
+    font-size: 14px; 
+  }
+  
+  h1 { 
+    font-size: 1.75rem; 
+  }
+  
+  h2 { 
+    font-size: 1.5rem; 
+  }
+  
+  h3 { 
+    font-size: 1.25rem; 
+  }
+  
+  h4 { 
+    font-size: 1.125rem; 
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ACCESSIBILITY - REDUCED MOTION
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  /* Hide all animated background effects */
+  body.theme-neon::before,
+  body.theme-neon::after,
+  .light-streak,
+  .city-buildings,
+  .petal,
+  .cloud {
+    display: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   PRINT STYLES
+   ------------------------------------------------------------------- */
+@media print {
+  /* Hide decorative elements */
+  #background-animations,
+  .city-buildings,
+  .light-streak,
+  body.theme-neon::before,
+  body.theme-neon::after {
+    display: none !important;
+  }
+  
+  /* Ensure readable text */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Remove shadows and effects */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}

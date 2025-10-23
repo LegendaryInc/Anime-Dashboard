@@ -1,0 +1,60 @@
+/* ===================================================================
+   BASE RESET & BODY STYLES
+   Global element styling and scrollbar customization
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   BODY BASE STYLES
+   ------------------------------------------------------------------- */
+body {
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  background: linear-gradient(to top, var(--bg-gradient-start), var(--bg-gradient-end));
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background 0.5s ease, color 0.3s ease;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ------------------------------------------------------------------- 
+   CONTAINER Z-INDEX (Ensure content is above background effects)
+   ------------------------------------------------------------------- */
+.container {
+  position: relative;
+  z-index: 2;
+}
+
+/* ------------------------------------------------------------------- 
+   CUSTOM SCROLLBAR (Default theme)
+   ------------------------------------------------------------------- */
+::-webkit-scrollbar { 
+  width: 8px; 
+}
+
+::-webkit-scrollbar-track { 
+  background: #f1f1f1; 
+}
+
+::-webkit-scrollbar-thumb { 
+  background: #cdd2d8; 
+  border-radius: 10px; 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+  background: #b7bec6; 
+}
+
+/* ------------------------------------------------------------------- 
+   NEON THEME SCROLLBAR
+   ------------------------------------------------------------------- */
+body.theme-neon ::-webkit-scrollbar-track { 
+  background: #1e1b4b; 
+}
+
+body.theme-neon ::-webkit-scrollbar-thumb { 
+  background: #7c3aed; 
+}
+
+body.theme-neon ::-webkit-scrollbar-thumb:hover { 
+  background: #a855f7; 
+}

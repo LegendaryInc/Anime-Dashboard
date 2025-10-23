@@ -1,0 +1,57 @@
+/* ===================================================================
+   ANIME DASHBOARD - MAIN STYLESHEET
+   Master import file for modular CSS architecture
+   =================================================================== */
+
+/* =================================================================== 
+   1. BASE STYLES (Load first - foundation)
+   =================================================================== */
+@import 'base/variables.css';      /* CSS custom properties & theme vars */
+@import 'base/reset.css';          /* Base body styles & scrollbar */
+@import 'base/typography.css';     /* Font imports & text utilities */
+
+/* =================================================================== 
+   2. LAYOUT (Core structure)
+   =================================================================== */
+@import 'layout/header.css';       /* Header, title, subtitle */
+@import 'layout/tabs.css';         /* Tab navigation system */
+
+/* =================================================================== 
+   3. COMPONENTS (Reusable UI elements)
+   =================================================================== */
+@import 'components/buttons.css';  /* All button variants */
+@import 'components/cards.css';    /* Card containers */
+@import 'components/forms.css';    /* Inputs, selects, search */
+@import 'components/badges.css';   /* Status & score badges */
+@import 'components/tables.css';   /* Anime list table */
+@import 'components/modals.css';   /* Modal dialogs */
+@import 'components/toasts.css';   /* Toast notifications */
+
+/* =================================================================== 
+   4. FEATURES (Tab-specific content)
+   =================================================================== */
+@import 'features/watching.css';   /* Watching tab cards & airing */
+@import 'features/calendar.css';   /* Calendar view & controls */
+@import 'features/gacha.css';      /* Gacha system & shop */
+@import 'features/charts.css';     /* Chart containers */
+
+/* =================================================================== 
+   5. THEME EFFECTS (Visual enhancements)
+   =================================================================== */
+@import 'themes/animations.css';   /* Core keyframes & transitions */
+@import 'themes/sakura-effects.css'; /* Sakura theme animations */
+@import 'themes/sky-effects.css';    /* Sky theme animations */
+@import 'themes/neon-effects.css';   /* Neon cityscape & lights */
+
+/* =================================================================== 
+   6. RESPONSIVE (Load last - overrides)
+   =================================================================== */
+@import 'layout/responsive.css';   /* Media queries & mobile */
+
+/* ===================================================================
+   NOTES:
+   - Import order matters! Base → Layout → Components → Features → Themes
+   - Each file should be self-contained with clear responsibilities
+   - Theme-specific overrides stay in their respective files
+   - Keep responsive styles together at the end
+   =================================================================== */

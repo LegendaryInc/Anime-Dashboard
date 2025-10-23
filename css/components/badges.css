@@ -1,0 +1,180 @@
+/* ===================================================================
+   BADGE COMPONENTS
+   Status badges, score badges, and type badges
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   STATUS BADGES (Watching, Completed, etc.)
+   ------------------------------------------------------------------- */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Status color variants */
+.status-watching { 
+  background: #d1fae5; 
+  color: #065f46; 
+}
+
+.status-completed { 
+  background: #dbeafe; 
+  color: #1e40af; 
+}
+
+.status-planning { 
+  background: #f3f4f6; 
+  color: #374151; 
+}
+
+.status-paused { 
+  background: #fef3c7; 
+  color: #92400e; 
+}
+
+.status-dropped { 
+  background: #fee2e2; 
+  color: #991b1b; 
+}
+
+.status-repeating { 
+  background: #ede9fe; 
+  color: #5b21b6; 
+}
+
+/* Neon theme status badges */
+body.theme-neon .status-badge {
+  background: rgba(168, 85, 247, 0.3);
+  color: #fdf4ff;
+  border: 1px solid rgba(232, 121, 249, 0.6);
+  box-shadow: 0 0 15px rgba(232, 121, 249, 0.4),
+              inset 0 0 10px rgba(124, 58, 237, 0.2);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+/* ------------------------------------------------------------------- 
+   SCORE BADGES (In tables and cards)
+   ------------------------------------------------------------------- */
+.score {
+  font-weight: 700;
+  font-size: 1.05em;
+}
+
+.score-none { 
+  color: #9ca3af; 
+}
+
+.score-high { 
+  color: #10b981; 
+  font-weight: 800; 
+}
+
+.score-good { 
+  color: #3b82f6; 
+  font-weight: 700; 
+}
+
+.score-mid { 
+  color: #f59e0b; 
+}
+
+.score-low { 
+  color: #ef4444; 
+}
+
+/* Neon theme score colors with glow */
+body.theme-neon .score {
+  text-shadow: 0 0 15px currentColor,
+               0 0 8px rgba(255, 255, 255, 0.8);
+  font-size: 1.15em;
+}
+
+body.theme-neon .score-none { 
+  color: #cbd5e1; 
+  text-shadow: 0 0 10px rgba(203, 213, 225, 0.5); 
+}
+
+body.theme-neon .score-high { 
+  color: #6ee7b7; 
+  text-shadow: 0 0 20px rgba(110, 231, 183, 0.9),
+               0 0 10px rgba(110, 231, 183, 0.5);
+}
+
+body.theme-neon .score-good { 
+  color: #60a5fa; 
+  text-shadow: 0 0 20px rgba(96, 165, 250, 0.9),
+               0 0 10px rgba(96, 165, 250, 0.5);
+}
+
+body.theme-neon .score-mid { 
+  color: #fbbf24; 
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.9),
+               0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+body.theme-neon .score-low { 
+  color: #f87171; 
+  text-shadow: 0 0 20px rgba(248, 113, 113, 0.9),
+               0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   CALENDAR TYPE BADGES (TV, Movie, OVA, etc.)
+   ------------------------------------------------------------------- */
+.calendar-type-badge {
+  background: rgba(99, 102, 241, 0.9);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
+}
+
+body.theme-neon .calendar-type-badge {
+  background: linear-gradient(135deg, #7c3aed, #e879f9);
+  box-shadow: 0 0 15px rgba(232, 121, 249, 0.5);
+}
+
+body.theme-sakura .calendar-type-badge {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+}
+
+body.theme-sky .calendar-type-badge {
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+}
+
+/* ------------------------------------------------------------------- 
+   CALENDAR SCORE BADGES
+   ------------------------------------------------------------------- */
+.calendar-score-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+  color: white;
+}
+
+.calendar-score-badge.score-high {
+  background: rgba(16, 185, 129, 0.9);
+}
+
+.calendar-score-badge.score-good {
+  background: rgba(59, 130, 246, 0.9);
+}
+
+.calendar-score-badge.score-mid {
+  background: rgba(245, 158, 11, 0.9);
+}
+
+.calendar-score-badge.score-low {
+  background: rgba(107, 114, 128, 0.9);
+}

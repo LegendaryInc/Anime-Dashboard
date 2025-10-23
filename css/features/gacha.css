@@ -1,0 +1,226 @@
+/* ===================================================================
+   GACHA FEATURE
+   Character cards, rarity styles, and shop interface
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   GACHA CARD BASE
+   ------------------------------------------------------------------- */
+.gacha-card {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  border: 4px solid transparent;
+  background: white;
+}
+
+.gacha-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Theme variations */
+body.theme-sakura .gacha-card { 
+  background: #fff5f7; 
+}
+
+body.theme-sky .gacha-card { 
+  background: #f0f9ff; 
+}
+
+body.theme-neon .gacha-card { 
+  background: rgba(20, 15, 45, 0.8); 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6),
+              0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   CARD IMAGE
+   ------------------------------------------------------------------- */
+.card-image-container {
+  height: 160px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ------------------------------------------------------------------- 
+   CARD TEXT
+   ------------------------------------------------------------------- */
+.card-name {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-anime {
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.theme-neon .card-name,
+body.theme-neon .card-anime { 
+  color: #e2e8f0; 
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   CARD STARS (Rarity indicator)
+   ------------------------------------------------------------------- */
+.card-stars {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 4px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   RARITY STYLES
+   ------------------------------------------------------------------- */
+
+/* 1-Star (Bronze) */
+.rarity-1 { 
+  border-color: #a97142; 
+}
+
+.rarity-1 .card-stars { 
+  color: #a97142; 
+}
+
+/* 2-Star (Silver) */
+.rarity-2 { 
+  border-color: #a8a29e; 
+}
+
+.rarity-2 .card-stars { 
+  color: #a8a29e; 
+}
+
+/* 3-Star (Blue) */
+.rarity-3 { 
+  border-color: #3b82f6; 
+  animation: blue-pulse 4s infinite alternate; 
+}
+
+.rarity-3 .card-stars { 
+  color: #3b82f6; 
+}
+
+@keyframes blue-pulse {
+  from { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
+  to { box-shadow: 0 0 12px rgba(59, 130, 246, 0.8); }
+}
+
+/* 4-Star (Purple) */
+.rarity-4 { 
+  border-color: #a855f7; 
+  animation: purple-pulse 3s infinite alternate; 
+}
+
+.rarity-4 .card-stars { 
+  color: #a855f7; 
+}
+
+@keyframes purple-pulse {
+  from { box-shadow: 0 0 6px rgba(168, 85, 247, 0.5); }
+  to { box-shadow: 0 0 15px rgba(168, 85, 247, 0.9); }
+}
+
+/* 5-Star (Gold) */
+.rarity-5 { 
+  border-color: #f59e0b; 
+  animation: gold-pulse 2s infinite alternate; 
+}
+
+.rarity-5 .card-stars { 
+  color: #f59e0b; 
+}
+
+@keyframes gold-pulse {
+  from { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+  to { box-shadow: 0 0 20px rgba(245, 158, 11, 1); }
+}
+
+/* ------------------------------------------------------------------- 
+   PRISMATIC RARITY (Special/Rainbow)
+   ------------------------------------------------------------------- */
+.rarity-prismatic {
+  position: relative;
+  overflow: hidden;
+  border-width: 4px;
+  border-image: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6, #f43f5e) 1;
+  animation: prismatic-glow 2s infinite alternate;
+}
+
+.rarity-prismatic .card-stars {
+  font-size: 1.5rem;
+  background: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes prismatic-glow {
+  from { box-shadow: 0 0 15px #f43f5e, 0 0 5px #fff; }
+  to { box-shadow: 0 0 25px #22d3ee, 0 0 10px #fff; }
+}
+
+/* ------------------------------------------------------------------- 
+   GACHA STATS DISPLAY
+   ------------------------------------------------------------------- */
+#gacha-stats-display {
+  color: var(--text-secondary);
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+body.theme-neon #gacha-stats-display {
+  background: rgba(20, 15, 45, 0.85);
+  border-color: rgba(232, 121, 249, 0.4);
+  box-shadow: 0 0 15px rgba(232, 121, 249, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   GACHA SHOP PACKS
+   ------------------------------------------------------------------- */
+.gacha-pack {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  transition: all 0.3s ease;
+}
+
+.gacha-pack:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-neon .gacha-pack {
+  background: rgba(20, 15, 45, 0.85);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 15px rgba(232, 121, 249, 0.2);
+}
+
+body.theme-neon .gacha-pack:hover {
+  box-shadow: 0 0 25px rgba(232, 121, 249, 0.4);
+}

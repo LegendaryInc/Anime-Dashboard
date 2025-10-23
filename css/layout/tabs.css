@@ -1,0 +1,74 @@
+/* ===================================================================
+   TAB NAVIGATION
+   Tab buttons and active/inactive states
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   TAB BUTTON BASE STYLES
+   ------------------------------------------------------------------- */
+.tab-btn {
+  border-color: transparent;
+  transition: all 0.3s ease;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  background: none;
+}
+
+/* ------------------------------------------------------------------- 
+   ACTIVE TAB
+   ------------------------------------------------------------------- */
+.active-tab {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+body.theme-neon .active-tab {
+  text-shadow: 0 0 10px rgba(232, 121, 249, 0.8);
+  border-bottom: 2px solid var(--accent);
+  box-shadow: 0 3px 15px rgba(232, 121, 249, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   INACTIVE TAB HOVER
+   ------------------------------------------------------------------- */
+.inactive-tab:hover {
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+body.theme-neon .inactive-tab:hover {
+  color: var(--text-primary);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+/* ------------------------------------------------------------------- 
+   TAB CONTAINER
+   ------------------------------------------------------------------- */
+.tab-container {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+body.theme-neon .tab-container {
+  border-bottom-color: rgba(168, 85, 247, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .tab-btn {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .tab-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

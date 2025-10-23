@@ -1,0 +1,117 @@
+/* ===================================================================
+   SKY THEME EFFECTS
+   Floating clouds animation
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   CLOUD BASE STYLES
+   ------------------------------------------------------------------- */
+.cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 100px;
+  opacity: 0.8;
+  animation: cloud-drift linear infinite;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  width: 200px;
+  height: 60px;
+}
+
+/* Cloud puff details */
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 100px;
+}
+
+.cloud::before {
+  width: 100px;
+  height: 80px;
+  top: -40px;
+  left: 20px;
+}
+
+.cloud::after {
+  width: 120px;
+  height: 70px;
+  top: -30px;
+  right: 20px;
+}
+
+/* ------------------------------------------------------------------- 
+   CLOUD DRIFT ANIMATION
+   ------------------------------------------------------------------- */
+@keyframes cloud-drift {
+  0% {
+    left: -250px;
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.8;
+  }
+  95% {
+    opacity: 0.8;
+  }
+  100% {
+    left: calc(100% + 50px);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   CLOUD VARIATIONS
+   Different sizes and speeds
+   ------------------------------------------------------------------- */
+.cloud:nth-child(1) {
+  width: 180px;
+  height: 50px;
+  animation-duration: 30s;
+}
+
+.cloud:nth-child(2) {
+  width: 220px;
+  height: 70px;
+  animation-duration: 40s;
+  opacity: 0.6;
+}
+
+.cloud:nth-child(3) {
+  width: 160px;
+  height: 45px;
+  animation-duration: 50s;
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------------- 
+   SKY THEME SPECIFIC STYLING
+   ------------------------------------------------------------------- */
+body.theme-sky .cloud {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.1);
+}
+
+body.theme-sky .cloud::before,
+body.theme-sky .cloud::after {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE OPTIMIZATION
+   Reduce number of clouds on mobile
+   ------------------------------------------------------------------- */
+@media (max-width: 540px) {
+  .cloud:nth-child(n+3) { 
+    display: none; 
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   REDUCED MOTION
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .cloud {
+    display: none !important;
+  }
+}

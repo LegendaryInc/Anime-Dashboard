@@ -1,0 +1,97 @@
+/* ===================================================================
+   CSS CUSTOM PROPERTIES - THEME VARIABLES
+   All theme color schemes and shared design tokens
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   DEFAULT THEME (Light Mode)
+   ------------------------------------------------------------------- */
+:root {
+  /* Background Gradients */
+  --bg-gradient-start: #e6e9f0;
+  --bg-gradient-end: #eef1f5;
+  
+  /* Card Styles */
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(255, 255, 255, 0.18);
+  
+  /* Text Colors */
+  --text-primary: #2D3748;
+  --text-secondary: #4A5568;
+  --text-muted: #6b7280;
+  
+  /* Accent Colors */
+  --accent: #6366F1;
+  --accent-hover: #4F46E5;
+  --accent-shadow: rgba(99, 102, 241, 0.2);
+  
+  /* UI Elements */
+  --btn-secondary-bg: #e2e8f0;
+  --btn-secondary-hover: #cbd5e1;
+  --border-color: #d1d5db;
+  --table-hover: rgba(99, 102, 241, 0.05);
+}
+
+/* ------------------------------------------------------------------- 
+   SAKURA THEME (Pink Cherry Blossom)
+   ------------------------------------------------------------------- */
+body.theme-sakura {
+  --bg-gradient-start: #fff1f2;
+  --bg-gradient-end: #ffe4e6;
+  --accent: #EC4899;
+  --accent-hover: #db2777;
+  --accent-shadow: rgba(236, 72, 153, 0.2);
+  --text-primary: #831843;
+  --text-secondary: #9f1239;
+  --table-hover: rgba(236, 72, 153, 0.05);
+}
+
+/* ------------------------------------------------------------------- 
+   SKY THEME (Blue Sky)
+   ------------------------------------------------------------------- */
+body.theme-sky {
+  --bg-gradient-start: #e0f2fe;
+  --bg-gradient-end: #f0f9ff;
+  --accent: #0EA5E9;
+  --accent-hover: #0284c7;
+  --accent-shadow: rgba(14, 165, 233, 0.2);
+  --text-primary: #075985;
+  --text-secondary: #0c4a6e;
+  --table-hover: rgba(14, 165, 233, 0.05);
+}
+
+/* ------------------------------------------------------------------- 
+   NEON THEME (Dark Cyberpunk)
+   ------------------------------------------------------------------- */
+body.theme-neon {
+  --bg-gradient-start: #1a0b2e;
+  --bg-gradient-end: #0f051d;
+  --card-bg: rgba(20, 15, 45, 0.85);
+  --card-border: rgba(232, 121, 249, 0.4);
+  --text-primary: #ffffff;
+  --text-secondary: #fdf4ff;
+  --text-muted: #e9d5ff;
+  --accent: #e879f9;
+  --accent-hover: #f0abfc;
+  --accent-shadow: rgba(232, 121, 249, 0.6);
+  --btn-secondary-bg: #6b21a8;
+  --btn-secondary-hover: #7c3aed;
+  --border-color: #a855f7;
+  --table-hover: rgba(232, 121, 249, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   THEME TEXT HELPER CLASSES
+   Use these for dynamic theme-aware text coloring
+   ------------------------------------------------------------------- */
+.theme-text-primary { 
+  color: var(--text-primary); 
+}
+
+.theme-text-secondary { 
+  color: var(--text-secondary); 
+}
+
+.theme-text-muted { 
+  color: var(--text-muted); 
+}

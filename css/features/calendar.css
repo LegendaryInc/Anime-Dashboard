@@ -1,0 +1,106 @@
+/* ===================================================================
+   CALENDAR FEATURE
+   Airing calendar controls, filters, and anime cards
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   CALENDAR CONTROLS CONTAINER
+   ------------------------------------------------------------------- */
+.calendar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+}
+
+body.theme-neon .calendar-controls {
+  background: rgba(20, 15, 45, 0.85);
+  border-color: rgba(232, 121, 249, 0.5);
+  box-shadow: 0 0 25px rgba(232, 121, 249, 0.2);
+}
+
+body.theme-sakura .calendar-controls {
+  background: #fff5f7;
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+body.theme-sky .calendar-controls {
+  background: #f0f9ff;
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   CALENDAR NAVIGATION
+   ------------------------------------------------------------------- */
+.calendar-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.calendar-nav button {
+  padding: 8px 16px;
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-nav button:hover {
+  background: var(--btn-secondary-hover);
+  transform: translateY(-1px);
+}
+
+body.theme-neon .calendar-nav button {
+  background: rgba(124, 58, 237, 0.3);
+  border-color: rgba(232, 121, 249, 0.5);
+  color: #fdf4ff;
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+}
+
+body.theme-neon .calendar-nav button:hover {
+  background: rgba(232, 121, 249, 0.4);
+  box-shadow: 0 0 20px rgba(232, 121, 249, 0.4);
+}
+
+/* ------------------------------------------------------------------- 
+   CALENDAR FILTERS
+   ------------------------------------------------------------------- */
+.calendar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* ------------------------------------------------------------------- 
+   RESULT COUNT
+   ------------------------------------------------------------------- */
+#calendar-result-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .calendar-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .calendar-nav {
+    justify-content: center;
+  }
+}

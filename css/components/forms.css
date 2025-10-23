@@ -1,0 +1,154 @@
+/* ===================================================================
+   FORM COMPONENTS
+   Inputs, selects, search bars, and filter controls
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   BASE INPUT & SELECT STYLES
+   ------------------------------------------------------------------- */
+.filter-select, 
+#search-bar {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus,
+#search-bar:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-shadow);
+}
+
+/* ------------------------------------------------------------------- 
+   SELECT DROPDOWN STYLING
+   ------------------------------------------------------------------- */
+.filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.filter-select option {
+  padding: 4px 8px;
+}
+
+/* ------------------------------------------------------------------- 
+   CALENDAR FILTER CONTROLS
+   ------------------------------------------------------------------- */
+.calendar-filter-select {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 120px;
+  transition: all 0.2s ease;
+}
+
+.calendar-filter-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-shadow);
+}
+
+/* ------------------------------------------------------------------- 
+   NEON THEME FORM STYLES
+   ------------------------------------------------------------------- */
+body.theme-neon .filter-select,
+body.theme-neon #search-bar,
+body.theme-neon .calendar-filter-select {
+  background: rgba(30, 20, 60, 0.8);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #e2e8f0;
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2),
+              inset 0 0 20px rgba(124, 58, 237, 0.1);
+}
+
+body.theme-neon .filter-select:focus,
+body.theme-neon #search-bar:focus,
+body.theme-neon .calendar-filter-select:focus {
+  border-color: rgba(232, 121, 249, 0.8);
+  box-shadow: 0 0 20px rgba(232, 121, 249, 0.4);
+  outline: none;
+}
+
+body.theme-neon .filter-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23e879f9' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+body.theme-neon #search-bar::placeholder { 
+  color: rgba(233, 213, 255, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   SAKURA THEME FORM STYLES
+   ------------------------------------------------------------------- */
+body.theme-sakura .filter-select,
+body.theme-sakura #search-bar,
+body.theme-sakura .calendar-filter-select {
+  background: #fff5f7;
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   SKY THEME FORM STYLES
+   ------------------------------------------------------------------- */
+body.theme-sky .filter-select,
+body.theme-sky #search-bar,
+body.theme-sky .calendar-filter-select {
+  background: #f0f9ff;
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   SETTINGS MODAL INPUTS
+   ------------------------------------------------------------------- */
+body.theme-neon #settings-modal-content input[type="text"],
+body.theme-neon #settings-modal-content input[type="password"],
+body.theme-neon #settings-modal-content input[type="number"] {
+  background-color: rgba(30, 20, 60, 0.8);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: var(--text-primary);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2),
+              inset 0 0 15px rgba(124, 58, 237, 0.1);
+}
+
+body.theme-neon #settings-modal-content input::placeholder {
+  color: rgba(233, 213, 255, 0.5);
+}
+
+body.theme-neon #settings-modal-content input:focus {
+  border-color: rgba(232, 121, 249, 0.8);
+  box-shadow: 0 0 20px rgba(232, 121, 249, 0.4);
+  outline: none;
+}
+
+body.theme-neon #settings-modal-content label {
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .calendar-filters {
+    justify-content: stretch;
+    flex-direction: column;
+  }
+  
+  .calendar-filter-select {
+    width: 100%;
+  }
+}
