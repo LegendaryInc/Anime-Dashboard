@@ -5,25 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Anime Dashboard</title>
 
-  <!-- Tailwind & Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet"/>
 
-  <!-- App Styles -->
   <link rel="stylesheet" href="/css/style.css"/>
 
-  <!-- Config (defines window.CONFIG) -->
   <script src="config.js"></script>
-</head>
-<body class="text-gray-800">
+  <style>
+    .theme-text-primary { color: var(--text-primary); }
+    .theme-text-secondary { color: var(--text-secondary); }
+    .theme-text-muted { color: var(--text-muted); }
 
-  <!-- Background blobs / theme animations -->
-  <div id="blob-container" class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+    /* Target specific elements if needed */
+    .login-paragraph { color: var(--text-secondary); }
+    .mal-instructions { color: var(--text-secondary); font-size: 0.875rem; } /* text-sm */
+    .loading-text { color: var(--text-secondary); }
+    .header-subtitle { color: var(--text-secondary); font-size: 1.125rem; } /* text-lg */
+    .welcome-paragraph { color: var(--text-secondary); }
+    .chart-fallback { color: var(--text-muted); }
+    .insights-paragraph { color: var(--text-secondary); }
+    .calendar-loading-text { color: var(--text-secondary); }
+    .gacha-placeholder { color: var(--text-muted); }
+    .modal-paragraph { color: var(--text-secondary); font-size: 0.875rem; } /* text-sm */
+    .login-icon svg { color: var(--text-muted); } /* Adjust icon color too */
+ </style>
+</head>
+<body class="text-gray-800"> <div id="blob-container" class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
     <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
     <div class="absolute top-0 -right-4 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
     <div class="absolute bottom-20 -left-20 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
@@ -33,11 +44,10 @@
   <div class="container mx-auto p-4 md:p-8">
     <header class="text-center mb-8 relative">
       <button id="settings-button" class="absolute right-0 top-0 text-xl p-2 rounded-lg hover:bg-gray-100 transition">⚙️</button>
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-800">My Anime Dashboard</h1>
-      <p class="text-lg text-gray-600 mt-2">Visualize your anime watching journey.</p>
+      <h1 class="text-4xl md:text-5xl font-bold theme-text-primary">My Anime Dashboard</h1>
+      <p class="mt-2 header-subtitle">Visualize your anime watching journey.</p>
     </header>
 
-    <!-- Theme switcher -->
     <div id="theme-switcher" class="flex justify-center gap-2 mb-6">
       <button data-theme="default" class="theme-btn">Default</button>
       <button data-theme="sakura" class="theme-btn">Sakura 🌸</button>
@@ -46,28 +56,46 @@
     </div>
 
     <main>
-      <!-- Welcome-back screen -->
       <div id="welcome-back-screen" class="hidden max-w-2xl mx-auto anime-card rounded-2xl p-8 shadow-lg text-center">
-        <h2 class="text-2xl font-bold mb-2">Welcome Back!</h2>
-        <p class="text-gray-600 mb-6">Your data is loaded from your last session. Re-sync to get the latest updates from AniList.</p>
+        <h2 class="text-2xl font-bold mb-2 theme-text-primary">Welcome Back!</h2>
+        <p class="mb-6 welcome-paragraph">Your data is loaded from your last session. Re-sync to get the latest updates from AniList.</p>
         <div class="flex justify-center gap-4">
           <button id="view-dashboard-btn" class="btn-primary font-bold py-2 px-6 rounded-lg">View Dashboard</button>
           <button id="resync-btn" class="btn-secondary font-bold py-2 px-6 rounded-lg">🔄 Re-sync with AniList</button>
         </div>
       </div>
 
-      <!-- Login / loading -->
       <div id="login-screen">
         <div class="max-w-2xl mx-auto anime-card rounded-2xl p-8 shadow-lg text-center">
           <div id="login-box">
-            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-            </svg>
-            <h2 class="mt-4 text-2xl font-bold text-gray-800">Connect Your Account</h2>
-            <p class="mt-2 text-gray-600">Login with your AniList account to automatically sync your watch history and generate your personalized dashboard.</p>
+             <div class="login-icon"> <svg class="mx-auto h-12 w-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+               </svg>
+             </div>
+            <h2 class="mt-4 text-2xl font-bold theme-text-primary">Connect Your Account</h2>
+            <p class="mt-2 login-paragraph">Login with your AniList account to automatically sync your watch history and generate your personalized dashboard.</p>
+
             <a href="/auth/anilist" class="mt-6 inline-block btn-primary font-bold py-3 px-8 rounded-lg text-lg shadow-md hover:shadow-lg transition-all">
               Login with AniList
             </a>
+
+            <div class="mt-6 pt-4 border-t border-gray-300 mal-instructions">
+              <p class="font-semibold mb-2 theme-text-primary">MyAnimeList User?</p>
+              <p class="mb-2">
+                Direct MyAnimeList login is currently unavailable due to issues with their API.
+              </p>
+              <p class="mb-2">
+                To use the dashboard, you can easily migrate your list to AniList (it's free!):
+              </p>
+              <ol class="list-decimal list-inside text-left inline-block mb-2">
+                <li>Export your list from <a href="https://myanimelist.net/panel.php?go=export" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline">MyAnimeList Export</a> (choose the XML format).</li>
+                <li>Create or log in to your <a href="https://anilist.co/signup" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline">AniList Account</a>.</li>
+                <li>Import the file using <a href="https://anilist.co/settings/import" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline">AniList Import</a>.</li>
+              </ol>
+              <p>
+                Once imported, log in above using the "Login with AniList" button!
+              </p>
+            </div>
           </div>
 
           <div id="loading-spinner" class="hidden text-center mt-4">
@@ -75,7 +103,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p id="loading-text" class="mt-2 text-gray-600">Syncing with AniList...</p>
+            <p id="loading-text" class="mt-2 loading-text">Syncing with AniList...</p>
           </div>
 
           <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mt-4" role="alert"></div>
@@ -83,10 +111,8 @@
       </div>
     </main>
 
-    <!-- Dashboard -->
     <div id="dashboard-screen" class="hidden">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Stats column -->
         <div class="lg-col-span-1 flex flex-col gap-6">
           <div class="stat-card anime-card rounded-xl p-4 shadow-md text-center">
             <h3 class="font-bold text-sm md:text-base">Total Anime Watched</h3>
@@ -117,9 +143,7 @@
           </div>
         </div>
 
-        <!-- Right content -->
         <div class="lg:col-span-3">
-          <!-- Tabs -->
           <div class="mb-4">
             <div class="border-b border-gray-200">
               <nav id="tab-nav" class="-mb-px flex gap-6" aria-label="Tabs">
@@ -133,23 +157,26 @@
             </div>
           </div>
 
-          <!-- Watching -->
           <div id="watching-tab" class="tab-content hidden">
-            <div id="watching-content" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start"></div>
+             <div class="mb-4 flex justify-between items-center">
+                <div></div> <button id="export-calendar-btn" class="export-calendar-btn">
+                  📅 Export to Calendar
+                </button>
+             </div>
+             <div id="watching-content" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start"></div>
           </div>
 
-          <!-- Charts (fixed heights + items-start) -->
           <div id="charts-tab" class="tab-content">
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
               <div class="anime-card rounded-xl p-4 shadow-md">
-                <h3 class="font-bold text-lg mb-2 text-center">Genre Distribution</h3>
+                <h3 class="font-bold text-lg mb-2 text-center theme-text-primary">Genre Distribution</h3>
                 <div class="relative h-[350px]">
                   <canvas id="genre-chart"></canvas>
                 </div>
-                <p id="genre-chart-fallback" class="text-center text-gray-500 p-8 hidden">No genre data to display.</p>
+                <p id="genre-chart-fallback" class="text-center p-8 hidden chart-fallback">No genre data to display.</p>
               </div>
               <div class="anime-card rounded-xl p-4 shadow-md">
-                <h3 class="font-bold text-lg mb-2 text-center">Score Distribution</h3>
+                <h3 class="font-bold text-lg mb-2 text-center theme-text-primary">Score Distribution</h3>
                 <div class="relative h-[350px]">
                   <canvas id="score-chart"></canvas>
                 </div>
@@ -157,11 +184,10 @@
             </div>
           </div>
 
-          <!-- List -->
           <div id="list-tab" class="tab-content hidden">
             <div class="anime-card rounded-xl p-4 shadow-md">
               <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                <h3 class="font-bold text-xl mb-2 sm:mb-0">Your Anime List</h3>
+                <h3 class="font-bold text-xl mb-2 sm:mb-0 theme-text-primary">Your Anime List</h3>
                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <select id="status-filter" class="filter-select"></select>
                   <select id="genre-filter" class="filter-select"></select>
@@ -169,8 +195,7 @@
                 </div>
               </div>
               <div class="overflow-y-auto" style="max-height: 500px;">
-                <table id="anime table" class="w-full text-left">
-                  <thead id="anime-table-head">
+                <table id="anime-table" class="w-full text-left"> <thead id="anime-table-head">
                     <tr class="border-b-2 border-gray-200">
                       <th class="p-3 sortable-header" data-sort="title">Title</th>
                       <th class="p-3 sortable-header" data-sort="score">Score</th>
@@ -185,11 +210,10 @@
             </div>
           </div>
 
-          <!-- Insights -->
           <div id="insights-tab" class="tab-content hidden">
             <div class="anime-card rounded-xl p-6 shadow-md text-center">
-              <h3 class="font-bold text-xl mb-2">Personalized Recommendations</h3>
-              <p class="mb-4 text-gray-600">Get anime recommendations based on your top genres, powered by AI.</p>
+              <h3 class="font-bold text-xl mb-2 theme-text-primary">Personalized Recommendations</h3>
+              <p class="mb-4 insights-paragraph">Get anime recommendations based on your top genres, powered by AI.</p>
               <button id="gemini-button" class="btn-primary font-bold py-2 px-6 rounded-lg shadow-md">
                 Get AI Recommendations ✨
               </button>
@@ -198,97 +222,90 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <p class="mt-2 text-sm text-gray-600">Thinking...</p>
+                <p class="mt-2 text-sm theme-text-secondary">Thinking...</p>
               </div>
               <div id="gemini-response" class="gemini-response text-left mt-6"></div>
             </div>
           </div>
 
-          <!-- Calendar -->
           <div id="calendar-tab" class="tab-content hidden">
             <div class="anime-card rounded-xl p-6 shadow-md">
-              <h3 id="calendar-header" class="font-bold text-xl mb-4 text-center"></h3>
-              <div id="calendar-loading" class="text-center">
-                <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <p class="mt-2 text-gray-600">Fetching upcoming anime schedule...</p>
+              <div class="flex justify-between items-center mb-4 border-b pb-4">
+                <h3 id="calendar-header" class="font-bold text-2xl theme-text-primary">Loading...</h3>
+                <span id="calendar-result-count" class="text-sm theme-text-secondary">0 anime</span>
               </div>
-              <div id="calendar-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start"></div>
+              <div class="calendar-controls">
+                </div>
+              <div id="calendar-loading" class="text-center py-8">
+                <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2 calendar-loading-text">Fetching upcoming anime schedule...</p>
+              </div>
+              <div id="calendar-content" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start"></div>
             </div>
           </div>
 
-          <!-- Gacha -->
           <div id="gacha-tab" class="tab-content hidden">
             <div class="anime-card rounded-xl p-6 shadow-md text-center">
-              <h3 class="font-bold text-2xl mb-4 border-b pb-2">Waifu Gacha Roll 🎰</h3>
-
+              <h3 class="font-bold text-2xl mb-4 border-b pb-2 theme-text-primary">Waifu Gacha Roll 🎰</h3>
               <div class="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
-                <div class="text-xl font-semibold">
-                  Tokens: <span id="gacha-token-count" class="text-indigo-600">0</span>
-                </div>
-                <div class="text-xl font-semibold">
-                  ✨ Shards: <span id="gacha-shard-count" class="text-indigo-600">0</span>
-                </div>
-                <button id="gacha-roll-button" class="btn-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg" disabled>
-                  ROLL (1 Token)
-                </button>
+                 <div class="text-xl font-semibold theme-text-primary">
+                   Tokens: <span id="gacha-token-count" class="text-indigo-600">0</span>
+                 </div>
+                 <div class="text-xl font-semibold theme-text-primary">
+                   ✨ Shards: <span id="gacha-shard-count" class="text-indigo-600">0</span>
+                 </div>
+                 <button id="gacha-roll-button" class="btn-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg" disabled>
+                   ROLL (1 Token)
+                 </button>
               </div>
-
-              <div id="gacha-result-display" class="min-h-[200px] border border-dashed border-gray-300 rounded-xl p-4 flex items-center justify-center text-gray-500">
+              <div id="gacha-result-display" class="min-h-[200px] border border-dashed border-gray-300 rounded-xl p-4 flex items-center justify-center gacha-placeholder">
                 Connect to AniList to start earning tokens! (1 token per 50 episodes)
               </div>
             </div>
-
             <div id="shard-shop-section" class="anime-card rounded-xl p-6 shadow-md mt-6">
-              <h3 class="font-bold text-2xl mb-4 text-center border-b pb-2">✨ Shard Shop</h3>
-              <div id="cosmetic-pack-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center"></div>
-              <div id="cosmetic-result-display" class="min-h-[150px] mt-6 border-dashed border-gray-300 rounded-xl p-4 flex-col items-center justify-center text-gray-500 hidden">
-                <h4 class="font-bold text-lg mb-2">Pack Contents:</h4>
-                <div id="cosmetic-rewards" class="flex flex-wrap justify-center gap-4"></div>
-              </div>
-            </div>
-
-            <div class="anime-card rounded-xl p-6 shadow-md mt-6">
-              <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="font-bold text-xl">Your Waifu Collection</h3>
-                <div id="gacha-stats-display"></div>
-              </div>
-              <div id="gacha-collection-display" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center"></div>
-			  <div class="flex justify-between items-center mb-4">
-			<h3 class="text-xl font-bold">Admin commands:</h3>
-				<button id="gacha-reset-button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-					🔄 Reset Collection </button>
-				</div>
-            </div>
+               <h3 class="font-bold text-2xl mb-4 text-center border-b pb-2 theme-text-primary">✨ Shard Shop</h3>
+               <div id="cosmetic-pack-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center"></div>
+               <div id="cosmetic-result-display" class="min-h-[150px] mt-6 border-dashed border-gray-300 rounded-xl p-4 flex-col items-center justify-center gacha-placeholder hidden">
+                 <h4 class="font-bold text-lg mb-2 theme-text-primary">Pack Contents:</h4>
+                 <div id="cosmetic-rewards" class="flex flex-wrap justify-center gap-4"></div>
+               </div>
+             </div>
+             <div class="anime-card rounded-xl p-6 shadow-md mt-6">
+               <div class="flex justify-between items-center mb-4 border-b pb-2">
+                 <h3 class="font-bold text-xl theme-text-primary">Your Waifu Collection</h3>
+                 <div id="gacha-stats-display" class="theme-text-secondary"></div>
+               </div>
+               <div id="gacha-collection-display" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center"></div>
+               <div class="flex justify-between items-center mb-4 mt-6 pt-4 border-t">
+                 <h3 class="text-xl font-bold theme-text-primary">Admin commands:</h3>
+                 <button id="gacha-reset-button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    🔄 Reset Collection </button>
+                </div>
+             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Similar modal -->
   <div id="similar-modal-backdrop" class="modal-backdrop">
     <div id="similar-modal-content" class="modal-content anime-card p-6">
-      <h3 class="text-xl font-bold mb-4" id="similar-modal-title">Finding similar anime...</h3>
+      <h3 class="text-xl font-bold mb-4 theme-text-primary" id="similar-modal-title">Finding similar anime...</h3>
       <div id="similar-modal-body">
-        <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
+        </div>
       <div class="text-right mt-6">
         <button id="similar-modal-close" class="btn-secondary font-bold py-2 px-4 rounded-lg">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Cosmetic modal -->
   <div id="cosmetic-modal-backdrop" class="modal-backdrop">
     <div id="cosmetic-modal-content" class="modal-content anime-card p-6">
-      <h3 class="text-xl font-bold mb-4 border-b pb-2">Apply a Border</h3>
-      <p class="text-sm text-gray-600 mb-4">Select a border to apply to this card. Select "Default" to remove a border.</p>
+      <h3 class="text-xl font-bold mb-4 border-b pb-2 theme-text-primary">Apply a Border</h3>
+      <p class="mb-4 modal-paragraph">Select a border to apply to this card. Select "Default" to remove a border.</p>
       <div id="cosmetic-selection-container" class="grid grid-cols-3 gap-4"></div>
       <div class="text-right mt-6">
         <button id="cosmetic-modal-close" class="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
@@ -296,51 +313,48 @@
     </div>
   </div>
 
-  <!-- Settings modal -->
-  <div id="settings-modal-backdrop" class="modal-backdrop settings-modal-backdrop">
-    <div id="settings-modal-content" class="modal-content anime-card p-6">
-      <h3 class="text-xl font-bold mb-4 border-b pb-2">Dashboard Configuration</h3>
+	<div id="settings-modal-backdrop" class="modal-backdrop settings-modal-backdrop">
+		  <div id="settings-modal-content" class="modal-content anime-card p-6">
+			<h3 class="text-xl font-bold mb-4 border-b pb-2 theme-text-primary">Dashboard Configuration</h3>
 
-      <div class="space-y-4 text-left text-sm">
-        <div>
-          <label for="config-title" class="block font-semibold mb-1">Dashboard Title</label>
-          <input type="text" id="config-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400"/>
-        </div>
-        <div>
-          <label for="config-subtitle" class="block font-semibold mb-1">Dashboard Subtitle</label>
-          <input type="text" id="config-subtitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400"/>
-        </div>
+			<div class="space-y-4 text-left text-sm theme-text-secondary"> <div>
+				<label for="config-title" class="block font-semibold mb-1 theme-text-primary">Dashboard Title</label>
+				<input type="text" id="config-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400"/>
+			  </div>
+			  <div>
+				<label for="config-subtitle" class="block font-semibold mb-1 theme-text-primary">Dashboard Subtitle</label>
+				<input type="text" id="config-subtitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400"/>
+			  </div>
 
-        <div class="border-t pt-4">
-          <label for="config-api-key" class="block font-semibold mb-1">Gemini API Key</label>
-          <input type="password" id="config-api-key" placeholder="Enter your key for AI features" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-400 focus:border-red-400"/>
-          <p id="settings-key-error" class="text-red-500 text-xs mt-1 hidden">Key is required for AI features.</p>
-        </div>
+			  <div class="border-t pt-4">
+				<label for="config-api-key" class="block font-semibold mb-1 theme-text-primary">Gemini API Key</label>
+				<input type="password" id="config-api-key" placeholder="Enter your key for AI features" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-400 focus:border-red-400"/>
+				<p id="settings-key-error" class="text-red-500 text-xs mt-1 hidden">Key is required for AI features.</p>
+			  </div>
 
-        <div class="grid grid-cols-2 gap-4 border-t pt-4">
-          <div>
-            <label for="config-items-per-page" class="block font-semibold mb-1">Items Per List Page</label>
-            <input type="number" id="config-items-per-page" min="5" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
-          </div>
-          <div>
-            <label for="config-tracker-limit" class="block font-semibold mb-1">Active Tracker Limit</label>
-            <input type="number" id="config-tracker-limit" min="1" max="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
-          </div>
-          <div>
-            <label for="config-genre-limit" class="block font-semibold mb-1">Chart Genre Limit</label>
-            <input type="number" id="config-genre-limit" min="5" max="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
-          </div>
-        </div>
-      </div>
+			  <div class="grid grid-cols-2 gap-4 border-t pt-4">
+				<div>
+				  <label for="config-items-per-page" class="block font-semibold mb-1 theme-text-primary">Items Per List Page</label>
+				  <input type="number" id="config-items-per-page" min="5" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+				</div>
+				<div>
+				  <label for="config-genre-limit" class="block font-semibold mb-1 theme-text-primary">Chart Genre Limit</label>
+				  <input type="number" id="config-genre-limit" min="5" max="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+				</div>
+				<div>
+				  <label for="config-gacha-ept" class="block font-semibold mb-1 theme-text-primary">Episodes Per Gacha Token</label>
+				  <input type="number" id="config-gacha-ept" min="1" max="1000" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+				</div>
+				 </div>
+			</div>
 
-      <div class="text-right mt-6 flex justify-end gap-3">
-        <button id="settings-save" class="btn-primary font-bold py-2 px-4 rounded-lg">Save & Generate config.js</button>
-        <button id="settings-cancel" class="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
-      </div>
-    </div>
-  </div>
+			<div class="text-right mt-6 flex justify-end gap-3">
+			  <button id="settings-save" class="btn-primary font-bold py-2 px-4 rounded-lg">Save & Generate config.js</button>
+			  <button id="settings-cancel" class="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
+			</div>
+		  </div>
+		</div>
 
-  <!-- Entry script -->
   <script src="/scripts/main.js" type="module"></script>
 </body>
 </html>
