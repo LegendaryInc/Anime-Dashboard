@@ -580,6 +580,7 @@ body.theme-sky .confirm-btn-confirm {
 body.theme-sky .confirm-btn-confirm:hover {
   background-color: #0284c7;
 }
+
 /* === AI Recommendation Card Styles === */
 #gemini-response { max-width: 920px; margin: 0 auto; }
 
@@ -636,4 +637,284 @@ body.theme-sky .confirm-btn-confirm:hover {
   text-align: center;
   color: rgba(255,255,255,0.7);
   font-size: 14px;
+}
+
+/* Watching card base (kept for back-compat; enhanced below) */
+.watch-card{
+  display:grid;
+  grid-template-columns: 96px 1fr auto;
+  gap:14px;
+  align-items:center;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  margin-bottom:12px;
+}
+.watch-thumb{
+  width:96px; height:144px; border-radius:10px; overflow:hidden;
+  display:block; box-shadow:0 6px 16px rgba(0,0,0,.35);
+}
+.watch-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.watch-title{
+  display:inline-block; font-weight:800; letter-spacing:.01em; line-height:1.2;
+  text-decoration:none;
+}
+.watch-title:hover{ text-decoration:underline; }
+.watch-meta{ color:rgba(255,255,255,0.7); font-size:.92rem; margin-top:4px; }
+.watch-actions .btn-primary{
+  background: linear-gradient(90deg, #bd5bff, #7c3aed);
+  color:#fff; font-weight:700; border:none; border-radius:999px;
+  box-shadow:0 8px 20px rgba(125,46,255,.35);
+}
+.watch-actions .btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow:0 12px 24px rgba(125,46,255,.45);
+}
+
+/* =========================================================
+   POLISH / OVERRIDES — Watching grid, chip, table, a11y
+   ========================================================= */
+
+:root{
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+  --card-br: 16px;
+  --card-bd: 1px solid rgba(255,255,255,.12);
+  --shadow-1: 0 8px 16px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.06);
+  --shadow-1h: 0 14px 28px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
+  --accent: #e879f9;
+  --accent-2: #7c3aed;
+  --text-dim: rgba(255,255,255,.78);
+  --text-muted: rgba(255,255,255,.7);
+}
+body.theme-sakura { --accent:#ec4899; --accent-2:#db2777; }
+body.theme-sky    { --accent:#0ea5e9; --accent-2:#0284c7; }
+body.theme-neon   { --accent:#e879f9; --accent-2:#7c3aed; }
+
+:where(button, a, input, select, textarea):focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* Stats cards subtle lift */
+.stat-card{
+  border-radius: var(--card-br);
+  border: var(--card-bd);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-1);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.stat-card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-1h); }
+
+/* Stronger primary gradient (keeps your theme variants) */
+.btn-primary{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2)) !important;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  padding: 10px 16px;
+  box-shadow: 0 10px 20px color-mix(in oklab, var(--accent) 35%, #0000);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px color-mix(in oklab, var(--accent) 45%, #0000);
+}
+
+/* WATCHING — turn list into a clean responsive grid */
+#watching-content{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap:18px;
+}
+#watching-content .watch-card { margin:0; }
+.watch-card{
+  grid-template-columns: 96px 1fr auto;
+  gap:16px;
+  padding:14px 16px;
+  min-height:152px;
+  border-radius: var(--card-br);
+  border: var(--card-bd);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-1);
+}
+.watch-card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-1h); }
+
+/* Next-episode chip */
+.watch-next{
+  margin-top:6px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:.88rem;
+  color:#fff;
+  background: color-mix(in oklab, var(--accent) 22%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 55%, #0000);
+  border-radius: 999px;
+  padding:6px 10px;
+  box-shadow: 0 0 14px color-mix(in oklab, var(--accent) 26%, #0000);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow:hidden;
+  text-overflow: ellipsis;
+}
+.watch-next::before{
+  content: "⏰";
+  font-size: 1rem;
+  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--accent) 50%, #0000));
+}
+
+/* Small screens */
+@media (max-width: 540px){
+  #watching-content { grid-template-columns: 1fr; }
+  .watch-card { grid-template-columns: 82px 1fr auto; padding: 12px; }
+  .watch-thumb{ width:82px; height:124px; border-radius:10px; }
+  .watch-next{ font-size:.84rem; padding:5px 9px; }
+}
+
+/* FULL LIST — sticky header, row cards, hover, truncation */
+#anime-table{
+  width:100%;
+  border-collapse: separate;
+  border-spacing:0 8px;
+}
+#anime-table thead th{
+  position: sticky; top: -1px; z-index: 1;
+  background: color-mix(in oklab, var(--accent) 10%, #0f172a);
+  color:#e2e8f0;
+  text-align:left;
+  font-weight:900; letter-spacing:.02em;
+  padding:10px 12px;
+  border-radius:10px;
+}
+#anime-table tbody tr{
+  background: var(--card-bg);
+  border: var(--card-bd);
+  border-radius: 12px;
+  box-shadow: var(--shadow-1);
+}
+#anime-table tbody tr:hover{
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-1h);
+}
+#anime-table tbody td{
+  padding:12px;
+  vertical-align: middle;
+  color: var(--text-dim);
+}
+#anime-table td.title .main-title{
+  display:inline-block;
+  max-width: 40vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight:800; color:#fff;
+}
+#anime-table td.genres{
+  max-width: 28vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#anime-table td.text-right{ text-align:right; }
+
+thead th.sort-asc::after, thead th.sort-desc::after{
+  margin-left: 6px;
+  content:"";
+  display:inline-block;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right:5px solid transparent;
+}
+thead th.sort-asc::after{ border-bottom:7px solid #fff; }
+thead th.sort-desc::after{ border-top:7px solid #fff; }
+
+/* Keep stats column from stretching on huge screens */
+@media (min-width: 1400px){
+  .stats-column{ max-width: 320px; }
+}
+
+/* Better spacing for top nav on small screens */
+@media (max-width: 900px){
+  .theme-switcher, .tab-row { row-gap: 6px; }
+}
+/* =========================
+   WATCHING — spacing fixes
+   ========================= */
+
+/* 1) Tighter, consistent grid gutters */
+#watching-content {
+  /* 420px gives the title+chip + button room without wrapping too early */
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 14px; /* was 18px */
+}
+
+/* 2) Card internal spacing and column widths */
+.watch-card {
+  /* thumbnail | text | button */
+  grid-template-columns: 92px 1fr auto;
+  column-gap: 14px;           /* slightly tighter than before */
+  row-gap: 10px;
+  padding: 12px 14px;         /* reduces vertical “bulk” */
+}
+
+/* 3) Thumbnail size -> a touch smaller to gain breathing room */
+.watch-thumb {
+  width: 92px;
+  height: 138px;
+}
+
+/* 4) Text column — stack nicely with small gaps */
+.watch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;               /* allows title/next chip to truncate */
+}
+
+.watch-title {
+  line-height: 1.2;
+  margin: 0;                  /* remove any incidental margins */
+}
+
+/* 5) “Next episode” chip truncates cleanly and doesn’t push layout */
+.watch-next {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 6) Button column — keep width compact and pin to the right edge */
+.watch-actions {
+  align-self: start;          /* top-align with text block */
+  justify-self: end;          /* push to right edge of the grid cell */
+}
+
+/* Button itself — no extra external margin, compact padding */
+.watch-actions .btn-primary {
+  margin: 0;                  /* prevent stray margins from shifting the card */
+  padding: 8px 14px;          /* a hair smaller so the card height stays even */
+  box-shadow: 0 8px 18px color-mix(in oklab, var(--accent) 30%, #0000);
+}
+
+/* 7) Make large screens look denser without feeling cramped */
+@media (min-width: 1280px) {
+  #watching-content {
+    gap: 12px;
+  }
+  .watch-card {
+    padding: 12px;
+  }
+}
+
+/* 8) Small screens — keep single column clean */
+@media (max-width: 540px) {
+  #watching-content { grid-template-columns: 1fr; }
+  .watch-card { grid-template-columns: 82px 1fr auto; }
+  .watch-thumb { width: 82px; height: 124px; }
+  .watch-actions .btn-primary { padding: 8px 12px; }
 }
