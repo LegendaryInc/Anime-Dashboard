@@ -1,5 +1,5 @@
 // =====================================================================
-// ai.js — Google Gemini helpers + Clean AI Card Output (v2.5-flash ready)
+// ai.js – Google Gemini helpers + Clean AI Card Output (v2.5-flash ready)
 // =====================================================================
 
 const DEFAULT_MODEL =
@@ -110,10 +110,10 @@ function parseRecommendations(text = "") {
   const items = [];
   for (const l of lines) {
     const clean = l.replace(/^[-*•]\s*/, "");
-    // **Title** — reason
-    let m = clean.match(/^\*\*([^*]+)\*\*\s*[-–—:]\s*(.+)$/);
-    // Title — reason  |  Title - reason  |  Title: reason
-    if (!m) m = clean.match(/^\**([^*]+?)\**\s*[-–—:]\s*(.+)$/);
+    // **Title** – reason
+    let m = clean.match(/^\*\*([^*]+)\*\*\s*[-—–:]\s*(.+)$/);
+    // Title – reason  |  Title - reason  |  Title: reason
+    if (!m) m = clean.match(/^\**([^*]+?)\**\s*[-—–:]\s*(.+)$/);
 
     if (m) items.push({ title: m[1].trim(), reason: m[2].trim(), vibe: "" });
     else items.push({ title: clean, reason: "", vibe: "" });
@@ -163,51 +163,116 @@ export async function getGeminiRecommendations(stats, apiKey) {
   }
 }
 
+/**
+ * Find similar anime to the given one
+ * ✅ FIXED: Now targets the correct modal elements and shows the modal
+ */
 export async function getSimilarAnime(anime, apiKey) {
-  const out = document.getElementById("similar-response");
-  if (out) out.innerHTML = '<div class="text-sm text-gray-500">Finding similar titles...</div>';
+  // Get modal elements
+  const modal = document.getElementById('similar-modal-backdrop');
+  const modalTitle = document.getElementById('similar-modal-title');
+  const modalBody = document.getElementById('similar-modal-body');
+  
+  if (!modal || !modalBody) {
+    console.error('Similar modal elements not found');
+    return;
+  }
+
+  // Show modal with loading state
+  modal.classList.add('show');
+  if (modalTitle) {
+    modalTitle.textContent = `Finding anime similar to "${anime.title}"...`;
+  }
+  modalBody.innerHTML = `
+    <div class="flex flex-col items-center justify-center py-8">
+      <svg class="animate-spin h-8 w-8 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm text-gray-500">Analyzing genres and themes...</p>
+    </div>
+  `;
 
   const key = apiKey || window.CONFIG?.GEMINI_API_KEY;
 
+  // Try AI recommendations first
   if (key) {
     try {
       const prompt = buildSimilarPrompt(anime);
       const text = await callGeminiWithFallbacks(prompt, key);
       const items = parseRecommendations(text);
-      out.innerHTML = renderRecommendations(items);
+      
+      if (modalTitle) {
+        modalTitle.textContent = `Anime similar to "${anime.title}"`;
+      }
+      modalBody.innerHTML = renderRecommendations(items);
       return;
     } catch (err) {
-      console.warn("[Gemini] Similar failed, using local fallback:", err.message);
+      console.warn('[Gemini] Similar failed, using local fallback:', err.message);
     }
   }
 
   // Local heuristic fallback (no API needed)
   const list = Array.isArray(window.animeData) ? window.animeData : [];
-  const base = new Set((anime.genres || []).map((g) => g.toLowerCase()));
+  const baseGenres = new Set((anime.genres || []).map(g => g.toLowerCase()));
   const scored = [];
 
   for (const a of list) {
     if (!a || a.title === anime.title) continue;
-    const g = new Set((a.genres || []).map((x) => x.toLowerCase()));
-    const inter = [...g].filter((x) => base.has(x)).length;
-    const union = new Set([...g, ...base]).size || 1;
-    const jaccard = inter / union;
-    const bias = (num(a.score) / 100) * 0.1;
-    const rec = a.year ? (Math.max(0, num(a.year) - 1990) / 40) * 0.05 : 0;
-    const score = jaccard * 0.85 + bias + rec;
-    if (score > 0) scored.push({ a, s: score });
+    
+    const genres = new Set((a.genres || []).map(x => x.toLowerCase()));
+    const intersection = [...genres].filter(x => baseGenres.has(x)).length;
+    const union = new Set([...genres, ...baseGenres]).size || 1;
+    const jaccard = intersection / union;
+    
+    // Bonus for higher scores
+    const scoreBias = (num(a.score) / 100) * 0.1;
+    
+    // Small bonus for recent anime
+    const recencyBonus = a.year ? (Math.max(0, num(a.year) - 1990) / 40) * 0.05 : 0;
+    
+    const finalScore = jaccard * 0.85 + scoreBias + recencyBonus;
+    
+    if (finalScore > 0.1) { // Only include reasonably similar anime
+      scored.push({ a, s: finalScore, intersection });
+    }
   }
 
   scored.sort((x, y) => y.s - x.s);
-  const top = scored
-    .slice(0, 5)
-    .map(({ a }) => ({ title: a.title, reason: "shares similar genres." }));
-  out.innerHTML = renderRecommendations(top);
+  
+  const top = scored.slice(0, 5).map(({ a, intersection }) => {
+    const shared = Array.from(new Set([...(a.genres || [])].filter(g => 
+      baseGenres.has(g.toLowerCase())
+    )));
+    
+    return {
+      title: a.title,
+      reason: shared.length > 0 
+        ? `Shares ${shared.join(', ')} genre${shared.length > 1 ? 's' : ''}` 
+        : 'Similar themes and style',
+      vibe: a.score >= 8 ? 'Highly Rated' : ''
+    };
+  });
+
+  if (modalTitle) {
+    modalTitle.textContent = `Anime similar to "${anime.title}"`;
+  }
+  
+  if (top.length === 0) {
+    modalBody.innerHTML = `
+      <div class="text-center py-8 text-gray-500">
+        <p class="text-lg font-semibold mb-2">No similar anime found</p>
+        <p class="text-sm">Try adding more anime with similar genres to your list!</p>
+      </div>
+    `;
+  } else {
+    modalBody.innerHTML = renderRecommendations(top);
+  }
 }
 
 // --- Prompt Builders ---
 function buildRecommendationPrompt(stats) {
-  const total = num(stats?.totalSeries, 0);
+  const total = num(stats?.totalSeries || stats?.totalAnime, 0);
   const avg = num(stats?.meanScore, 0).toFixed(2);
   const topGenres = stats?.genreCounts
     ? Object.entries(stats.genreCounts)
@@ -218,7 +283,7 @@ function buildRecommendationPrompt(stats) {
     : "N/A";
 
   return `Suggest 5 anime in JSON format: [{"title":"","reason":"","vibe":""}]
-Avoid shows I’ve completed. Focus on fantasy/isekai and hidden gems.
+Avoid shows I've completed or started. Focus on fantasy/isekai and hidden gems.
 
 Stats:
 - Series: ${total}
@@ -227,11 +292,14 @@ Stats:
 }
 
 function buildSimilarPrompt(anime) {
-  const title = anime?.title || "Unknown";
-  const genres = Array.isArray(anime?.genres) ? anime.genres.join(", ") : "N/A";
-  const synopsis = (anime?.synopsis || "").slice(0, 400);
+  const title = anime?.title || 'Unknown';
+  const genres = Array.isArray(anime?.genres) ? anime.genres.join(', ') : 'N/A';
+  const synopsis = (anime?.synopsis || anime?.description || '').slice(0, 400);
 
-  return `Suggest 5 anime similar to "${title}" as JSON: [{"title":"","reason":""}]
+  return `Suggest 5 anime similar to "${title}" as JSON: [{"title":"","reason":"","vibe":""}]
+
 Genres: ${genres}
-Synopsis: ${synopsis}`;
+${synopsis ? `Synopsis: ${synopsis}` : ''}
+
+Focus on thematic similarities, art style, and tone. Provide the vibe field with tags like "Dark Fantasy", "Slice of Life", "Action-Packed", etc.`;
 }

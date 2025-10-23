@@ -1,5 +1,5 @@
 // =====================================================================
-// ui.js — UI helpers & render utilities (aligned with your HTML & data)
+// ui.js – UI helpers & render utilities (aligned with your HTML & data)
 // =====================================================================
 
 import { showToast, showConfirm } from './toast.js';
@@ -32,6 +32,26 @@ function formatRelative(ts) {
   if (h) parts.push(`${h}h`);
   if (m && !d) parts.push(`${m}m`);
   return parts.length ? `in ${parts.join(' ')}` : 'soon';
+}
+
+/* Escape HTML for safe rendering */
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/* Escape attribute values */
+function escapeAttr(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 /* ------------------------------------------------------------------ *
@@ -155,67 +175,206 @@ export function populateFilters(data) {
 }
 
 /* ------------------------------------------------------------------ *
- * 4) Core table filter/sort used by main.js
+ * 4) Core table filter/sort - FIXED VERSION
  * ------------------------------------------------------------------ */
-export function applyTableFiltersAndSort(data = []) {
+export function applyTableFiltersAndSort(data = [], currentSort = { column: 'title', direction: 'asc' }) {
   const searchInput = $('search-bar');
   const statusSelect = $('status-filter');
-  const genreSelect  = $('genre-filter');
-  const tableEl      = $('anime-table');
+  const genreSelect = $('genre-filter');
 
-  const q            = (searchInput?.value || '').trim().toLowerCase();
+  const q = (searchInput?.value || '').trim().toLowerCase();
   const chosenStatus = (statusSelect?.value || 'all').toLowerCase();
-  const chosenGenre  = (genreSelect?.value || 'all').toLowerCase();
+  const chosenGenre = (genreSelect?.value || 'all').toLowerCase();
 
   let out = Array.isArray(data) ? [...data] : [];
 
+  // Apply filters
   if (q) {
     out = out.filter(row => {
-      const title  = (row.title || '').toLowerCase();
-      const alt    = (row.alternativeTitle || '').toLowerCase();
+      const title = (row.title || '').toLowerCase();
+      const alt = (row.alternativeTitle || '').toLowerCase();
       const genres = (row.genres || []).map(g => (g || '').toLowerCase()).join(' ');
       return title.includes(q) || alt.includes(q) || genres.includes(q);
     });
   }
+  
   if (chosenStatus !== 'all') {
     out = out.filter(row => (row.status || '').toLowerCase() === chosenStatus);
   }
+  
   if (chosenGenre !== 'all') {
     out = out.filter(row => (row.genres || []).some(g => (g || '').toLowerCase() === chosenGenre));
   }
 
-  const sortKey = tableEl?.dataset?.sortKey || 'title';
-  const sortDir = (tableEl?.dataset?.sortDir || 'asc').toLowerCase();
+  // Update count display
+  const listCount = $('list-count');
+  if (listCount) {
+    listCount.textContent = out.length;
+  }
 
-  const cmp = (a, b, key, numeric = false) => {
-    const av = a?.[key];
-    const bv = b?.[key];
-    if (numeric) {
-      const an = Number(av) || 0;
-      const bn = Number(bv) || 0;
-      return an - bn;
-    }
-    const as = (av ?? '').toString().toLowerCase();
-    const bs = (bv ?? '').toString().toLowerCase();
-    return as.localeCompare(bs, undefined, { numeric: true });
-  };
-
-  const sorters = {
-    title:     (a,b) => cmp(a,b,'title',false),
-    score:     (a,b) => cmp(a,b,'score',true),
-    episodes:  (a,b) => cmp(a,b,'episodesWatched',true),
-    progress:  (a,b) => cmp(a,b,'progress',true),
-  };
-
-  const sorter = sorters[sortKey] || sorters.title;
-  out.sort(sorter);
-  if (sortDir === 'desc') out.reverse();
-
-  return out;
+  // ✅ Actually render the filtered results
+  renderAnimeTable(out, currentSort);
 }
 
 /* ------------------------------------------------------------------ *
- * 5) Renderers expected by main.js
+ * 5) Enhanced table renderer - THEME-AWARE VERSION
+ * ------------------------------------------------------------------ */
+export function renderAnimeTable(data = [], currentSort = { column: 'title', direction: 'asc' }) {
+  const tbody = $('anime-list-body');
+  const thead = $('anime-table-head');
+  if (!tbody) return;
+
+  // Update header sort indicators
+  if (thead) {
+    const headers = thead.querySelectorAll('.sortable-header');
+    headers.forEach(header => {
+      const column = header.dataset.sort;
+      
+      // Remove existing classes
+      header.classList.remove('sort-asc', 'sort-desc');
+      
+      // Add new class if this is the active column
+      if (column === currentSort.column) {
+        header.classList.add(`sort-${currentSort.direction}`);
+      }
+    });
+  }
+
+  // Sort the data
+  const sorted = sortAnimeData(data, currentSort);
+
+  // Render rows
+  if (sorted.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="p-6 text-center">
+          <div class="py-8">
+            <p class="text-lg font-semibold mb-2">No anime found</p>
+            <p class="text-sm">Try adjusting your search or filters</p>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const rows = sorted.map(a => {
+    const title = a.title || 'Unknown';
+    const score = a.score ?? '—';
+    const watched = a.episodesWatched ?? a.progress ?? 0;
+    const total = a.totalEpisodes ? `${watched}/${a.totalEpisodes}` : watched;
+    const genres = Array.isArray(a.genres) ? a.genres.slice(0, 3).join(', ') : (a.genres || '—');
+    const moreGenres = Array.isArray(a.genres) && a.genres.length > 3 
+      ? `<span class="text-xs ml-1">+${a.genres.length - 3}</span>` 
+      : '';
+    
+    // Score color coding - removed hardcoded Tailwind classes
+    const scoreClass = score === '—' ? 'score-none' :
+      score >= 8 ? 'score-high' :
+      score >= 6 ? 'score-good' :
+      score >= 4 ? 'score-mid' : 'score-low';
+
+    // Status badge
+    const statusBadge = getStatusBadge(a.status);
+
+    return `
+      <tr class="table-row" data-anime-title="${escapeAttr(title)}">
+        <td class="p-3 title">
+          <div class="flex flex-col gap-1">
+            <span class="main-title font-medium">${escapeHtml(title)}</span>
+            ${statusBadge}
+          </div>
+        </td>
+        <td class="p-3 score text-center ${scoreClass}">${score}</td>
+        <td class="p-3 episodes text-center font-medium">${total}</td>
+        <td class="p-3 genres">
+          <div class="text-sm">
+            ${escapeHtml(genres)}${moreGenres}
+          </div>
+        </td>
+        <td class="p-3 actions text-right">
+          <div class="flex gap-2 justify-end">
+            <button 
+              class="add-episode-btn px-3 py-1.5 text-sm rounded-lg font-medium" 
+              data-title="${escapeAttr(title)}"
+              title="Increment episode count">
+              +1 Ep
+            </button>
+            <button 
+              class="similar-btn px-3 py-1.5 text-sm rounded-lg font-medium" 
+              data-title="${escapeAttr(title)}"
+              title="Find similar anime">
+              Similar
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.innerHTML = rows;
+}
+
+/**
+ * Sort anime data by column
+ */
+function sortAnimeData(data, currentSort) {
+  const sorted = [...data];
+  const { column, direction } = currentSort;
+
+  sorted.sort((a, b) => {
+    let aVal, bVal;
+
+    switch (column) {
+      case 'title':
+        aVal = (a.title || '').toLowerCase();
+        bVal = (b.title || '').toLowerCase();
+        return direction === 'asc' 
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
+
+      case 'score':
+        aVal = Number(a.score) || 0;
+        bVal = Number(b.score) || 0;
+        return direction === 'asc' ? aVal - bVal : bVal - aVal;
+
+      case 'episodesWatched':
+        aVal = Number(a.episodesWatched || a.progress) || 0;
+        bVal = Number(b.episodesWatched || b.progress) || 0;
+        return direction === 'asc' ? aVal - bVal : bVal - aVal;
+
+      default:
+        return 0;
+    }
+  });
+
+  return sorted;
+}
+
+/**
+ * Generate status badge HTML - THEME-AWARE VERSION
+ */
+function getStatusBadge(status) {
+  if (!status) return '';
+  
+  const statusMap = {
+    'current': { class: 'status-watching', text: 'Watching' },
+    'watching': { class: 'status-watching', text: 'Watching' },
+    'completed': { class: 'status-completed', text: 'Completed' },
+    'planning': { class: 'status-planning', text: 'Plan to Watch' },
+    'paused': { class: 'status-paused', text: 'Paused' },
+    'dropped': { class: 'status-dropped', text: 'Dropped' },
+    'repeating': { class: 'status-repeating', text: 'Rewatching' }
+  };
+
+  const normalized = status.toLowerCase();
+  const badge = statusMap[normalized] || { class: 'status-badge', text: status };
+
+  return `<span class="status-badge ${badge.class}">${badge.text}</span>`;
+}
+
+/* ------------------------------------------------------------------ *
+ * 6) Stats renderer
  * ------------------------------------------------------------------ */
 export function renderStats({
   totalAnime = 0,
@@ -233,51 +392,13 @@ export function renderStats({
   setText($('mean-score'), meanScore);
 }
 
-export function renderAnimeTable(data = [], currentSort = { column: 'title', direction: 'asc' }) {
-  const tbody = $('anime-list-body');
-  const table = $('anime-table');
-  if (!tbody) return;
-
-  const rows = data.map(a => {
-    const title    = a.title || '';
-    const score    = a.score ?? '';
-    const episodes = a.episodesWatched ?? a.episodes ?? '';
-    const progress = a.progress ?? '';
-    const genres   = Array.isArray(a.genres) ? a.genres.join(', ') : (a.genres || '');
-
-    return `
-      <tr data-anime-title="${title}">
-        <td class="title"><span class="main-title">${title}</span></td>
-        <td class="score text-right">${score}</td>
-        <td class="episodes text-right">${episodes}</td>
-        <td class="progress text-right">${progress}</td>
-        <td class="genres">${genres}</td>
-        <td class="actions text-right">
-          <button class="btn-secondary px-2 py-1 rounded add-episode-btn" data-title="${title}">+1 Episode</button>
-          <button class="btn-primary px-2 py-1 rounded similar-btn" data-title="${title}">Find Similar</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  tbody.innerHTML = rows;
-
-  if (table) {
-    table.dataset.sortKey = currentSort.column || 'title';
-    table.dataset.sortDir = currentSort.direction || 'asc';
-  }
-}
-
 /* ------------------------------------------------------------------ *
- * 6) Watching tab — thumbnails, links, and NEXT EPISODE info
- *    (aligned to backend shapes: coverImage string & airingSchedule{airingAt,episode})
+ * 7) Watching tab – thumbnails, links, and NEXT EPISODE info
  * ------------------------------------------------------------------ */
 function getNextAiring(a) {
-  // Primary: server’s normalized shape
   const ts1 = a?.airingSchedule?.airingAt;
   const ep1 = a?.airingSchedule?.episode;
 
-  // Fallbacks for raw AniList / other shapes
   const epAlt = a?.nextAiringEpisode?.episode ?? a?.nextEpisode?.number ?? a?.nextEpisodeNumber ?? null;
   const tsAlt =
     a?.nextAiringEpisode?.airingAt ??
@@ -296,6 +417,7 @@ function getNextAiring(a) {
   if (!ts && !ep) return null;
   return { ts, episode: ep };
 }
+
 function describeNextEp(a) {
   const info = getNextAiring(a);
   if (!info) return null;
@@ -311,7 +433,7 @@ export function renderWatchingTab(data = [], /* onIncrement optional */) {
   if (!container) return;
 
   const pickThumb = (a) => first(
-    a?.coverImage,                                      // ✅ server’s normalized field
+    a?.coverImage,
     a?.coverImage?.extraLarge, a?.coverImage?.large, a?.coverImage?.medium,
     a?.media?.coverImage?.extraLarge, a?.media?.coverImage?.large, a?.media?.coverImage?.medium,
     a?.posterImage?.original, a?.posterImage?.large, a?.posterImage?.small,
@@ -348,21 +470,20 @@ export function renderWatchingTab(data = [], /* onIncrement optional */) {
     const nextText = describeNextEp(a);
 
     return `
-      <div class="watch-card" data-anime-title="${title}">
+      <div class="watch-card" data-anime-title="${escapeAttr(title)}">
         <a class="watch-thumb" href="${link}" target="_blank" rel="noopener">
-          <img src="${img}" alt="${title}" referrerpolicy="no-referrer"
+          <img src="${img}" alt="${escapeAttr(title)}" referrerpolicy="no-referrer"
                onerror="this.onerror=null;this.src='https://placehold.co/96x144/1f2937/94a3b8?text=No+Image';">
         </a>
 
         <div class="watch-info">
-          <a class="watch-title" href="${link}" target="_blank" rel="noopener">${title}</a>
+          <a class="watch-title" href="${link}" target="_blank" rel="noopener">${escapeHtml(title)}</a>
           <div class="watch-meta">Progress: ${progress}</div>
           ${nextText ? `<div class="watch-next">${nextText}</div>` : ''}
         </div>
 
         <div class="watch-actions">
-          <!-- Let main.js's global handler catch this (expects data-title) -->
-          <button class="btn-primary px-3 py-1 rounded add-episode-btn" data-title="${title}">+1 Episode</button>
+          <button class="btn-primary px-3 py-1 rounded add-episode-btn" data-title="${escapeAttr(title)}">+1 Episode</button>
         </div>
       </div>
     `;
@@ -370,7 +491,7 @@ export function renderWatchingTab(data = [], /* onIncrement optional */) {
 }
 
 /* ------------------------------------------------------------------ *
- * 7) Data mutators expected by main.js
+ * 8) Data mutators expected by main.js
  * ------------------------------------------------------------------ */
 export function incrementEpisode(title, list = []) {
   const out = (list || []).map(a => ({ ...a }));
@@ -388,7 +509,7 @@ export function incrementEpisode(title, list = []) {
 }
 
 /* ------------------------------------------------------------------ *
- * 8) Settings → config.js helpers (used by main.js)
+ * 9) Settings → config.js helpers (used by main.js)
  * ------------------------------------------------------------------ */
 function readConfigFromUI() {
   const get = (id) => $(id);
