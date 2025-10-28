@@ -61,23 +61,58 @@ body.theme-sky {
 }
 
 /* ------------------------------------------------------------------- 
-   NEON THEME (Dark Cyberpunk)
+   NEON THEME (Call of the Night - Urban Tokyo Nightlife)
+   Inspired by nocturnal city adventures, bright neon signs, and midnight skies
+   Color palette: Deep night blues, hot magenta, electric cyan, vibrant purple
    ------------------------------------------------------------------- */
 body.theme-neon {
-  --bg-gradient-start: #1a0b2e;
-  --bg-gradient-end: #0f051d;
-  --card-bg: rgba(20, 15, 45, 0.85);
-  --card-border: rgba(232, 121, 249, 0.4);
+  /* Deep night sky background - darker and richer */
+  --bg-gradient-start: #0a0618;
+  --bg-gradient-end: #1a0b2e;
+  
+  /* Cards with urban depth and bright borders */
+  --card-bg: rgba(15, 10, 35, 0.85);
+  --card-border: rgba(255, 51, 255, 0.4);
+  
+  /* Bright, vivid text like illuminated signs */
   --text-primary: #ffffff;
-  --text-secondary: #fdf4ff;
-  --text-muted: #e9d5ff;
-  --accent: #e879f9;
-  --accent-hover: #f0abfc;
-  --accent-shadow: rgba(232, 121, 249, 0.6);
-  --btn-secondary-bg: #6b21a8;
-  --btn-secondary-hover: #7c3aed;
-  --border-color: #a855f7;
-  --table-hover: rgba(232, 121, 249, 0.2);
+  --text-secondary: #f0e7ff;
+  --text-muted: #d4c5f9;
+  
+  /* Primary accent: Hot magenta (main neon color) */
+  --accent: #ff006e;
+  --accent-hover: #ff3385;
+  --accent-shadow: rgba(255, 0, 110, 0.6);
+  
+  /* Secondary accent: Electric cyan (city lights) */
+  --accent-secondary: #00ffff;
+  --accent-secondary-hover: #66ffff;
+  --accent-secondary-shadow: rgba(0, 255, 255, 0.6);
+  
+  /* Tertiary accent: Vibrant purple (night atmosphere) */
+  --accent-tertiary: #a855f7;
+  --accent-tertiary-hover: #c084fc;
+  --accent-tertiary-shadow: rgba(168, 85, 247, 0.6);
+  
+  /* Warning/highlight: Neon yellow (traffic lights, highlights) */
+  --accent-yellow: #ffff00;
+  --accent-yellow-hover: #ffff66;
+  
+  /* UI elements with bright neon glow */
+  --btn-secondary-bg: rgba(168, 85, 247, 0.25);
+  --btn-secondary-hover: rgba(168, 85, 247, 0.45);
+  --border-color: rgba(168, 85, 247, 0.5);
+  --table-hover: rgba(255, 0, 110, 0.2);
+  
+  /* City atmosphere glows */
+  --city-glow-magenta: rgba(255, 51, 255, 0.8);
+  --city-glow-cyan: rgba(0, 255, 255, 0.8);
+  --city-glow-purple: rgba(168, 85, 247, 0.8);
+  --city-glow-yellow: rgba(255, 255, 0, 0.6);
+  
+  /* Deep shadows for contrast */
+  --city-shadow-deep: rgba(0, 0, 0, 0.9);
+  --city-shadow-medium: rgba(10, 5, 30, 0.8);
 }
 
 /* ------------------------------------------------------------------- 

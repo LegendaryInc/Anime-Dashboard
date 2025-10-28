@@ -1,38 +1,46 @@
 /* ===================================================================
    TABLE COMPONENTS
-   Anime list table with sortable headers and styled rows
+   Anime list table with sortable headers and filters
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
-   BASE TABLE STRUCTURE
+   TABLE CONTAINER
    ------------------------------------------------------------------- */
 #anime-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 8px;
+  border-spacing: 0;
 }
 
 /* ------------------------------------------------------------------- 
-   TABLE HEADER
+   TABLE HEADERS
    ------------------------------------------------------------------- */
-#anime-table thead th {
+#anime-table thead {
   position: sticky;
-  top: -1px;
-  z-index: 3;
-  background: var(--accent);
-  color: white;
-  text-align: left;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  padding: 12px;
-  border-radius: 10px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  top: 0;
+  z-index: 10;
 }
 
-body.theme-neon #anime-table thead th {
-  background: linear-gradient(135deg, #7c3aed, #e879f9);
-  box-shadow: 0 0 30px rgba(232, 121, 249, 0.6),
-              0 4px 15px rgba(0, 0, 0, 0.5);
+#anime-table th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border-bottom: 2px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+/* Neon theme headers - Subtle glass effect */
+body.theme-neon #anime-table th {
+  background: rgba(15, 10, 40, 0.6);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+  text-shadow: 0 0 8px rgba(196, 181, 253, 0.3);
 }
 
 /* ------------------------------------------------------------------- 
@@ -42,144 +50,317 @@ body.theme-neon #anime-table thead th {
   cursor: pointer;
   user-select: none;
   position: relative;
+  padding-right: 24px;
+}
+
+.sortable-header:hover {
+  color: var(--accent);
+}
+
+body.theme-neon .sortable-header:hover {
+  color: #e0e7ff;
+  text-shadow: 0 0 12px rgba(224, 231, 255, 0.6);
 }
 
 .sortable-header::after {
-  content: '';
-  display: inline-block;
-  width: 0;
-  height: 0;
-  margin-left: 8px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
+  content: '⇅';
+  position: absolute;
+  right: 8px;
   opacity: 0.3;
+  font-size: 0.75rem;
 }
 
-.sortable-header.sort-asc::after {
-  border-bottom: 7px solid currentColor;
+.sortable-header.sorted-asc::after {
+  content: '↑';
   opacity: 1;
+  color: var(--accent);
 }
 
-.sortable-header.sort-desc::after {
-  border-top: 7px solid currentColor;
+.sortable-header.sorted-desc::after {
+  content: '↓';
   opacity: 1;
+  color: var(--accent);
 }
 
-body.theme-neon .sortable-header::after {
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
-}
-
-body.theme-neon .sortable-header.sort-asc::after,
-body.theme-neon .sortable-header.sort-desc::after {
-  filter: drop-shadow(0 0 10px rgba(232, 121, 249, 1));
-  opacity: 1;
+body.theme-neon .sortable-header.sorted-asc::after,
+body.theme-neon .sortable-header.sorted-desc::after {
+  color: #e0e7ff;
+  text-shadow: 0 0 10px rgba(224, 231, 255, 0.8);
 }
 
 /* ------------------------------------------------------------------- 
    TABLE ROWS
    ------------------------------------------------------------------- */
-#anime-table .table-row {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+#anime-table tbody tr {
+  border-bottom: 1px solid rgba(209, 213, 219, 0.2);
   transition: all 0.2s ease;
 }
 
-body.theme-neon #anime-table .table-row {
-  background: rgba(20, 15, 45, 0.9);
-  border: 2px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.6), 
-              inset 0 0 20px rgba(124, 58, 237, 0.1),
-              0 0 10px rgba(232, 121, 249, 0.1);
-}
-
-#anime-table .table-row:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+#anime-table tbody tr:hover {
   background: var(--table-hover);
 }
 
-body.theme-neon #anime-table .table-row:hover {
-  border-color: rgba(232, 121, 249, 0.8);
-  box-shadow: 0 0 35px rgba(232, 121, 249, 0.6), 
-              0 8px 20px rgba(0,0,0,0.7),
-              inset 0 0 30px rgba(124, 58, 237, 0.2);
-  background: rgba(30, 20, 70, 0.95);
+body.theme-neon #anime-table tbody tr {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+body.theme-neon #anime-table tbody tr:hover {
+  background: rgba(139, 92, 246, 0.08);
+  box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.05);
 }
 
 /* ------------------------------------------------------------------- 
    TABLE CELLS
    ------------------------------------------------------------------- */
-#anime-table tbody td {
-  padding: 12px;
+#anime-table td {
+  padding: 14px 12px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
   vertical-align: middle;
-  color: var(--text-primary);
 }
 
-body.theme-neon #anime-table tbody td {
-  color: #fdf4ff;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+body.theme-neon #anime-table td {
+  color: #e0e7ff;
 }
 
-/* ------------------------------------------------------------------- 
-   ANIME TITLE CELL
-   ------------------------------------------------------------------- */
-#anime-table .main-title {
-  display: inline-block;
-  max-width: 40vw;
-  white-space: nowrap;
+/* Title column */
+#anime-table td:first-child {
+  font-weight: 600;
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 800;
-  color: var(--text-primary);
+  white-space: nowrap;
 }
 
-body.theme-neon #anime-table .main-title {
+body.theme-neon #anime-table td:first-child {
   color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 
-               0 0 10px rgba(232, 121, 249, 0.5);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* Score column */
+#anime-table td:nth-child(2) {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+body.theme-neon #anime-table td:nth-child(2) {
+  color: #e0e7ff;
+  text-shadow: 0 0 10px rgba(224, 231, 255, 0.4);
+}
+
+/* Genres column */
+#anime-table td:nth-child(4) {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.theme-neon #anime-table td:nth-child(4) {
+  color: #c4b5fd;
 }
 
 /* ------------------------------------------------------------------- 
-   GENRES CELL
+   PROGRESS BAR (in Progress column)
    ------------------------------------------------------------------- */
-#anime-table .genres {
-  max-width: 28vw;
-  white-space: nowrap;
+.progress-container {
+  position: relative;
+  width: 100%;
+  max-width: 120px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(209, 213, 219, 0.3);
+  border-radius: 4px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  position: relative;
+}
+
+body.theme-neon .progress-bar {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+body.theme-neon .progress-fill {
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+}
+
+/* Shimmer effect on progress bar */
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 4px;
   color: var(--text-secondary);
 }
 
-body.theme-neon #anime-table .genres,
-body.theme-neon #anime-table .genres > div {
-  color: #fdf4ff;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+body.theme-neon .progress-text {
+  color: #c4b5fd;
 }
 
 /* ------------------------------------------------------------------- 
-   EPISODES CELL
+   STATUS BADGES (in progress cells)
    ------------------------------------------------------------------- */
-#anime-table .episodes {
-  color: var(--text-primary);
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
 }
 
-body.theme-neon #anime-table .episodes {
-  color: #fdf4ff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+.status-badge.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+body.theme-neon .status-badge.completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border-color: rgba(110, 231, 183, 0.4);
+  box-shadow: 0 0 10px rgba(110, 231, 183, 0.2);
+}
+
+.status-badge.watching {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+body.theme-neon .status-badge.watching {
+  background: rgba(0, 255, 255, 0.2);
+  color: #66ffff;
+  border-color: rgba(0, 255, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.status-badge.planning {
+  background: rgba(251, 191, 36, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+body.theme-neon .status-badge.planning {
+  background: rgba(255, 255, 0, 0.2);
+  color: #ffff66;
+  border-color: rgba(255, 255, 0, 0.4);
+  box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
+}
+
+.status-badge.paused {
+  background: rgba(168, 85, 247, 0.15);
+  color: #7c3aed;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+body.theme-neon .status-badge.paused {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c4b5fd;
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+.status-badge.dropped {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+body.theme-neon .status-badge.dropped {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   DETAILS COLUMN (Similar button)
+   ------------------------------------------------------------------- */
+#anime-table td:last-child {
+  text-align: center;
+  width: 100px;
+}
+
+/* ------------------------------------------------------------------- 
+   EMPTY STATE
+   ------------------------------------------------------------------- */
+.table-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+body.theme-neon .table-empty {
+  color: #c4b5fd;
 }
 
 /* ------------------------------------------------------------------- 
    MOBILE RESPONSIVENESS
    ------------------------------------------------------------------- */
-@media (max-width: 900px) {
-  #anime-table .main-title { 
-    max-width: 30vw; 
+@media (max-width: 768px) {
+  #anime-table {
+    font-size: 0.85rem;
   }
   
-  #anime-table .genres { 
-    max-width: 20vw; 
+  #anime-table th,
+  #anime-table td {
+    padding: 10px 8px;
+  }
+  
+  #anime-table td:first-child {
+    max-width: 200px;
+  }
+  
+  #anime-table td:nth-child(4) {
+    display: none;
+  }
+  
+  .progress-container {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 640px) {
+  #anime-table th:nth-child(4),
+  #anime-table td:nth-child(4) {
+    display: none;
   }
 }

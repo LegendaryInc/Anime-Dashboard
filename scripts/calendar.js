@@ -15,6 +15,13 @@ let currentFilters = {
 };
 
 /**
+ * Get English title or fallback to original
+ */
+function getEnglishTitle(anime) {
+  return anime.title_english || anime.title || 'Unknown Title';
+}
+
+/**
  * Get day of week for airing time
  */
 function getDayOfWeek(broadcast) {
@@ -70,7 +77,7 @@ function renderSeasonalAnime(season, year, data) {
     const imageUrl = anime.images?.jpg?.large_image_url || 
                      anime.images?.jpg?.image_url || 
                      'https://placehold.co/225x350/1f2937/94a3b8?text=No+Image';
-    const title = anime.title || 'Unknown Title';
+    const title = getEnglishTitle(anime);
     const score = anime.score ? anime.score.toFixed(1) : 'N/A';
     const scoreBadgeClass = anime.score >= 8 ? 'score-high' : 
                             anime.score >= 7 ? 'score-good' : 
@@ -192,8 +199,8 @@ function applyFiltersAndSort(data) {
         return (b.score || 0) - (a.score || 0);
       
       case 'title':
-        const titleA = (a.title || '').toLowerCase();
-        const titleB = (b.title || '').toLowerCase();
+        const titleA = getEnglishTitle(a).toLowerCase();
+        const titleB = getEnglishTitle(b).toLowerCase();
         return titleA.localeCompare(titleB);
       
       case 'date':
@@ -364,7 +371,7 @@ export function initCalendar() {
   // Global function for reset button in rendered content
   window.resetCalendarFilters = resetCalendarFilters;
   
-  // ⭐ UPDATED: Event delegation for "Add to Planning" buttons
+  // Event delegation for "Add to Planning" buttons
   document.body.addEventListener('click', async (e) => {
     if (e.target.classList.contains('add-to-planning-btn')) {
       const button = e.target;

@@ -1,10 +1,10 @@
 /* ===================================================================
-   NEON CITY THEME EFFECTS
-   Bright neon cityscape inspired by Call of the Night aesthetic
+   NEON CITY THEME EFFECTS - FIXED VERSION
+   Urban Tokyo nightlife inspired by Call of the Night
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
-   STARFIELD BACKGROUND (Brighter stars)
+   CITY ATMOSPHERE BACKGROUND
    ------------------------------------------------------------------- */
 body.theme-neon::before {
   content: '';
@@ -13,31 +13,35 @@ body.theme-neon::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    radial-gradient(3px 3px at 20% 30%, white, transparent),
-    radial-gradient(3px 3px at 60% 70%, #00ffff, transparent),
-    radial-gradient(2px 2px at 50% 50%, #ff66ff, transparent),
-    radial-gradient(2px 2px at 80% 10%, white, transparent),
-    radial-gradient(3px 3px at 90% 60%, #ffff00, transparent),
-    radial-gradient(2px 2px at 33% 85%, #00ff99, transparent),
-    radial-gradient(2px 2px at 75% 25%, #ff99ff, transparent),
-    radial-gradient(1px 1px at 15% 45%, white, transparent),
-    radial-gradient(2px 2px at 85% 80%, #66ffff, transparent);
-  background-size: 200% 200%;
-  background-position: 0% 0%, 40% 60%, 80% 80%, 20% 40%, 60% 20%, 90% 70%, 10% 90%, 45% 15%, 70% 55%;
-  animation: twinkle 6s ease-in-out infinite;
-  opacity: 0.9;
+  background: 
+    radial-gradient(circle at 20% 85%, rgba(255, 0, 110, 0.15) 0%, transparent 35%),
+    radial-gradient(circle at 80% 75%, rgba(0, 217, 255, 0.12) 0%, transparent 35%),
+    radial-gradient(circle at 50% 95%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 35% 70%, rgba(255, 255, 0, 0.08) 0%, transparent 30%),
+    radial-gradient(circle at 70% 80%, rgba(255, 51, 255, 0.12) 0%, transparent 38%);
+  animation: city-atmosphere-pulse 15s ease-in-out infinite;
+  opacity: 0.5;
   pointer-events: none;
   z-index: 0;
 }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+@keyframes city-atmosphere-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  33% {
+    opacity: 0.6;
+    transform: scale(1.03);
+  }
+  66% {
+    opacity: 0.55;
+    transform: scale(1.02);
+  }
 }
 
 /* ------------------------------------------------------------------- 
-   CITY SKYLINE GRADIENT (Brighter glow)
+   CITY SKYLINE GRADIENT - Fixed to remove visible line
    ------------------------------------------------------------------- */
 body.theme-neon::after {
   content: '';
@@ -45,69 +49,170 @@ body.theme-neon::after {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 40%;
+  height: 25%;
   background: linear-gradient(to top, 
-    rgba(138, 43, 226, 0.4) 0%,
-    rgba(75, 0, 130, 0.3) 30%,
+    rgba(15, 10, 35, 0.95) 0%,
+    rgba(26, 11, 46, 0.7) 20%,
+    rgba(58, 28, 113, 0.3) 50%,
     transparent 100%
   );
   pointer-events: none;
   z-index: 0;
+  opacity: 0.9;
 }
 
 /* ------------------------------------------------------------------- 
-   CITY BUILDINGS (Brighter neon windows)
+   ANIMATED LIGHT STREAKS
    ------------------------------------------------------------------- */
-.city-buildings {
+body.theme-neon .light-streak {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30%;
+  height: 3px;
+  border-radius: 2px;
+  animation: streak-horizontal linear infinite;
   pointer-events: none;
-  z-index: 0;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
+  z-index: 1;
+  opacity: 0;
 }
 
-.building {
-  background: rgba(10, 5, 30, 0.95);
-  position: relative;
+@keyframes streak-horizontal {
+  0% {
+    left: -250px;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  92% {
+    opacity: 0.9;
+  }
+  100% {
+    left: 110%;
+    opacity: 0;
+  }
+}
+
+body.theme-neon .light-streak:nth-child(1) {
+  top: 22%;
+  width: 180px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 0, 110, 0.8) 25%,
+    rgba(255, 51, 255, 0.9) 50%,
+    rgba(255, 0, 110, 0.8) 75%,
+    transparent
+  );
   box-shadow: 
-    inset 0 0 30px rgba(255, 51, 255, 0.3),
-    0 0 40px rgba(255, 51, 255, 0.4);
-  border-top: 2px solid rgba(255, 51, 255, 0.6);
+    0 0 20px rgba(255, 0, 110, 0.8),
+    0 0 40px rgba(255, 0, 110, 0.5);
+  animation-duration: 4s;
+  animation-delay: 0s;
 }
 
-/* Building windows pattern (Much brighter and more varied) */
-.building::before {
-  content: '';
-  position: absolute;
-  top: 8%;
-  left: 8%;
-  right: 8%;
-  bottom: 8%;
-  background-image: 
-    linear-gradient(transparent 40%, rgba(255, 100, 255, 0.9) 40%, rgba(255, 100, 255, 0.9) 45%, transparent 45%),
-    linear-gradient(90deg, transparent 40%, rgba(0, 255, 255, 0.8) 40%, rgba(0, 255, 255, 0.8) 45%, transparent 45%),
-    linear-gradient(transparent 70%, rgba(255, 255, 0, 0.7) 70%, rgba(255, 255, 0, 0.7) 75%, transparent 75%),
-    linear-gradient(90deg, transparent 70%, rgba(255, 0, 255, 0.8) 70%, rgba(255, 0, 255, 0.8) 75%, transparent 75%);
-  background-size: 25px 30px, 25px 30px, 20px 25px, 20px 25px;
-  background-position: 0 0, 0 0, 10px 10px, 10px 10px;
-  animation: building-lights 3s ease-in-out infinite;
+body.theme-neon .light-streak:nth-child(2) {
+  top: 48%;
+  width: 200px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(0, 255, 255, 0.7) 25%,
+    rgba(0, 217, 255, 0.9) 50%,
+    rgba(0, 255, 255, 0.7) 75%,
+    transparent
+  );
   box-shadow: 
-    0 0 20px rgba(255, 51, 255, 0.6),
-    inset 0 0 30px rgba(255, 51, 255, 0.3);
+    0 0 20px rgba(0, 255, 255, 0.7),
+    0 0 40px rgba(0, 255, 255, 0.4);
+  animation-duration: 5s;
+  animation-delay: 1.5s;
 }
 
-@keyframes building-lights {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
+body.theme-neon .light-streak:nth-child(3) {
+  top: 72%;
+  width: 160px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(168, 85, 247, 0.7) 25%,
+    rgba(192, 132, 252, 0.9) 50%,
+    rgba(168, 85, 247, 0.7) 75%,
+    transparent
+  );
+  box-shadow: 
+    0 0 20px rgba(168, 85, 247, 0.8),
+    0 0 40px rgba(168, 85, 247, 0.5);
+  animation-duration: 4.5s;
+  animation-delay: 2.8s;
+}
+
+body.theme-neon .light-streak:nth-child(4) {
+  top: 88%;
+  width: 140px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 0, 0.6) 25%,
+    rgba(255, 255, 100, 0.8) 50%,
+    rgba(255, 255, 0, 0.6) 75%,
+    transparent
+  );
+  box-shadow: 
+    0 0 18px rgba(255, 255, 0, 0.7),
+    0 0 35px rgba(255, 255, 0, 0.4);
+  animation-duration: 5.5s;
+  animation-delay: 2s;
 }
 
 /* ------------------------------------------------------------------- 
-   SCAN LINES EFFECT (Brighter)
+   GLOWING HEADER
+   ------------------------------------------------------------------- */
+body.theme-neon header h1 {
+  color: #ffffff;
+  text-shadow: 
+    0 0 15px rgba(255, 0, 110, 0.9),
+    0 0 30px rgba(255, 0, 110, 0.7),
+    0 0 45px rgba(255, 51, 255, 0.6),
+    0 0 60px rgba(255, 51, 255, 0.4),
+    0 0 80px rgba(168, 85, 247, 0.3),
+    0 2px 12px rgba(0, 0, 0, 0.9);
+  animation: neon-sign-flicker 4s ease-in-out infinite;
+  letter-spacing: 1px;
+}
+
+@keyframes neon-sign-flicker {
+  0%, 100% {
+    text-shadow: 
+      0 0 15px rgba(255, 0, 110, 0.9),
+      0 0 30px rgba(255, 0, 110, 0.7),
+      0 0 45px rgba(255, 51, 255, 0.6),
+      0 0 60px rgba(255, 51, 255, 0.4),
+      0 0 80px rgba(168, 85, 247, 0.3),
+      0 2px 12px rgba(0, 0, 0, 0.9);
+  }
+  50% {
+    text-shadow: 
+      0 0 20px rgba(255, 0, 110, 1),
+      0 0 40px rgba(255, 0, 110, 0.9),
+      0 0 60px rgba(255, 51, 255, 0.8),
+      0 0 80px rgba(255, 51, 255, 0.6),
+      0 0 100px rgba(168, 85, 247, 0.4),
+      0 2px 15px rgba(0, 0, 0, 0.9);
+  }
+  47%, 53% {
+    text-shadow: 
+      0 0 12px rgba(255, 0, 110, 0.8),
+      0 0 25px rgba(255, 0, 110, 0.6),
+      0 0 40px rgba(255, 51, 255, 0.5),
+      0 2px 12px rgba(0, 0, 0, 0.9);
+  }
+}
+
+body.theme-neon header p {
+  color: #e0e7ff;
+  text-shadow: 
+    0 0 8px rgba(0, 255, 255, 0.6),
+    0 0 15px rgba(0, 255, 255, 0.3),
+    0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+/* ------------------------------------------------------------------- 
+   STAR FIELD
    ------------------------------------------------------------------- */
 body.theme-neon .container::before {
   content: '';
@@ -115,157 +220,115 @@ body.theme-neon .container::before {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255, 51, 255, 0.05) 2px,
-    rgba(255, 51, 255, 0.05) 4px
-  );
+  height: 55%;
+  background-image: 
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(2px 2px at 28% 42%, rgba(0, 255, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 44% 12%, rgba(255, 51, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 58% 65%, rgba(255, 255, 0, 0.7), transparent),
+    radial-gradient(2px 2px at 72% 25%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 88% 48%, rgba(0, 255, 200, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 18% 72%, rgba(168, 85, 247, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 92% 12%, rgba(255, 0, 110, 0.85), transparent),
+    radial-gradient(2px 2px at 38% 82%, rgba(0, 255, 255, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 62% 38%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 82% 78%, rgba(255, 51, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 52% 8%, rgba(255, 255, 0, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 8% 55%, rgba(0, 217, 255, 0.75), transparent),
+    radial-gradient(2px 2px at 95% 35%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 22% 92%, rgba(168, 85, 247, 0.75), transparent);
+  background-size: 100% 100%;
+  animation: star-twinkle 5s ease-in-out infinite;
+  opacity: 0.85;
   pointer-events: none;
   z-index: 1;
-  animation: scan-lines 8s linear infinite;
 }
 
-@keyframes scan-lines {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(20px); }
+@keyframes star-twinkle {
+  0%, 100% { 
+    opacity: 0.8;
+  }
+  50% { 
+    opacity: 0.95;
+  }
 }
 
 /* ------------------------------------------------------------------- 
-   NEON LIGHT STREAKS (Brighter, more colorful)
+   SCROLLBAR
    ------------------------------------------------------------------- */
-.light-streak {
-  position: fixed;
-  height: 3px;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(0, 255, 255, 1), 
-    transparent
-  );
-  box-shadow: 0 0 20px rgba(0, 255, 255, 1),
-              0 0 40px rgba(0, 255, 255, 0.6);
-  animation: streak linear infinite;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes streak {
-  0% {
-    left: -200px;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
-}
-
-/* Streak variants with different bright neon colors */
-.light-streak:nth-child(1) {
-  top: 15%;
-  width: 180px;
-  background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 1), transparent);
-  box-shadow: 0 0 25px rgba(255, 0, 255, 1), 0 0 50px rgba(255, 0, 255, 0.6);
-  animation-duration: 2.5s;
-  animation-delay: 0s;
-}
-
-.light-streak:nth-child(2) {
-  top: 50%;
-  width: 220px;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 200, 1), transparent);
-  box-shadow: 0 0 25px rgba(0, 255, 200, 1), 0 0 50px rgba(0, 255, 200, 0.6);
-  animation-duration: 3.5s;
-  animation-delay: 1s;
-}
-
-.light-streak:nth-child(3) {
-  top: 75%;
-  width: 200px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 0, 1), transparent);
-  box-shadow: 0 0 25px rgba(255, 255, 0, 1), 0 0 50px rgba(255, 255, 0, 0.6);
-  animation-duration: 4s;
-  animation-delay: 2s;
-}
-
-/* ------------------------------------------------------------------- 
-   NEON THEME COMPONENT OVERRIDES
-   ------------------------------------------------------------------- */
-
-/* Glowing header text (Brighter magenta) */
-body.theme-neon header h1 {
-  color: #ffffff;
-  text-shadow: 
-    0 0 40px rgba(255, 51, 255, 1),
-    0 0 80px rgba(255, 51, 255, 0.8),
-    0 0 120px rgba(255, 51, 255, 0.6),
-    0 2px 10px rgba(0, 0, 0, 0.8);
-  animation: neon-pulse 2s ease-in-out infinite;
-}
-
-@keyframes neon-pulse {
-  0%, 100% {
-    text-shadow: 
-      0 0 40px rgba(255, 51, 255, 1),
-      0 0 80px rgba(255, 51, 255, 0.8),
-      0 0 120px rgba(255, 51, 255, 0.6),
-      0 2px 10px rgba(0, 0, 0, 0.8);
-  }
-  50% {
-    text-shadow: 
-      0 0 50px rgba(255, 51, 255, 1),
-      0 0 100px rgba(255, 51, 255, 1),
-      0 0 150px rgba(255, 51, 255, 0.8),
-      0 2px 10px rgba(0, 0, 0, 0.8);
-  }
-}
-
 body.theme-neon ::-webkit-scrollbar-thumb { 
-  background: linear-gradient(180deg, #ff33ff, #9333ea);
-  box-shadow: 0 0 10px rgba(255, 51, 255, 0.8);
+  background: linear-gradient(180deg, 
+    rgba(255, 0, 110, 1) 0%,
+    rgba(255, 51, 255, 1) 30%,
+    rgba(168, 85, 247, 1) 60%,
+    rgba(0, 255, 255, 0.9) 100%
+  );
+  box-shadow: 
+    0 0 12px rgba(255, 0, 110, 0.7),
+    0 0 20px rgba(168, 85, 247, 0.4),
+    inset 0 0 8px rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
 }
 
 body.theme-neon ::-webkit-scrollbar-thumb:hover { 
-  background: linear-gradient(180deg, #ff66ff, #a855f7);
-  box-shadow: 0 0 15px rgba(255, 51, 255, 1);
+  background: linear-gradient(180deg, 
+    rgba(255, 51, 255, 1) 0%,
+    rgba(0, 255, 255, 1) 40%,
+    rgba(168, 85, 247, 1) 100%
+  );
+  box-shadow: 
+    0 0 18px rgba(255, 0, 110, 0.9),
+    0 0 30px rgba(0, 255, 255, 0.6);
 }
 
 body.theme-neon ::-webkit-scrollbar-track { 
-  background: #1e1b4b; 
-  box-shadow: inset 0 0 10px rgba(255, 51, 255, 0.2);
+  background: rgba(10, 5, 30, 0.8);
+  box-shadow: inset 0 0 12px rgba(139, 92, 246, 0.25);
 }
 
 /* ------------------------------------------------------------------- 
    MOBILE OPTIMIZATIONS
-   Reduce performance-heavy effects on smaller screens
    ------------------------------------------------------------------- */
 @media (max-width: 768px) {
-  /* Hide city buildings on mobile */
-  body.theme-neon .city-buildings {
+  body.theme-neon::before {
+    opacity: 0.3;
+    animation: none;
+  }
+  
+  body.theme-neon::after {
+    height: 20%;
+    opacity: 0.6;
+  }
+  
+  body.theme-neon .light-streak:nth-child(3),
+  body.theme-neon .light-streak:nth-child(4) {
     display: none;
   }
   
-  /* Hide light streaks on mobile */
+  body.theme-neon header h1 {
+    text-shadow: 
+      0 0 15px rgba(255, 0, 110, 0.9),
+      0 0 30px rgba(255, 51, 255, 0.6),
+      0 2px 12px rgba(0, 0, 0, 0.9);
+    animation: none;
+  }
+  
+  body.theme-neon .container::before {
+    opacity: 0.6;
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
   body.theme-neon .light-streak {
     display: none;
   }
   
-  /* Simplify scan lines */
-  body.theme-neon .container::before {
-    opacity: 0.5;
-    background-size: 100% 4px;
+  body.theme-neon::before {
+    opacity: 0.2;
   }
   
-  /* Reduce star brightness on mobile */
-  body.theme-neon::before {
-    opacity: 0.6;
+  body.theme-neon .container::before {
+    opacity: 0.4;
   }
 }

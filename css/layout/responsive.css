@@ -1,193 +1,263 @@
 /* ===================================================================
-   RESPONSIVE DESIGN
-   Media queries and mobile-specific adjustments
+   RESPONSIVE LAYOUT & SPACING
+   Better margins, padding, and mobile optimization
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
-   LARGE DESKTOP (1280px+)
+   CONTAINER SPACING
    ------------------------------------------------------------------- */
-@media (min-width: 1280px) {
-  /* Tighter grid spacing on large screens */
-  #watching-content { 
-    gap: 12px; 
+.container {
+  position: relative;
+  z-index: 2;
+}
+
+/* Better vertical rhythm */
+#dashboard-screen > .grid {
+  gap: 24px;
+}
+
+/* ------------------------------------------------------------------- 
+   STAT CARDS SIDEBAR
+   ------------------------------------------------------------------- */
+.lg-col-span-1 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ------------------------------------------------------------------- 
+   MAIN CONTENT AREA
+   ------------------------------------------------------------------- */
+.lg\:col-span-3 {
+  min-width: 0; /* Prevents overflow */
+}
+
+/* Better spacing for tab content */
+.tab-content {
+  margin-top: 20px;
+}
+
+/* ------------------------------------------------------------------- 
+   CARD SPACING
+   ------------------------------------------------------------------- */
+.anime-card {
+  margin-bottom: 0; /* Remove default margins, use grid/flex gaps */
+}
+
+.anime-card + .anime-card {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------------------------- 
+   FILTER CONTROLS
+   ------------------------------------------------------------------- */
+.flex.justify-between.items-center {
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.flex.gap-2 {
+  gap: 12px;
+}
+
+/* ------------------------------------------------------------------- 
+   SEARCH AND FILTERS
+   ------------------------------------------------------------------- */
+#search-bar {
+  min-width: 200px;
+}
+
+.filter-select {
+  min-width: 150px;
+}
+
+/* ------------------------------------------------------------------- 
+   NEON THEME SPACING ADJUSTMENTS
+   ------------------------------------------------------------------- */
+body.theme-neon .container {
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+body.theme-neon #dashboard-screen > .grid {
+  gap: 28px;
+}
+
+/* ------------------------------------------------------------------- 
+   TABLET (768px - 1024px)
+   ------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  #dashboard-screen > .grid {
+    gap: 20px;
+  }
+  
+  .lg-col-span-1 {
+    gap: 14px;
   }
 }
 
 /* ------------------------------------------------------------------- 
-   TABLET & SMALL DESKTOP (768px - 900px)
+   MOBILE LANDSCAPE (640px - 768px)
    ------------------------------------------------------------------- */
-@media (max-width: 900px) {
-  /* Adjust table cell widths */
-  #anime-table .main-title { 
-    max-width: 30vw; 
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
   }
   
-  #anime-table .genres { 
-    max-width: 20vw; 
+  #dashboard-screen > .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
-}
-
-@media (max-width: 768px) {
-  /* Calendar controls - stack vertically */
-  .calendar-controls {
+  
+  .lg-col-span-1,
+  .lg\:col-span-3 {
+    width: 100%;
+  }
+  
+  /* Stack stat cards horizontally on tablet */
+  .lg-col-span-1 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .lg-col-span-1 > div:nth-child(n+5) {
+    grid-column: span 2;
+  }
+  
+  .tab-content {
+    margin-top: 16px;
+  }
+  
+  /* Better filter layout on tablet */
+  .flex.justify-between.items-center {
     flex-direction: column;
     align-items: stretch;
   }
   
-  .calendar-nav {
-    justify-content: center;
+  #search-bar {
+    width: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE PORTRAIT (< 640px)
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .container {
+    padding: 12px;
   }
   
-  .calendar-filters {
-    justify-content: stretch;
-    flex-direction: column;
+  #dashboard-screen > .grid {
+    gap: 12px;
   }
   
-  .calendar-filter-select {
+  /* Single column for stat cards */
+  .lg-col-span-1 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .lg-col-span-1 > div:nth-child(n+5) {
+    grid-column: span 1;
+  }
+  
+  /* Compact stat cards */
+  .stat-card {
+    padding: 12px !important;
+  }
+  
+  .stat-card h3 {
+    font-size: 0.8rem;
+  }
+  
+  .stat-card p {
+    font-size: 1.5rem;
+  }
+  
+  /* Compact filters */
+  .filter-select,
+  #search-bar {
+    min-width: 0;
     width: 100%;
   }
   
-  /* Calendar cards - stack content */
-  .calendar-card .flex {
+  .flex.gap-2 {
     flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   VERY SMALL SCREENS (< 480px)
+   ------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .container {
+    padding: 8px;
   }
   
-  .add-to-planning-btn {
-    width: 100%;
+  body.theme-neon .container {
+    padding-top: 16px;
+    padding-bottom: 24px;
   }
   
-  /* Hide neon city buildings on mobile */
-  body.theme-neon .city-buildings {
+  /* Ultra compact spacing */
+  #dashboard-screen > .grid {
+    gap: 8px;
+  }
+  
+  .lg-col-span-1 {
+    gap: 8px;
+  }
+  
+  .tab-content {
+    margin-top: 12px;
+  }
+  
+  /* Hide some visual enhancements on very small screens */
+  body.theme-neon .stat-card::before {
+    display: none;
+  }
+  
+  body.theme-neon .watch-card::before {
     display: none;
   }
 }
 
 /* ------------------------------------------------------------------- 
-   MOBILE PORTRAIT (640px and below)
+   LARGE SCREENS (> 1280px)
    ------------------------------------------------------------------- */
-@media (max-width: 640px) {
-  /* Countdown timer adjustments */
-  .countdown-timer {
-    font-size: 1rem;
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
   }
   
-  .countdown-urgent {
-    font-size: 1.1rem;
+  #dashboard-screen > .grid {
+    gap: 32px;
   }
   
-  /* Airing settings panel */
-  #airing-settings-panel {
-    padding: 12px;
-  }
-  
-  #airing-settings-panel .flex {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  /* Simplify neon scan lines on mobile */
-  body.theme-neon .container::before {
-    background-size: 100% 4px;
+  .lg-col-span-1 {
+    gap: 20px;
   }
 }
 
 /* ------------------------------------------------------------------- 
-   MOBILE SMALL (540px and below)
+   ULTRA WIDE (> 1536px)
    ------------------------------------------------------------------- */
-@media (max-width: 540px) {
-  /* Watching content - single column */
-  #watching-content { 
-    grid-template-columns: 1fr; 
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
   }
   
-  /* Watch cards - smaller thumbnails */
-  .watch-card { 
-    grid-template-columns: 82px 1fr auto; 
-  }
-  
-  .watch-thumb { 
-    width: 82px; 
-    height: 124px; 
-  }
-  
-  /* Toast notifications - full width */
-  .toast-container { 
-    left: 10px; 
-    right: 10px; 
-  }
-  
-  .toast { 
-    min-width: auto; 
-    max-width: none; 
-  }
-  
-  /* Reduce sakura petals */
-  .petal:nth-child(n+8) { 
-    display: none; 
-  }
-  
-  /* Reduce clouds */
-  .cloud:nth-child(n+3) { 
-    display: none; 
-  }
-  
-  /* Hide neon light streaks */
-  body.theme-neon .light-streak { 
-    display: none; 
-  }
-  
-  /* Simplify neon effects */
-  body.theme-neon .container::before {
-    opacity: 0.5;
-  }
-}
-
-/* ------------------------------------------------------------------- 
-   MOBILE TINY (480px and below)
-   ------------------------------------------------------------------- */
-@media (max-width: 480px) {
-  /* Further reduce font sizes if needed */
-  body { 
-    font-size: 14px; 
-  }
-  
-  h1 { 
-    font-size: 1.75rem; 
-  }
-  
-  h2 { 
-    font-size: 1.5rem; 
-  }
-  
-  h3 { 
-    font-size: 1.25rem; 
-  }
-  
-  h4 { 
-    font-size: 1.125rem; 
-  }
-}
-
-/* ------------------------------------------------------------------- 
-   ACCESSIBILITY - REDUCED MOTION
-   ------------------------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  
-  /* Hide all animated background effects */
-  body.theme-neon::before,
-  body.theme-neon::after,
-  .light-streak,
-  .city-buildings,
-  .petal,
-  .cloud {
-    display: none !important;
+  /* Better use of space on ultra-wide */
+  #watching-content {
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   }
 }
 
@@ -195,24 +265,21 @@
    PRINT STYLES
    ------------------------------------------------------------------- */
 @media print {
-  /* Hide decorative elements */
-  #background-animations,
-  .city-buildings,
-  .light-streak,
   body.theme-neon::before,
-  body.theme-neon::after {
+  body.theme-neon::after,
+  .light-streak,
+  .city-buildings,
+  body.theme-neon .container::before {
     display: none !important;
   }
   
-  /* Ensure readable text */
-  body {
-    background: white !important;
-    color: black !important;
+  .anime-card {
+    break-inside: avoid;
   }
   
-  /* Remove shadows and effects */
-  * {
-    box-shadow: none !important;
-    text-shadow: none !important;
+  #theme-switcher,
+  #settings-button,
+  .tab-btn {
+    display: none;
   }
 }

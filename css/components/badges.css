@@ -1,180 +1,320 @@
 /* ===================================================================
    BADGE COMPONENTS
-   Status badges, score badges, and type badges
+   Status badges, score indicators, and episode counts
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
-   STATUS BADGES (Watching, Completed, etc.)
+   BASE BADGE STYLES
    ------------------------------------------------------------------- */
-.status-badge {
-  display: inline-block;
+.badge {
+  display: inline-flex;
+  align-items: center;
   padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
+  border-radius: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-/* Status color variants */
-.status-watching { 
-  background: #d1fae5; 
-  color: #065f46; 
-}
-
-.status-completed { 
-  background: #dbeafe; 
-  color: #1e40af; 
-}
-
-.status-planning { 
-  background: #f3f4f6; 
-  color: #374151; 
-}
-
-.status-paused { 
-  background: #fef3c7; 
-  color: #92400e; 
-}
-
-.status-dropped { 
-  background: #fee2e2; 
-  color: #991b1b; 
-}
-
-.status-repeating { 
-  background: #ede9fe; 
-  color: #5b21b6; 
-}
-
-/* Neon theme status badges */
-body.theme-neon .status-badge {
-  background: rgba(168, 85, 247, 0.3);
-  color: #fdf4ff;
-  border: 1px solid rgba(232, 121, 249, 0.6);
-  box-shadow: 0 0 15px rgba(232, 121, 249, 0.4),
-              inset 0 0 10px rgba(124, 58, 237, 0.2);
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 /* ------------------------------------------------------------------- 
-   SCORE BADGES (In tables and cards)
+   STATUS BADGES
    ------------------------------------------------------------------- */
-.score {
+.status-completed,
+.badge-completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+body.theme-neon .status-completed,
+body.theme-neon .badge-completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border-color: rgba(110, 231, 183, 0.3);
+  box-shadow: 0 0 8px rgba(110, 231, 183, 0.15);
+  text-shadow: 0 0 6px rgba(110, 231, 183, 0.3);
+}
+
+.status-watching,
+.badge-watching {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+body.theme-neon .status-watching,
+body.theme-neon .badge-watching {
+  background: rgba(0, 255, 255, 0.15);
+  color: #66ffff;
+  border-color: rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.15);
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.3);
+}
+
+.status-planning,
+.badge-planning {
+  background: rgba(251, 191, 36, 0.12);
+  color: #d97706;
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+body.theme-neon .status-planning,
+body.theme-neon .badge-planning {
+  background: rgba(255, 255, 0, 0.15);
+  color: #ffff66;
+  border-color: rgba(255, 255, 0, 0.3);
+  box-shadow: 0 0 8px rgba(255, 255, 0, 0.15);
+  text-shadow: 0 0 6px rgba(255, 255, 0, 0.3);
+}
+
+.status-paused,
+.badge-paused {
+  background: rgba(168, 85, 247, 0.12);
+  color: #7c3aed;
+  border-color: rgba(168, 85, 247, 0.25);
+}
+
+body.theme-neon .status-paused,
+body.theme-neon .badge-paused {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c4b5fd;
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.15);
+  text-shadow: 0 0 6px rgba(196, 181, 253, 0.3);
+}
+
+.status-dropped,
+.badge-dropped {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+body.theme-neon .status-dropped,
+body.theme-neon .badge-dropped {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.15);
+  text-shadow: 0 0 6px rgba(252, 165, 165, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   SCORE BADGES
+   ------------------------------------------------------------------- */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
   font-weight: 700;
-  font-size: 1.05em;
-}
-
-.score-none { 
-  color: #9ca3af; 
-}
-
-.score-high { 
-  color: #10b981; 
-  font-weight: 800; 
-}
-
-.score-good { 
-  color: #3b82f6; 
-  font-weight: 700; 
-}
-
-.score-mid { 
-  color: #f59e0b; 
-}
-
-.score-low { 
-  color: #ef4444; 
-}
-
-/* Neon theme score colors with glow */
-body.theme-neon .score {
-  text-shadow: 0 0 15px currentColor,
-               0 0 8px rgba(255, 255, 255, 0.8);
-  font-size: 1.15em;
-}
-
-body.theme-neon .score-none { 
-  color: #cbd5e1; 
-  text-shadow: 0 0 10px rgba(203, 213, 225, 0.5); 
-}
-
-body.theme-neon .score-high { 
-  color: #6ee7b7; 
-  text-shadow: 0 0 20px rgba(110, 231, 183, 0.9),
-               0 0 10px rgba(110, 231, 183, 0.5);
-}
-
-body.theme-neon .score-good { 
-  color: #60a5fa; 
-  text-shadow: 0 0 20px rgba(96, 165, 250, 0.9),
-               0 0 10px rgba(96, 165, 250, 0.5);
-}
-
-body.theme-neon .score-mid { 
-  color: #fbbf24; 
-  text-shadow: 0 0 20px rgba(251, 191, 36, 0.9),
-               0 0 10px rgba(251, 191, 36, 0.5);
-}
-
-body.theme-neon .score-low { 
-  color: #f87171; 
-  text-shadow: 0 0 20px rgba(248, 113, 113, 0.9),
-               0 0 10px rgba(248, 113, 113, 0.5);
-}
-
-/* ------------------------------------------------------------------- 
-   CALENDAR TYPE BADGES (TV, Movie, OVA, etc.)
-   ------------------------------------------------------------------- */
-.calendar-type-badge {
-  background: rgba(99, 102, 241, 0.9);
+  min-width: 48px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   color: white;
-  font-size: 10px;
-  font-weight: 700;
+  box-shadow: 0 2px 8px var(--accent-shadow);
+}
+
+body.theme-neon .score-badge {
+  background: linear-gradient(135deg, 
+    rgba(168, 85, 247, 0.3), 
+    rgba(139, 92, 246, 0.3)
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #e0e7ff;
+  text-shadow: 0 0 10px rgba(224, 231, 255, 0.6);
+  box-shadow: 
+    0 0 15px rgba(168, 85, 247, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Score color coding */
+.score-high {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+body.theme-neon .score-high {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(110, 231, 183, 0.4);
+  color: #6ee7b7;
+  box-shadow: 0 0 15px rgba(110, 231, 183, 0.3);
+}
+
+.score-medium {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+body.theme-neon .score-medium {
+  background: rgba(251, 191, 36, 0.25);
+  border-color: rgba(255, 255, 0, 0.4);
+  color: #ffff66;
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+}
+
+.score-low {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+body.theme-neon .score-low {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(252, 165, 165, 0.4);
+  color: #fca5a5;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   EPISODE COUNT BADGES
+   ------------------------------------------------------------------- */
+.episode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 8px;
   border-radius: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  backdrop-filter: blur(8px);
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(156, 163, 175, 0.15);
+  color: var(--text-secondary);
+  border: 1px solid rgba(156, 163, 175, 0.25);
 }
 
-body.theme-neon .calendar-type-badge {
-  background: linear-gradient(135deg, #7c3aed, #e879f9);
-  box-shadow: 0 0 15px rgba(232, 121, 249, 0.5);
-}
-
-body.theme-sakura .calendar-type-badge {
-  background: linear-gradient(135deg, #ec4899, #f472b6);
-}
-
-body.theme-sky .calendar-type-badge {
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+body.theme-neon .episode-badge {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
+  text-shadow: 0 0 6px rgba(196, 181, 253, 0.2);
 }
 
 /* ------------------------------------------------------------------- 
-   CALENDAR SCORE BADGES
+   NOTIFICATION BADGE (for episode alerts)
    ------------------------------------------------------------------- */
-.calendar-score-badge {
-  font-size: 11px;
+.notification-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
-  backdrop-filter: blur(8px);
+  background: #ef4444;
   color: white;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+  animation: pulse-badge 2s ease-in-out infinite;
 }
 
-.calendar-score-badge.score-high {
-  background: rgba(16, 185, 129, 0.9);
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+  }
 }
 
-.calendar-score-badge.score-good {
-  background: rgba(59, 130, 246, 0.9);
+body.theme-neon .notification-badge {
+  background: linear-gradient(135deg, #ff006e, #ff3385);
+  box-shadow: 
+    0 0 15px rgba(255, 0, 110, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
 }
 
-.calendar-score-badge.score-mid {
-  background: rgba(245, 158, 11, 0.9);
+/* ------------------------------------------------------------------- 
+   GENRE TAGS (inline badges for genres)
+   ------------------------------------------------------------------- */
+.genre-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  margin: 2px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  transition: all 0.2s ease;
 }
 
-.calendar-score-badge.score-low {
-  background: rgba(107, 114, 128, 0.9);
+.genre-tag:hover {
+  background: rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+body.theme-neon .genre-tag {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
+}
+
+body.theme-neon .genre-tag:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   AIRING STATUS BADGE
+   ------------------------------------------------------------------- */
+.airing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  animation: pulse-airing 2s ease-in-out infinite;
+}
+
+@keyframes pulse-airing {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
+body.theme-neon .airing-badge {
+  background: linear-gradient(135deg, #ff006e, #ff3385);
+  box-shadow: 0 0 15px rgba(255, 0, 110, 0.5);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.airing-badge::before {
+  content: '●';
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .badge,
+  .score-badge,
+  .episode-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+  
+  .genre-tag {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
 }

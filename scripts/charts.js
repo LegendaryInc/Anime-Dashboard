@@ -66,7 +66,7 @@ export function renderCharts({ genreCounts, scoreCounts }, genreChartInstance, s
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,     // ✅ Fixed aspect ratio
+        maintainAspectRatio: false,     // ✅ Fixed aspect ratio
         aspectRatio: 1.5,              // Keeps proportional width/height
         plugins: {
           legend: {
@@ -118,7 +118,7 @@ export function renderCharts({ genreCounts, scoreCounts }, genreChartInstance, s
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true,     // ✅ Fixed aspect ratio
+      maintainAspectRatio: false,     // ✅ Fixed aspect ratio
       aspectRatio: 1.5,
       plugins: {
         legend: { display: false },

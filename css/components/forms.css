@@ -3,10 +3,10 @@
    Inputs, selects, search bars, and filter controls
    =================================================================== */
 
-/* ------------------------------------------------------------------- 
+/* -------------------------------------------------------------------
    BASE INPUT & SELECT STYLES
    ------------------------------------------------------------------- */
-.filter-select, 
+.filter-select,
 #search-bar {
   background: white;
   border: 1px solid var(--border-color);
@@ -15,6 +15,8 @@
   color: var(--text-primary);
   font-size: 14px;
   transition: all 0.2s ease;
+  line-height: 1.4;
+  min-height: 34px;
 }
 
 .filter-select:focus,
@@ -24,122 +26,178 @@
   box-shadow: 0 0 0 3px var(--accent-shadow);
 }
 
-/* ------------------------------------------------------------------- 
-   SELECT DROPDOWN STYLING
+/* -------------------------------------------------------------------
+   SELECT DROPDOWN STYLING (Custom caret)
+   CRITICAL: Remove ALL native arrows completely
    ------------------------------------------------------------------- */
 .filter-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em;
-  padding-right: 2.5rem;
+  /* Remove native arrows - COMPREHENSIVE approach */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-clip: padding-box !important;
+  
+  /* Ensure only ONE background image */
+  background-color: white;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 0.6rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1.25em !important;
+  padding-right: 2.2rem;
   cursor: pointer;
+}
+
+/* Legacy Edge/IE: hide native arrow */
+.filter-select::-ms-expand {
+  display: none;
+}
+
+/* Firefox specific fix */
+.filter-select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 var(--text-primary);
 }
 
 .filter-select option {
   padding: 4px 8px;
 }
 
-/* ------------------------------------------------------------------- 
+/* -------------------------------------------------------------------
    CALENDAR FILTER CONTROLS
    ------------------------------------------------------------------- */
-.calendar-filter-select {
-  padding: 8px 12px;
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  min-width: 120px;
-  transition: all 0.2s ease;
-}
-
 .calendar-filter-select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-shadow);
 }
 
-/* ------------------------------------------------------------------- 
-   NEON THEME FORM STYLES
+/* -------------------------------------------------------------------
+   NEON THEME FORM STYLES - Call of the Night Urban Aesthetic
    ------------------------------------------------------------------- */
 body.theme-neon .filter-select,
 body.theme-neon #search-bar,
 body.theme-neon .calendar-filter-select {
-  background: rgba(30, 20, 60, 0.8);
-  border-color: rgba(168, 85, 247, 0.5);
-  color: #e2e8f0;
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2),
-              inset 0 0 20px rgba(124, 58, 237, 0.1);
+  background-color: rgba(15, 10, 35, 0.9);
+  border: 2px solid rgba(255, 51, 255, 0.5);
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 0 15px rgba(255, 0, 110, 0.3),
+    0 0 30px rgba(168, 85, 247, 0.2),
+    inset 0 0 20px rgba(255, 51, 255, 0.1);
+}
+
+/* Bright magenta/cyan caret for Neon theme */
+body.theme-neon .filter-select,
+body.theme-neon .calendar-filter-select {
+  background-color: rgba(15, 10, 35, 0.9) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ff006e' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 0.6rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1.25em !important;
 }
 
 body.theme-neon .filter-select:focus,
 body.theme-neon #search-bar:focus,
 body.theme-neon .calendar-filter-select:focus {
-  border-color: rgba(232, 121, 249, 0.8);
-  box-shadow: 0 0 20px rgba(232, 121, 249, 0.4);
+  border-color: rgba(255, 0, 110, 0.9);
+  box-shadow: 
+    0 0 20px rgba(255, 0, 110, 0.6),
+    0 0 40px rgba(168, 85, 247, 0.4),
+    0 0 60px rgba(0, 255, 255, 0.2),
+    inset 0 0 30px rgba(255, 51, 255, 0.15);
   outline: none;
 }
 
-body.theme-neon .filter-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23e879f9' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+body.theme-neon .filter-select:hover,
+body.theme-neon .calendar-filter-select:hover {
+  border-color: rgba(255, 0, 110, 0.7);
+  box-shadow: 
+    0 0 18px rgba(255, 0, 110, 0.4),
+    0 0 35px rgba(168, 85, 247, 0.3),
+    inset 0 0 25px rgba(255, 51, 255, 0.12);
 }
 
-body.theme-neon #search-bar::placeholder { 
-  color: rgba(233, 213, 255, 0.5);
+body.theme-neon #search-bar::placeholder {
+  color: rgba(240, 231, 255, 0.5);
+  text-shadow: 0 0 5px rgba(168, 85, 247, 0.3);
 }
 
-/* ------------------------------------------------------------------- 
+body.theme-neon .filter-select option,
+body.theme-neon .calendar-filter-select option {
+  background-color: rgba(15, 10, 35, 0.98);
+  color: #ffffff;
+  padding: 8px;
+}
+
+/* -------------------------------------------------------------------
    SAKURA THEME FORM STYLES
    ------------------------------------------------------------------- */
 body.theme-sakura .filter-select,
 body.theme-sakura #search-bar,
 body.theme-sakura .calendar-filter-select {
-  background: #fff5f7;
+  background-color: #fff5f7;
   border-color: rgba(236, 72, 153, 0.3);
 }
 
-/* ------------------------------------------------------------------- 
+/* Ensure single background image for Sakura theme */
+body.theme-sakura .filter-select,
+body.theme-sakura .calendar-filter-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+}
+
+/* -------------------------------------------------------------------
    SKY THEME FORM STYLES
    ------------------------------------------------------------------- */
 body.theme-sky .filter-select,
 body.theme-sky #search-bar,
 body.theme-sky .calendar-filter-select {
-  background: #f0f9ff;
+  background-color: #f0f9ff;
   border-color: rgba(14, 165, 233, 0.3);
 }
 
-/* ------------------------------------------------------------------- 
+/* Ensure single background image for Sky theme */
+body.theme-sky .filter-select,
+body.theme-sky .calendar-filter-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+}
+
+/* -------------------------------------------------------------------
    SETTINGS MODAL INPUTS
    ------------------------------------------------------------------- */
 body.theme-neon #settings-modal-content input[type="text"],
 body.theme-neon #settings-modal-content input[type="password"],
 body.theme-neon #settings-modal-content input[type="number"] {
-  background-color: rgba(30, 20, 60, 0.8);
-  border-color: rgba(168, 85, 247, 0.5);
-  color: var(--text-primary);
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2),
-              inset 0 0 15px rgba(124, 58, 237, 0.1);
+  background-color: rgba(15, 10, 35, 0.9);
+  border: 2px solid rgba(255, 51, 255, 0.5);
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 0 15px rgba(255, 0, 110, 0.3),
+    0 0 30px rgba(168, 85, 247, 0.2),
+    inset 0 0 20px rgba(255, 51, 255, 0.1);
 }
 
 body.theme-neon #settings-modal-content input::placeholder {
-  color: rgba(233, 213, 255, 0.5);
+  color: rgba(240, 231, 255, 0.5);
+  text-shadow: 0 0 5px rgba(168, 85, 247, 0.3);
 }
 
 body.theme-neon #settings-modal-content input:focus {
-  border-color: rgba(232, 121, 249, 0.8);
-  box-shadow: 0 0 20px rgba(232, 121, 249, 0.4);
+  border-color: rgba(255, 0, 110, 0.9);
+  box-shadow: 
+    0 0 20px rgba(255, 0, 110, 0.6),
+    0 0 40px rgba(168, 85, 247, 0.4),
+    0 0 60px rgba(0, 255, 255, 0.2);
   outline: none;
 }
 
 body.theme-neon #settings-modal-content label {
-  color: var(--text-primary);
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 51, 255, 0.6);
 }
 
-/* ------------------------------------------------------------------- 
+/* -------------------------------------------------------------------
    MOBILE RESPONSIVENESS
    ------------------------------------------------------------------- */
 @media (max-width: 768px) {
@@ -151,4 +209,50 @@ body.theme-neon #settings-modal-content label {
   .calendar-filter-select {
     width: 100%;
   }
+  
+  /* Reduce glow effects on mobile for performance */
+  body.theme-neon .filter-select,
+  body.theme-neon #search-bar,
+  body.theme-neon .calendar-filter-select {
+    box-shadow: 
+      0 0 10px rgba(255, 0, 110, 0.2),
+      inset 0 0 15px rgba(255, 51, 255, 0.08);
+  }
+}-select {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 34px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  /* Remove native arrows - COMPREHENSIVE approach */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-clip: padding-box !important;
+
+  /* Ensure only ONE background image */
+  background-color: white;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 0.6rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1.25em !important;
+  padding-right: 2.2rem;
 }
+
+/* Legacy Edge/IE: hide native arrow */
+.calendar-filter-select::-ms-expand {
+  display: none;
+}
+
+/* Firefox specific fix */
+.calendar-filter-select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 var(--text-primary);
+}
+
+.calendar-filter

@@ -1,20 +1,62 @@
 /* ===================================================================
-   TAB NAVIGATION
-   Tab buttons and active/inactive states
+   TAB NAVIGATION SYSTEM
+   Main content tabs (Watching, Visualizations, Full List, etc.)
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
-   TAB BUTTON BASE STYLES
+   TAB CONTAINER
+   ------------------------------------------------------------------- */
+.tab-container {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+body.theme-neon .tab-container {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  box-shadow: 0 1px 0 rgba(139, 92, 246, 0.1);
+}
+
+/* ------------------------------------------------------------------- 
+   TAB NAVIGATION
+   ------------------------------------------------------------------- */
+#tab-nav {
+  display: flex;
+  gap: 8px;
+  position: relative;
+}
+
+/* ------------------------------------------------------------------- 
+   TAB BUTTONS
    ------------------------------------------------------------------- */
 .tab-btn {
-  border-color: transparent;
-  transition: all 0.3s ease;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
   color: var(--text-muted);
-  cursor: pointer;
-  padding: 12px 16px;
   font-weight: 600;
-  border-bottom: 2px solid transparent;
-  background: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.tab-btn:hover:not(.active-tab) {
+  color: var(--text-secondary);
+  border-bottom-color: rgba(156, 163, 175, 0.3);
+}
+
+/* Neon theme tab buttons */
+body.theme-neon .tab-btn {
+  color: #9ca3af;
+  border-bottom-width: 2px;
+}
+
+body.theme-neon .tab-btn:hover:not(.active-tab) {
+  color: #c4b5fd;
+  border-bottom-color: rgba(139, 92, 246, 0.3);
+  text-shadow: 0 0 8px rgba(196, 181, 253, 0.3);
 }
 
 /* ------------------------------------------------------------------- 
@@ -22,53 +64,134 @@
    ------------------------------------------------------------------- */
 .active-tab {
   color: var(--accent);
-  border-color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 700;
 }
 
+.active-tab:hover {
+  border-bottom-color: var(--accent);
+}
+
+/* Neon theme active tab - Hot magenta accent */
 body.theme-neon .active-tab {
-  text-shadow: 0 0 10px rgba(232, 121, 249, 0.8);
-  border-bottom: 2px solid var(--accent);
-  box-shadow: 0 3px 15px rgba(232, 121, 249, 0.3);
+  color: #ffffff;
+  border-bottom-color: #ff006e;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+
+body.theme-neon .active-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent,
+    rgba(255, 0, 110, 0.6),
+    transparent
+  );
+  box-shadow: 0 0 10px rgba(255, 0, 110, 0.8);
+  border-radius: 2px;
 }
 
 /* ------------------------------------------------------------------- 
-   INACTIVE TAB HOVER
+   INACTIVE TABS
    ------------------------------------------------------------------- */
+.inactive-tab {
+  opacity: 0.7;
+}
+
 .inactive-tab:hover {
-  color: var(--text-secondary);
-  border-color: var(--border-color);
-}
-
-body.theme-neon .inactive-tab:hover {
-  color: var(--text-primary);
-  border-color: rgba(168, 85, 247, 0.4);
+  opacity: 1;
 }
 
 /* ------------------------------------------------------------------- 
-   TAB CONTAINER
+   TAB CONTENT PANELS
    ------------------------------------------------------------------- */
-.tab-container {
-  display: flex;
-  gap: 8px;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 24px;
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-body.theme-neon .tab-container {
-  border-bottom-color: rgba(168, 85, 247, 0.3);
+.tab-content.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   SAKURA THEME TABS
+   ------------------------------------------------------------------- */
+body.theme-sakura .tab-container {
+  border-bottom-color: rgba(236, 72, 153, 0.2);
+}
+
+body.theme-sakura .active-tab {
+  color: #ec4899;
+  border-bottom-color: #ec4899;
+}
+
+body.theme-sakura .tab-btn:hover:not(.active-tab) {
+  border-bottom-color: rgba(236, 72, 153, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   SKY THEME TABS
+   ------------------------------------------------------------------- */
+body.theme-sky .tab-container {
+  border-bottom-color: rgba(14, 165, 233, 0.2);
+}
+
+body.theme-sky .active-tab {
+  color: #0ea5e9;
+  border-bottom-color: #0ea5e9;
+}
+
+body.theme-sky .tab-btn:hover:not(.active-tab) {
+  border-bottom-color: rgba(14, 165, 233, 0.3);
 }
 
 /* ------------------------------------------------------------------- 
    MOBILE RESPONSIVENESS
    ------------------------------------------------------------------- */
 @media (max-width: 768px) {
-  .tab-btn {
-    padding: 10px 12px;
-    font-size: 14px;
+  #tab-nav {
+    gap: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
   
-  .tab-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  #tab-nav::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .tab-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  /* Hide emoji icons on very small screens */
+  .tab-btn::after {
+    display: none;
   }
 }

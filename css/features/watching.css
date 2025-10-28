@@ -24,13 +24,12 @@
 }
 
 body.theme-neon .watch-airing {
-  background: linear-gradient(135deg, 
-    rgba(232, 121, 249, 0.15), 
-    rgba(124, 58, 237, 0.15)
-  );
-  border-color: rgba(232, 121, 249, 0.4);
-  box-shadow: 0 0 20px rgba(232, 121, 249, 0.2),
-              inset 0 0 20px rgba(124, 58, 237, 0.1);
+  background: rgba(139, 92, 246, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow: 
+    0 0 15px rgba(168, 85, 247, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 body.theme-sakura .watch-airing {
@@ -62,8 +61,8 @@ body.theme-sky .watch-airing {
 }
 
 body.theme-neon .countdown-timer {
-  color: #f0abfc;
-  text-shadow: 0 0 15px rgba(232, 121, 249, 0.9);
+  color: #e0e7ff;
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.7);
 }
 
 body.theme-sakura .countdown-timer {
@@ -94,8 +93,8 @@ body.theme-sky .countdown-timer {
 }
 
 body.theme-neon .countdown-urgent {
-  color: #fca5a5 !important;
-  text-shadow: 0 0 20px rgba(248, 113, 113, 1);
+  color: #ff6b6b !important;
+  text-shadow: 0 0 20px rgba(255, 107, 107, 0.9);
 }
 
 /* Finished countdown */
@@ -116,7 +115,7 @@ body.theme-neon .countdown-urgent {
 
 body.theme-neon .countdown-finished {
   color: #6ee7b7 !important;
-  text-shadow: 0 0 25px rgba(110, 231, 183, 1);
+  text-shadow: 0 0 25px rgba(110, 231, 183, 0.9);
 }
 
 /* ------------------------------------------------------------------- 
@@ -144,12 +143,18 @@ body.theme-neon .countdown-finished {
 }
 
 body.theme-neon #airing-settings-panel {
-  background: linear-gradient(135deg,
-    rgba(124, 58, 237, 0.15),
-    rgba(232, 121, 249, 0.15)
-  );
-  border-color: rgba(232, 121, 249, 0.5);
-  box-shadow: 0 0 25px rgba(232, 121, 249, 0.3);
+  background: rgba(10, 5, 30, 0.3);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(139, 92, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+body.theme-neon #airing-settings-panel h3 {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 /* ------------------------------------------------------------------- 
