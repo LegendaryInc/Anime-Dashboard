@@ -280,7 +280,7 @@ function stopAllCountdowns() {
 }
 
 /**
- * Render watching tab with enhanced countdowns
+ * Render watching tab with compact horizontal cards
  */
 export function renderEnhancedWatchingTab(data = []) {
   const container = document.getElementById('watching-content');
@@ -296,8 +296,11 @@ export function renderEnhancedWatchingTab(data = []) {
   
   if (watching.length === 0) {
     container.innerHTML = `
-      <div class="col-span-full text-center py-12">
-        <p class="text-lg text-gray-500">No anime currently watching</p>
+      <div class="watch-empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <p class="text-lg">No anime currently watching</p>
       </div>`;
     return;
   }
@@ -315,48 +318,47 @@ export function renderEnhancedWatchingTab(data = []) {
     const airingInfo = getNextAiring(anime);
     const title = anime.title || 'Unknown';
     const progress = anime.episodesWatched ?? anime.progress ?? 0;
-    const img = anime.coverImage || 'https://placehold.co/96x144/1f2937/94a3b8?text=No+Image';
+    const img = anime.coverImage || 'https://placehold.co/70x140/1f2937/94a3b8?text=No+Image';
     const countdownId = `countdown-${index}`;
-    const notifyId = `notify-${index}`;
     const isNotifyEnabled = notificationSettings.enabledAnime.has(title);
     
-    let nextEpisodeHTML = '';
+    let airingHTML = '';
     if (airingInfo) {
       const absoluteTime = formatAbsolute(airingInfo.ts);
-      nextEpisodeHTML = `
+      airingHTML = `
         <div class="watch-airing">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold">Next: Episode ${airingInfo.episode}</span>
+          <div class="watch-airing-header">
+            <span class="watch-episode-label">Next: Episode ${airingInfo.episode}</span>
             ${notificationSettings.enabled ? `
               <button 
                 class="notify-toggle-btn ${isNotifyEnabled ? 'notify-enabled' : ''}" 
                 data-anime-title="${title.replace(/"/g, '&quot;')}"
-                data-notify-id="${notifyId}"
                 title="${isNotifyEnabled ? 'Disable notifications' : 'Enable notifications'}">
                 🔔
               </button>
             ` : ''}
           </div>
           <div class="countdown-timer" id="${countdownId}">Loading...</div>
-          <div class="text-xs text-gray-500 mt-1">${absoluteTime}</div>
+          <div class="watch-absolute-time">${absoluteTime}</div>
         </div>`;
     }
     
     return `
-      <div class="watch-card" data-anime-title="${title.replace(/"/g, '&quot;')}">
+      <div class="watch-card">
         <a class="watch-thumb" href="${anime.externalLinks?.[0]?.url || '#'}" target="_blank" rel="noopener">
           <img src="${img}" alt="${title.replace(/"/g, '&quot;')}" referrerpolicy="no-referrer"
-               onerror="this.onerror=null;this.src='https://placehold.co/96x144/1f2937/94a3b8?text=No+Image';">
+               onerror="this.onerror=null;this.src='https://placehold.co/70x140/1f2937/94a3b8?text=No+Image';">
         </a>
-        <div class="watch-info">
+        
+        <div class="watch-card-content">
           <a class="watch-title" href="${anime.externalLinks?.[0]?.url || '#'}" target="_blank" rel="noopener">
             ${title}
           </a>
-          <div class="watch-meta">Progress: ${progress}</div>
-          ${nextEpisodeHTML}
-        </div>
-        <div class="watch-actions">
-          <button class="btn-primary px-3 py-1 rounded add-episode-btn" data-title="${title.replace(/"/g, '&quot;')}">
+          <div class="watch-progress">Progress: ${progress} episodes</div>
+          
+          ${airingHTML}
+          
+          <button class="btn-primary add-episode-btn" data-title="${title.replace(/"/g, '&quot;')}">
             +1 Episode
           </button>
         </div>

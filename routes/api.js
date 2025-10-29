@@ -7,13 +7,10 @@ const router = express.Router();
 
 // Import utilities
 const { fetchEnglishFromJikan, jikanLimiter } = require('../utils/jikan.js');
-// Import maybeRefreshToken if needed by middleware (server.js handles it now)
-// const { maybeRefreshToken } = require('./auth.js');
 
 /* ------------------------- Helpers ------------------------- */
 // Light-weight concurrency limiter
 function pLimit(max) {
-  // ... (pLimit function remains unchanged) ...
   const queue = [];
   let active = 0;
   const next = () => {
@@ -38,21 +35,18 @@ function pLimit(max) {
       else queue.push(run);
     });
 }
-const limit = pLimit(10); // Adjust concurrency as needed
+const limit = pLimit(10);
 
-// Export limiter for potential use elsewhere (e.g., cache stats)
+// Export limiter for potential use elsewhere
 router.jikanLimiter = jikanLimiter;
 
 /* ---------------- API: Get AniList Data ---------------- */
 router.get('/get-anilist-data', async (req, res) => {
   try {
-    // Middleware in server.js handles auth check and token refresh
     const accessToken = req.session.auth?.accessToken;
     if (!accessToken || req.session.auth?.service !== 'anilist') {
-         // Added service check just to be safe
         return res.status(401).json({ error: 'Unauthorized or invalid session' });
     }
-
 
     // 1) Get Viewer (id)
     const viewerResp = await axios.post(
@@ -75,7 +69,7 @@ router.get('/get-anilist-data', async (req, res) => {
               status
               media {
                 id
-                idMal # Keep idMal for Jikan lookups
+                idMal
                 title { english romaji }
                 format
                 episodes
@@ -105,11 +99,11 @@ router.get('/get-anilist-data', async (req, res) => {
     let formatted = allEntries.map(entry => {
       const m = entry.media || {};
       return {
-        id: m.id || null, // AniList Media ID
-        malId: m.idMal || null, // Keep MAL ID
+        id: m.id || null,
+        malId: m.idMal || null,
         _english: m.title?.english?.trim() || null,
         _romaji: m.title?.romaji?.trim() || null,
-        title: null, // To be filled by enrichment
+        title: null,
         score: entry.score || 0,
         episodesWatched: entry.progress || 0,
         totalEpisodes: m.episodes ?? null,
@@ -165,11 +159,7 @@ router.get('/get-anilist-data', async (req, res) => {
   }
 });
 
-/* ---------------- MAL Route (Removed) ---------------- */
-// The /get-mal-data route has been removed.
-
 /* ---------------- API: Update AniList Progress ---------------- */
-// ... (This route remains unchanged) ...
 router.post('/anilist/update-progress', async (req, res) => {
   const { mediaId, progress } = req.body;
 
@@ -177,7 +167,6 @@ router.post('/anilist/update-progress', async (req, res) => {
     return res.status(400).json({ error: 'Invalid mediaId or progress' });
   }
 
-  // Middleware ensures user is logged in and token is fresh
    const accessToken = req.session.auth?.accessToken;
    if (!accessToken || req.session.auth?.service !== 'anilist') {
         return res.status(401).json({ error: 'Unauthorized or invalid session for this action' });
@@ -217,9 +206,71 @@ router.post('/anilist/update-progress', async (req, res) => {
   }
 });
 
+/* ---------------- API: Update AniList Score ---------------- */
+router.post('/anilist/update-score', async (req, res) => {
+  const { mediaId, score } = req.body;
+
+  if (!req.session?.auth?.service || req.session.auth.service !== 'anilist') {
+    return res.status(401).json({ error: 'Not authenticated with AniList' });
+  }
+
+  if (!mediaId || score === undefined || score === null) {
+    return res.status(400).json({ error: 'Missing mediaId or score' });
+  }
+
+  // Validate score is between 0-10
+  const numScore = Number(score);
+  if (isNaN(numScore) || numScore < 0 || numScore > 10) {
+    return res.status(400).json({ error: 'Score must be between 0 and 10' });
+  }
+
+  const accessToken = req.session.auth?.accessToken;
+  if (!accessToken) {
+    return res.status(401).json({ error: 'No valid access token' });
+  }
+
+  const mutation = `
+    mutation ($mediaId: Int, $score: Float) {
+      SaveMediaListEntry(mediaId: $mediaId, score: $score) {
+        id
+        mediaId
+        score
+        status
+        progress
+      }
+    }
+  `;
+
+  try {
+    const response = await axios.post(
+      'https://graphql.anilist.co',
+      {
+        query: mutation,
+        variables: { mediaId: parseInt(mediaId), score: numScore }
+      },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    if (response.data.errors) {
+      console.error('AniList GraphQL errors:', response.data.errors);
+      return res.status(400).json({ 
+        error: response.data.errors[0]?.message || 'GraphQL error updating score' 
+      });
+    }
+
+    console.log(`✅ AniList User: Updated score for media ${mediaId} to ${numScore}`);
+    res.json({
+      success: true,
+      entry: response.data.data.SaveMediaListEntry
+    });
+
+  } catch (err) {
+    console.error('Score update error:', err?.response?.data || err.message);
+    res.status(500).json({ error: 'Internal server error updating score' });
+  }
+});
 
 /* ---------------- API: Add to Planning List ---------------- */
-// ... (This route remains unchanged) ...
 router.post('/anilist/add-planning', async (req, res) => {
   const { malId, title } = req.body;
 
@@ -227,13 +278,11 @@ router.post('/anilist/add-planning', async (req, res) => {
     return res.status(400).json({ error: 'Invalid malId' });
   }
 
-  // Middleware ensures user is logged in and token is fresh
   const accessToken = req.session.auth?.accessToken;
   if (!accessToken || req.session.auth?.service !== 'anilist') {
       return res.status(401).json({ error: 'Unauthorized or invalid session for this action' });
   }
 
-  // --- Step 1: Convert MAL ID to AniList ID ---
   const idQuery = `
     query ($idMal: Int) {
       Media (idMal: $idMal, type: ANIME) {
@@ -329,6 +378,5 @@ router.post('/anilist/add-planning', async (req, res) => {
     res.status(500).json({ error: 'Failed to add to planning list' });
   }
 });
-
 
 module.exports = router;

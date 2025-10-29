@@ -3,8 +3,8 @@
 // =====================================================================
 
 const DEFAULT_MODEL =
-  (window.CONFIG && window.CONFIG.GEMINI_MODEL) || "gemini-1.5-flash";
-const FALLBACK_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
+  (window.CONFIG && window.CONFIG.GEMINI_MODEL) || "gemini-2.5-flash";
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
 const API_ROOT = "https://generativelanguage.googleapis.com/v1beta";
 
 // --- Utilities ---

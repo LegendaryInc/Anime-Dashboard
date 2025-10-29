@@ -364,3 +364,233 @@ body.theme-neon .table-empty {
     display: none;
   }
 }
+/* ===================================================================
+   SCORE EDITOR STYLES
+   Add this to your tables.css file
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   Score Editor Container
+   ------------------------------------------------------------------- */
+.score-editor-container {
+  position: relative;
+  display: inline-block;
+  min-width: 80px;
+}
+
+/* ------------------------------------------------------------------- 
+   Score Display (Default State)
+   ------------------------------------------------------------------- */
+.score-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.score-display:hover {
+  background: rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+/* Score color classes */
+.score-display.score-none {
+  color: #9ca3af;
+}
+
+.score-display.score-high {
+  color: #10b981;
+}
+
+.score-display.score-good {
+  color: #3b82f6;
+}
+
+.score-display.score-mid {
+  color: #f59e0b;
+}
+
+.score-display.score-low {
+  color: #ef4444;
+}
+
+/* Edit button (pencil icon) */
+.score-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: var(--accent);
+  padding: 2px;
+  line-height: 1;
+}
+
+.score-display:hover .score-edit-btn {
+  opacity: 0.7;
+}
+
+.score-edit-btn:hover {
+  opacity: 1 !important;
+}
+
+/* ------------------------------------------------------------------- 
+   Score Editor (Active State)
+   ------------------------------------------------------------------- */
+.score-editor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-editor.hidden {
+  display: none;
+}
+
+.score-input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  background: white;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.score-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon .score-input {
+  background: rgba(30, 20, 60, 0.8);
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #e0e7ff;
+}
+
+body.theme-neon .score-input:focus {
+  border-color: rgba(168, 85, 247, 1);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+/* Score action buttons */
+.score-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.score-save-btn,
+.score-cancel-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.score-save-btn {
+  background: #10b981;
+  color: white;
+}
+
+.score-save-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.score-save-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.score-cancel-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.score-cancel-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Neon theme overrides */
+body.theme-neon .score-display {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+body.theme-neon .score-display:hover {
+  background: rgba(139, 92, 246, 0.15);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+body.theme-neon .score-display.score-high {
+  color: #6ee7b7;
+  text-shadow: 0 0 8px rgba(110, 231, 183, 0.5);
+}
+
+body.theme-neon .score-display.score-good {
+  color: #93c5fd;
+  text-shadow: 0 0 8px rgba(147, 197, 253, 0.5);
+}
+
+body.theme-neon .score-display.score-mid {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+body.theme-neon .score-display.score-low {
+  color: #fca5a5;
+  text-shadow: 0 0 8px rgba(252, 165, 165, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   Loading State
+   ------------------------------------------------------------------- */
+.score-editor-container.loading .score-display {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.score-editor-container.loading .score-input {
+  opacity: 0.5;
+}
+
+/* ------------------------------------------------------------------- 
+   Mobile Responsiveness
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .score-editor-container {
+    min-width: 70px;
+  }
+  
+  .score-input {
+    width: 50px;
+    font-size: 0.9rem;
+  }
+  
+  .score-save-btn,
+  .score-cancel-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+}
