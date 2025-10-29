@@ -1,0 +1,730 @@
+/* ===================================================================
+   GRID VIEW COMPONENT
+   Beautiful card-based layout with cover art and inline editing
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   VIEW TOGGLE CONTROLS
+   ------------------------------------------------------------------- */
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.view-toggle {
+  display: flex;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.view-toggle-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.view-toggle-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--text-primary);
+}
+
+.view-toggle-btn.active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 8px var(--accent-shadow);
+}
+
+body.theme-neon .view-toggle {
+  background: rgba(15, 10, 35, 0.6);
+  border-color: rgba(139, 92, 246, 0.4);
+  backdrop-filter: blur(15px);
+}
+
+body.theme-neon .view-toggle-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  color: #e0e7ff;
+}
+
+body.theme-neon .view-toggle-btn.active {
+  background: linear-gradient(135deg, #ff006e, #ff3385);
+  border: 1px solid rgba(255, 0, 110, 0.5);
+  box-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   GRID CONTAINER
+   ------------------------------------------------------------------- */
+#anime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 4px;
+  margin-top: 0;
+}
+
+#anime-grid.hidden {
+  display: none !important;
+}
+
+@media (min-width: 640px) {
+  #anime-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  #anime-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1280px) {
+  #anime-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   GRID CARD
+   ------------------------------------------------------------------- */
+.grid-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  border-color: var(--accent);
+}
+
+body.theme-neon .grid-card {
+  background: rgba(10, 5, 30, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(139, 92, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.theme-neon .grid-card:hover {
+  border-color: rgba(255, 0, 110, 0.6);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.7),
+    0 0 30px rgba(255, 0, 110, 0.4),
+    0 0 50px rgba(168, 85, 247, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ------------------------------------------------------------------- 
+   CARD COVER IMAGE
+   ------------------------------------------------------------------- */
+.grid-card-cover {
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, #1f2937, #374151);
+}
+
+.grid-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.grid-card:hover .grid-card-cover img {
+  transform: scale(1.1);
+}
+
+/* ===================================================================
+   SCORE BADGE & EDITOR
+   =================================================================== */
+.grid-card-score {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Score editor container */
+.grid-card-score.score-editor-container {
+  min-width: 80px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 6px 10px;
+}
+
+/* Score display (default state) */
+.grid-card-score .score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  padding: 0;
+  min-width: auto;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.2s ease;
+}
+
+.grid-card-score .score-display:hover {
+  background: transparent;
+  transform: none;
+}
+
+.grid-card-score .score-display span {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: white;
+}
+
+.grid-card-score .score-edit-btn {
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.grid-card-score .score-display:hover .score-edit-btn {
+  opacity: 1;
+}
+
+/* Score editor active state */
+.grid-card-score .score-editor {
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(15px);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grid-card-score .score-editor.hidden {
+  display: none;
+}
+
+.grid-card-score .score-input {
+  width: 50px;
+  padding: 4px 6px;
+  border: 2px solid #a855f7;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  background: white;
+  color: #1f2937;
+  outline: none;
+}
+
+.grid-card-score .score-save-btn,
+.grid-card-score .score-cancel-btn {
+  width: 24px;
+  height: 24px;
+  font-size: 0.85rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.grid-card-score .score-save-btn {
+  background: #10b981;
+  color: white;
+}
+
+.grid-card-score .score-save-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.grid-card-score .score-cancel-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.grid-card-score .score-cancel-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Score color variations */
+.grid-card-score.score-high {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.grid-card-score.score-good {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.grid-card-score.score-mid {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.grid-card-score.score-low {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.grid-card-score.score-none {
+  background: rgba(156, 163, 175, 0.9);
+}
+
+/* ===================================================================
+   STATUS BADGE & EDITOR
+   =================================================================== */
+.grid-card-status {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+}
+
+/* Status badge clickable (default state) */
+.grid-card-status .status-badge-clickable {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.grid-card-status .status-badge-clickable:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.grid-card-status .status-edit-icon {
+  font-size: 0.65rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.grid-card-status .status-badge-clickable:hover .status-edit-icon {
+  opacity: 1;
+}
+
+/* Status editor active state */
+.grid-card-status .status-editor {
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(15px);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grid-card-status .status-editor.hidden {
+  display: none;
+}
+
+.grid-card-status .status-select {
+  min-width: 120px;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border: 2px solid #a855f7;
+  border-radius: 6px;
+  background: white;
+  color: #1f2937;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.grid-card-status .status-save-btn,
+.grid-card-status .status-cancel-btn {
+  width: 24px;
+  height: 24px;
+  font-size: 0.85rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.grid-card-status .status-save-btn {
+  background: #10b981;
+  color: white;
+}
+
+.grid-card-status .status-save-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.grid-card-status .status-cancel-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.grid-card-status .status-cancel-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------- 
+   CARD CONTENT
+   ------------------------------------------------------------------- */
+.grid-card-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.grid-card-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+body.theme-neon .grid-card-title {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.grid-card-progress {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+body.theme-neon .grid-card-progress {
+  color: #c4b5fd;
+}
+
+.grid-card-genres {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  min-height: 2.1em;
+}
+
+body.theme-neon .grid-card-genres {
+  color: #a5b4fc;
+}
+
+/* ------------------------------------------------------------------- 
+   CARD ACTIONS
+   ------------------------------------------------------------------- */
+.grid-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.grid-card-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.grid-card-actions .add-episode-btn {
+  background: var(--accent);
+  color: white;
+}
+
+.grid-card-actions .add-episode-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.05);
+}
+
+.grid-card-actions .similar-btn {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.grid-card-actions .similar-btn:hover {
+  background: rgba(168, 85, 247, 0.25);
+  transform: scale(1.05);
+}
+
+/* ------------------------------------------------------------------- 
+   EMPTY STATE
+   ------------------------------------------------------------------- */
+.grid-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+
+.grid-empty p {
+  font-size: 1rem;
+  margin-top: 12px;
+}
+
+/* ------------------------------------------------------------------- 
+   LOADING STATE
+   ------------------------------------------------------------------- */
+.grid-loading {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.grid-loading svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------------- 
+   TABLE VIEW COVER THUMBNAILS
+   ------------------------------------------------------------------- */
+.table-cover-thumb {
+  width: 40px;
+  height: 56px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.table-cover-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Update title cell to include thumbnail */
+#anime-table td:first-child .flex {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ------------------------------------------------------------------- 
+   TABLE/GRID VIEW VISIBILITY CONTROLS
+   ------------------------------------------------------------------- */
+#list-tab .overflow-y-auto {
+  display: block;
+}
+
+#list-tab .overflow-y-auto.hidden {
+  display: none !important;
+}
+
+#list-tab .anime-card {
+  position: relative;
+}
+
+#anime-table {
+  margin-bottom: 0;
+}
+
+/* ===================================================================
+   NEON THEME OVERRIDES
+   =================================================================== */
+
+/* Score badge neon effects */
+body.theme-neon .grid-card-score.score-high {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+}
+
+body.theme-neon .grid-card-score.score-good {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+}
+
+body.theme-neon .grid-card-score.score-mid {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+}
+
+body.theme-neon .grid-card-score.score-low {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+}
+
+/* Score editor neon styling */
+body.theme-neon .grid-card-score.score-editor-container {
+  background: rgba(10, 5, 30, 0.95);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+body.theme-neon .grid-card-score .score-display {
+  background: transparent;
+}
+
+body.theme-neon .grid-card-score .score-editor,
+body.theme-neon .grid-card-status .status-editor {
+  background: rgba(10, 5, 30, 0.98);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+body.theme-neon .grid-card-score .score-input,
+body.theme-neon .grid-card-status .status-select {
+  background: rgba(30, 20, 60, 0.9);
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #e0e7ff;
+}
+
+body.theme-neon .grid-card-score .score-input:focus,
+body.theme-neon .grid-card-status .status-select:focus {
+  border-color: rgba(168, 85, 247, 1);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+}
+
+/* Action buttons neon styling */
+body.theme-neon .grid-card-actions .add-episode-btn {
+  background: linear-gradient(135deg, #00ffff, #00d9ff);
+  color: #0a0618;
+  font-weight: 700;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.4);
+}
+
+body.theme-neon .grid-card-actions .add-episode-btn:hover {
+  box-shadow: 0 6px 18px rgba(0, 255, 255, 0.6);
+}
+
+body.theme-neon .grid-card-actions .similar-btn {
+  background: rgba(168, 85, 247, 0.25);
+  color: #e0e7ff;
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+body.theme-neon .grid-card-actions .similar-btn:hover {
+  background: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+}
+
+/* Table thumbnails neon effect */
+body.theme-neon .table-cover-thumb {
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+/* ===================================================================
+   MOBILE RESPONSIVENESS
+   =================================================================== */
+@media (max-width: 640px) {
+  #anime-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .grid-card-title {
+    font-size: 0.85rem;
+  }
+  
+  .grid-card-progress,
+  .grid-card-genres {
+    font-size: 0.7rem;
+  }
+  
+  .grid-card-actions button {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+  
+  .view-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Smaller editor inputs on mobile */
+  .grid-card-score .score-input {
+    width: 45px;
+    font-size: 0.8rem;
+  }
+  
+  .grid-card-status .status-select {
+    min-width: 100px;
+    font-size: 0.7rem;
+  }
+  
+  .grid-card-score .score-save-btn,
+  .grid-card-score .score-cancel-btn,
+  .grid-card-status .status-save-btn,
+  .grid-card-status .status-cancel-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 0.8rem;
+  }
+}

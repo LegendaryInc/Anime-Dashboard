@@ -4,13 +4,28 @@
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
-   TABLE CONTAINER
+   TABLE CONTAINER - Horizontal scroll support
    ------------------------------------------------------------------- */
+.card:has(#anime-table) {
+  overflow-x: auto;
+}
+
 #anime-table {
   width: 100%;
+  min-width: 950px;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: fixed;
 }
+
+/* ------------------------------------------------------------------- 
+   FIXED COLUMN WIDTHS - Prevents crushing
+   ------------------------------------------------------------------- */
+#anime-table colgroup col:nth-child(1) { width: 32%; } /* Title */
+#anime-table colgroup col:nth-child(2) { width: 13%; } /* Score */
+#anime-table colgroup col:nth-child(3) { width: 20%; } /* Progress */
+#anime-table colgroup col:nth-child(4) { width: 22%; } /* Genres */
+#anime-table colgroup col:nth-child(5) { width: 13%; } /* Actions */
 
 /* ------------------------------------------------------------------- 
    TABLE HEADERS
@@ -32,6 +47,17 @@
   background: var(--card-bg);
   border-bottom: 2px solid var(--border-color);
   transition: all 0.2s ease;
+}
+
+/* Center align score and progress headers */
+#anime-table th:nth-child(2),
+#anime-table th:nth-child(3) {
+  text-align: center;
+}
+
+/* Right align actions header */
+#anime-table th:nth-child(5) {
+  text-align: right;
 }
 
 /* Neon theme headers - Subtle glass effect */
@@ -70,20 +96,20 @@ body.theme-neon .sortable-header:hover {
   font-size: 0.75rem;
 }
 
-.sortable-header.sorted-asc::after {
+.sortable-header.sort-asc::after {
   content: '↑';
   opacity: 1;
   color: var(--accent);
 }
 
-.sortable-header.sorted-desc::after {
+.sortable-header.sort-desc::after {
   content: '↓';
   opacity: 1;
   color: var(--accent);
 }
 
-body.theme-neon .sortable-header.sorted-asc::after,
-body.theme-neon .sortable-header.sorted-desc::after {
+body.theme-neon .sortable-header.sort-asc::after,
+body.theme-neon .sortable-header.sort-desc::after {
   color: #e0e7ff;
   text-shadow: 0 0 10px rgba(224, 231, 255, 0.8);
 }
@@ -94,10 +120,12 @@ body.theme-neon .sortable-header.sorted-desc::after {
 #anime-table tbody tr {
   border-bottom: 1px solid rgba(209, 213, 219, 0.2);
   transition: all 0.2s ease;
+  position: relative;
 }
 
 #anime-table tbody tr:hover {
   background: var(--table-hover);
+  z-index: 10;
 }
 
 body.theme-neon #anime-table tbody tr {
@@ -117,6 +145,7 @@ body.theme-neon #anime-table tbody tr:hover {
   color: var(--text-primary);
   font-size: 0.9rem;
   vertical-align: middle;
+  overflow: hidden;
 }
 
 body.theme-neon #anime-table td {
@@ -124,21 +153,26 @@ body.theme-neon #anime-table td {
 }
 
 /* Title column */
-#anime-table td:first-child {
+#anime-table td:nth-child(1) {
   font-weight: 600;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible; /* Changed from hidden */
 }
 
-body.theme-neon #anime-table td:first-child {
+body.theme-neon #anime-table td:nth-child(1) {
   color: #ffffff;
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
-/* Score column */
+.main-title {
+  display: block;
+  white-space: normal; /* Changed from nowrap */
+  overflow: visible; /* Changed from hidden */
+  line-height: 1.4; /* Add breathing room for multi-line titles */
+}
+
+/* Score column - centered */
 #anime-table td:nth-child(2) {
+  text-align: center;
   font-weight: 700;
   font-size: 1rem;
   color: var(--accent);
@@ -149,17 +183,106 @@ body.theme-neon #anime-table td:nth-child(2) {
   text-shadow: 0 0 10px rgba(224, 231, 255, 0.4);
 }
 
+/* Progress column - centered */
+#anime-table td:nth-child(3) {
+  text-align: center;
+}
+
 /* Genres column */
 #anime-table td:nth-child(4) {
   font-size: 0.8rem;
   color: var(--text-muted);
-  max-width: 250px;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
 }
 
 body.theme-neon #anime-table td:nth-child(4) {
   color: #c4b5fd;
+}
+
+/* Genres tooltip container */
+.genres-container {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+/* Genres tooltip */
+.genres-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  z-index: 1000;
+  top: -8px;
+  left: 0;
+  transform: translateY(-100%);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  white-space: normal;
+  min-width: 250px;
+  max-width: 350px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+body.theme-neon .genres-tooltip {
+  background: rgba(30, 20, 60, 0.98);
+  backdrop-filter: blur(15px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  color: #e0e7ff;
+}
+
+/* Tooltip arrow */
+.genres-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 20px;
+  border: 6px solid transparent;
+  border-top-color: var(--card-bg);
+}
+
+body.theme-neon .genres-tooltip::after {
+  border-top-color: rgba(30, 20, 60, 0.98);
+}
+
+/* Show tooltip on hover */
+.genres-container:hover .genres-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Genre tags in tooltip */
+.genre-tag {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 2px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+body.theme-neon .genre-tag {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #c4b5fd;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.2);
+}
+
+/* Actions column - right aligned */
+#anime-table td:nth-child(5) {
+  text-align: right;
 }
 
 /* ------------------------------------------------------------------- 
@@ -169,6 +292,7 @@ body.theme-neon #anime-table td:nth-child(4) {
   position: relative;
   width: 100%;
   max-width: 120px;
+  margin: 0 auto;
 }
 
 .progress-bar {
@@ -232,7 +356,7 @@ body.theme-neon .progress-text {
 }
 
 /* ------------------------------------------------------------------- 
-   STATUS BADGES (in progress cells)
+   STATUS BADGES (in title and progress cells)
    ------------------------------------------------------------------- */
 .status-badge {
   display: inline-block;
@@ -243,14 +367,17 @@ body.theme-neon .progress-text {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 6px;
+  white-space: nowrap;
 }
 
+.status-badge.status-completed,
 .status-badge.completed {
   background: rgba(16, 185, 129, 0.15);
   color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
+body.theme-neon .status-badge.status-completed,
 body.theme-neon .status-badge.completed {
   background: rgba(16, 185, 129, 0.2);
   color: #6ee7b7;
@@ -258,12 +385,14 @@ body.theme-neon .status-badge.completed {
   box-shadow: 0 0 10px rgba(110, 231, 183, 0.2);
 }
 
+.status-badge.status-watching,
 .status-badge.watching {
   background: rgba(59, 130, 246, 0.15);
   color: #2563eb;
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
+body.theme-neon .status-badge.status-watching,
 body.theme-neon .status-badge.watching {
   background: rgba(0, 255, 255, 0.2);
   color: #66ffff;
@@ -271,12 +400,14 @@ body.theme-neon .status-badge.watching {
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
 }
 
+.status-badge.status-planning,
 .status-badge.planning {
   background: rgba(251, 191, 36, 0.15);
   color: #d97706;
   border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
+body.theme-neon .status-badge.status-planning,
 body.theme-neon .status-badge.planning {
   background: rgba(255, 255, 0, 0.2);
   color: #ffff66;
@@ -284,12 +415,14 @@ body.theme-neon .status-badge.planning {
   box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
 }
 
+.status-badge.status-paused,
 .status-badge.paused {
   background: rgba(168, 85, 247, 0.15);
   color: #7c3aed;
   border: 1px solid rgba(168, 85, 247, 0.3);
 }
 
+body.theme-neon .status-badge.status-paused,
 body.theme-neon .status-badge.paused {
   background: rgba(168, 85, 247, 0.2);
   color: #c4b5fd;
@@ -297,12 +430,14 @@ body.theme-neon .status-badge.paused {
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
 }
 
+.status-badge.status-dropped,
 .status-badge.dropped {
   background: rgba(239, 68, 68, 0.15);
   color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+body.theme-neon .status-badge.status-dropped,
 body.theme-neon .status-badge.dropped {
   background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
@@ -310,12 +445,17 @@ body.theme-neon .status-badge.dropped {
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
 }
 
-/* ------------------------------------------------------------------- 
-   DETAILS COLUMN (Similar button)
-   ------------------------------------------------------------------- */
-#anime-table td:last-child {
-  text-align: center;
-  width: 100px;
+.status-badge.status-repeating {
+  background: rgba(139, 92, 246, 0.15);
+  color: #7c3aed;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+body.theme-neon .status-badge.status-repeating {
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
 
 /* ------------------------------------------------------------------- 
@@ -332,41 +472,8 @@ body.theme-neon .table-empty {
   color: #c4b5fd;
 }
 
-/* ------------------------------------------------------------------- 
-   MOBILE RESPONSIVENESS
-   ------------------------------------------------------------------- */
-@media (max-width: 768px) {
-  #anime-table {
-    font-size: 0.85rem;
-  }
-  
-  #anime-table th,
-  #anime-table td {
-    padding: 10px 8px;
-  }
-  
-  #anime-table td:first-child {
-    max-width: 200px;
-  }
-  
-  #anime-table td:nth-child(4) {
-    display: none;
-  }
-  
-  .progress-container {
-    max-width: 100px;
-  }
-}
-
-@media (max-width: 640px) {
-  #anime-table th:nth-child(4),
-  #anime-table td:nth-child(4) {
-    display: none;
-  }
-}
 /* ===================================================================
    SCORE EDITOR STYLES
-   Add this to your tables.css file
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
@@ -384,6 +491,7 @@ body.theme-neon .table-empty {
 .score-display {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
@@ -392,6 +500,7 @@ body.theme-neon .table-empty {
   transition: all 0.2s ease;
   cursor: pointer;
   background: rgba(0, 0, 0, 0.03);
+  min-width: 70px;
 }
 
 .score-display:hover {
@@ -447,6 +556,7 @@ body.theme-neon .table-empty {
 .score-editor {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -504,6 +614,7 @@ body.theme-neon .score-input:focus {
   cursor: pointer;
   transition: all 0.2s ease;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .score-save-btn {
@@ -574,10 +685,194 @@ body.theme-neon .score-display.score-low {
   opacity: 0.5;
 }
 
+/* ===================================================================
+   STATUS EDITOR STYLES
+   =================================================================== */
+
 /* ------------------------------------------------------------------- 
-   Mobile Responsiveness
+   Status Editor Container
    ------------------------------------------------------------------- */
+.status-editor-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* ------------------------------------------------------------------- 
+   Status Badge - Clickable
+   ------------------------------------------------------------------- */
+.status-badge-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.status-badge-clickable:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.status-edit-icon {
+  font-size: 0.7rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.status-badge-clickable:hover .status-edit-icon {
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------------- 
+   Status Editor (Active State)
+   ------------------------------------------------------------------- */
+.status-editor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.status-editor.hidden {
+  display: none;
+}
+
+.status-select {
+  padding: 6px 10px;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: white;
+  color: var(--text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.status-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon .status-select {
+  background: rgba(30, 20, 60, 0.8);
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #e0e7ff;
+}
+
+body.theme-neon .status-select:focus {
+  border-color: rgba(168, 85, 247, 1);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+/* Status action buttons */
+.status-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.status-save-btn,
+.status-cancel-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.status-save-btn {
+  background: #10b981;
+  color: white;
+}
+
+.status-save-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.status-save-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.status-cancel-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.status-cancel-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------- 
+   Loading State
+   ------------------------------------------------------------------- */
+.status-editor-container.loading .status-badge-clickable {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.status-editor-container.loading .status-select {
+  opacity: 0.5;
+}
+
+/* ------------------------------------------------------------------- 
+   Disabled Episode Button
+   ------------------------------------------------------------------- */
+.add-episode-btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background: #9ca3af !important;
+}
+
+.add-episode-btn-disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 1200px) {
+  #anime-table {
+    min-width: 850px;
+  }
+}
+
+@media (max-width: 768px) {
+  #anime-table {
+    min-width: 750px;
+    font-size: 0.85rem;
+  }
+  
+  #anime-table th,
+  #anime-table td {
+    padding: 10px 8px;
+  }
+  
+  .progress-container {
+    max-width: 100px;
+  }
+}
+
 @media (max-width: 640px) {
+  #anime-table {
+    min-width: 650px;
+  }
+  
   .score-editor-container {
     min-width: 70px;
   }
@@ -588,9 +883,16 @@ body.theme-neon .score-display.score-low {
   }
   
   .score-save-btn,
-  .score-cancel-btn {
+  .score-cancel-btn,
+  .status-save-btn,
+  .status-cancel-btn {
     width: 26px;
     height: 26px;
     font-size: 0.9rem;
+  }
+  
+  .status-select {
+    min-width: 120px;
+    font-size: 0.75rem;
   }
 }

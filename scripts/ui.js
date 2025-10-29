@@ -1,5 +1,5 @@
 // =====================================================================
-// ui.js – UI helpers & render utilities (aligned with your HTML & data)
+// ui.js – UI helpers & render utilities
 // =====================================================================
 
 import { showToast, showConfirm } from './toast.js';
@@ -9,30 +9,6 @@ import { showToast, showConfirm } from './toast.js';
  * ------------------------------------------------------------------ */
 const $  = (id) => document.getElementById(id);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-const first = (...xs) => xs.find(v => typeof v === 'string' && v != null && String(v).trim().length) || null;
-
-/* Time helpers */
-function formatAbsolute(ts) {
-  const ms = ts < 2e12 ? ts * 1000 : ts;
-  const d = new Date(ms);
-  const date = d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
-  const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  return `${date}, ${time}`;
-}
-function formatRelative(ts) {
-  const ms = ts < 2e12 ? ts * 1000 : ts;
-  const now = Date.now();
-  let diff = Math.max(0, ms - now);
-  const sec = Math.floor(diff/1000);
-  const d = Math.floor(sec / 86400);
-  const h = Math.floor((sec % 86400) / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const parts = [];
-  if (d) parts.push(`${d}d`);
-  if (h) parts.push(`${h}h`);
-  if (m && !d) parts.push(`${m}m`);
-  return parts.length ? `in ${parts.join(' ')}` : 'soon';
-}
 
 /* Escape HTML for safe rendering */
 function escapeHtml(str) {
@@ -106,12 +82,8 @@ export function setActiveTab(activeTab) {
   }
 }
 
-export function pushThemeToBody(theme) {
-  // themes.js already handles this with setTheme
-}
-
 /* ------------------------------------------------------------------ *
- * 2) Config / Settings display (Updated)
+ * 2) Config / Settings display
  * ------------------------------------------------------------------ */
 export function applyConfigToUI(cfg = window.CONFIG || {}) {
   const headerH1 = document.querySelector('header h1');
@@ -201,7 +173,7 @@ export function applyTableFiltersAndSort(data = [], currentSort = { column: 'tit
 }
 
 /* ------------------------------------------------------------------ *
- * 5) Enhanced table renderer with editable scores
+ * 5) Enhanced table renderer with editable scores and status
  * ------------------------------------------------------------------ */
 export function renderAnimeTable(data = [], currentSort = { column: 'title', direction: 'asc' }) {
   const tbody = $('anime-list-body');
@@ -241,24 +213,39 @@ export function renderAnimeTable(data = [], currentSort = { column: 'title', dir
     const score = a.score ?? 0;
     const watched = a.episodesWatched ?? a.progress ?? 0;
     const total = a.totalEpisodes ? `${watched}/${a.totalEpisodes}` : watched;
-    const genres = Array.isArray(a.genres) ? a.genres.slice(0, 3).join(', ') : (a.genres || '—');
-    const moreGenres = Array.isArray(a.genres) && a.genres.length > 3
-      ? `<span class="text-xs ml-1 theme-text-muted">+${a.genres.length - 3}</span>`
+    
+    // Genres display with tooltip for full list
+    const genresArray = Array.isArray(a.genres) ? a.genres : [];
+    const genresPreview = genresArray.length > 0 ? genresArray.slice(0, 3).join(', ') : '—';
+    const hasMoreGenres = genresArray.length > 3;
+    const moreGenresCount = hasMoreGenres ? `<span class="text-xs ml-1 theme-text-muted">+${genresArray.length - 3}</span>` : '';
+    
+    // Full genres tooltip
+    const genresFullList = genresArray.length > 0 
+      ? genresArray.map(g => `<span class="genre-tag">${escapeHtml(g)}</span>`).join('')
       : '';
+    
+    const genresHtml = genresArray.length > 0 && hasMoreGenres
+      ? `<div class="genres-container">
+           <span>${escapeHtml(genresPreview)}${moreGenresCount}</span>
+           <div class="genres-tooltip">${genresFullList}</div>
+         </div>`
+      : `<span>${escapeHtml(genresPreview)}</span>`;
 
     const scoreClass = score === 0 ? 'score-none' :
       score >= 8 ? 'score-high' :
       score >= 6 ? 'score-good' :
       score >= 4 ? 'score-mid' : 'score-low';
 
-    const statusBadge = getStatusBadge(a.status);
+    // Status badge for TITLE column
+    const statusBadgeData = getStatusBadgeWithEditor(a.status, a.id, title);
 
-    // Score display with edit functionality
+    // Score editor HTML
     const scoreDisplay = score === 0 ? '—' : score.toFixed(1);
     const scoreHtml = `
       <div class="score-editor-container">
-        <div class="score-display ${scoreClass}" data-anime-id="${escapeAttr(a.id)}" data-current-score="${score}">
-          <span class="score-value">${scoreDisplay}</span>
+        <div class="score-display ${scoreClass}">
+          <span>${scoreDisplay}</span>
           <button class="score-edit-btn" title="Edit score">✎</button>
         </div>
         <div class="score-editor hidden">
@@ -267,10 +254,11 @@ export function renderAnimeTable(data = [], currentSort = { column: 'title', dir
             class="score-input" 
             min="0" 
             max="10" 
-            step="0.5" 
-            value="${score}"
+            step="0.1" 
+            value="${score}" 
             data-anime-id="${escapeAttr(a.id)}"
-            data-anime-title="${escapeAttr(title)}">
+            data-anime-title="${escapeAttr(title)}"
+          />
           <div class="score-actions">
             <button class="score-save-btn" title="Save">✓</button>
             <button class="score-cancel-btn" title="Cancel">✕</button>
@@ -279,41 +267,70 @@ export function renderAnimeTable(data = [], currentSort = { column: 'title', dir
       </div>
     `;
 
-    return `
-      <tr class="table-row" data-anime-title="${escapeAttr(title)}" data-anime-id="${escapeAttr(a.id)}">
-        <td class="p-3 title">
-          <div class="flex flex-col gap-1">
-            <span class="main-title font-medium">${escapeHtml(title)}</span>
-            ${statusBadge}
-          </div>
-        </td>
-        <td class="p-3 score text-center">
-          ${scoreHtml}
-        </td>
-        <td class="p-3 episodes text-center font-medium">${total}</td>
-        <td class="p-3 genres">
-          <div class="text-sm">
-            ${escapeHtml(genres)}${moreGenres}
-          </div>
-        </td>
-        <td class="p-3 actions text-right">
-          <div class="flex gap-2 justify-end">
-            <button
-              class="add-episode-btn px-3 py-1.5 text-sm rounded-lg font-medium"
-              data-title="${escapeAttr(title)}"
-              title="Increment episode count">
-              +1 Ep
-            </button>
-            <button
-              class="similar-btn px-3 py-1.5 text-sm rounded-lg font-medium"
-              data-title="${escapeAttr(title)}"
-              title="Find similar anime">
-              Similar
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
+    // Status badge for PROGRESS column
+    const progressStatusBadge = getStatusBadgeWithEditor(a.status, a.id, title);
+
+    // Check if episode limit reached
+    const canAddEpisode = !a.totalEpisodes || watched < a.totalEpisodes;
+    const episodeButtonClass = canAddEpisode ? 'add-episode-btn' : 'add-episode-btn-disabled';
+    const episodeButtonDisabled = canAddEpisode ? '' : 'disabled';
+
+// Replace the return statement in your renderAnimeTable function's map with this:
+
+	return `
+	  <tr class="table-row" data-anime-title="${escapeAttr(title)}" data-anime-id="${escapeAttr(a.id)}">
+		<td class="p-3 title">
+		  <div class="flex items-center gap-3">
+			<div class="table-cover-thumb">
+			  <img 
+				src="${escapeAttr(a.coverImage || 'https://placehold.co/80x112/1f2937/94a3b8?text=No+Image')}" 
+				alt="${escapeAttr(title)}"
+				loading="lazy"
+				referrerpolicy="no-referrer"
+				onerror="this.onerror=null;this.src='https://placehold.co/80x112/1f2937/94a3b8?text=No+Image';"
+			  />
+			</div>
+			<div class="flex flex-col gap-1 min-w-0">
+			  <span class="main-title font-medium">${escapeHtml(title)}</span>
+			  ${statusBadgeData}
+			</div>
+		  </div>
+		</td>
+		<td class="p-3 score text-center">
+		  ${scoreHtml}
+		</td>
+		<td class="p-3 episodes text-center">
+		  <div class="flex flex-col gap-1 items-center">
+			${progressStatusBadge}
+			<span class="font-medium">${total}</span>
+		  </div>
+		</td>
+		<td class="p-3 genres">
+		  <div class="text-sm">
+			${genresHtml}
+		  </div>
+		</td>
+		<td class="p-3 actions text-right">
+		  <div class="flex gap-2 justify-end">
+			<button
+			  class="${episodeButtonClass} px-3 py-1.5 text-sm rounded-lg font-medium"
+			  data-title="${escapeAttr(title)}"
+			  data-total="${a.totalEpisodes || 0}"
+			  data-watched="${watched}"
+			  ${episodeButtonDisabled}
+			  title="${canAddEpisode ? 'Increment episode count' : 'Cannot exceed total episodes'}">
+			  +1 Ep
+			</button>
+			<button
+			  class="similar-btn px-3 py-1.5 text-sm rounded-lg font-medium"
+			  data-title="${escapeAttr(title)}"
+			  title="Find similar anime">
+			  Similar
+			</button>
+		  </div>
+		</td>
+	  </tr>
+	`;
   }).join('');
 
   tbody.innerHTML = rows;
@@ -356,9 +373,9 @@ function sortAnimeData(data, currentSort) {
 }
 
 /**
- * Generate status badge HTML
+ * Generate status badge HTML with editor
  */
-function getStatusBadge(status) {
+function getStatusBadgeWithEditor(status, animeId, animeTitle) {
   if (!status) return '';
 
   const statusMap = {
@@ -376,7 +393,41 @@ function getStatusBadge(status) {
   const normalized = String(status).toLowerCase();
   const badge = statusMap[normalized] || { class: 'status-planning', text: status };
 
-  return `<span class="status-badge ${badge.class}">${escapeHtml(badge.text)}</span>`;
+  // Available statuses for dropdown
+  const statuses = [
+    { value: 'Current', label: 'Watching' },
+    { value: 'Completed', label: 'Completed' },
+    { value: 'Planning', label: 'Plan to Watch' },
+    { value: 'Paused', label: 'Paused' },
+    { value: 'Dropped', label: 'Dropped' },
+    { value: 'Repeating', label: 'Rewatching' }
+  ];
+
+  const options = statuses.map(s => 
+    `<option value="${s.value}" ${s.value === status || s.label === status ? 'selected' : ''}>${s.label}</option>`
+  ).join('');
+
+  return `
+    <div class="status-editor-container">
+      <span class="status-badge ${badge.class} status-badge-clickable" 
+            data-anime-id="${escapeAttr(animeId)}" 
+            data-current-status="${escapeAttr(status)}">
+        ${escapeHtml(badge.text)}
+        <span class="status-edit-icon">✎</span>
+      </span>
+      <div class="status-editor hidden">
+        <select class="status-select" 
+                data-anime-id="${escapeAttr(animeId)}"
+                data-anime-title="${escapeAttr(animeTitle)}">
+          ${options}
+        </select>
+        <div class="status-actions">
+          <button class="status-save-btn" title="Save">✓</button>
+          <button class="status-cancel-btn" title="Cancel">✕</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 /* ------------------------------------------------------------------ *
@@ -399,7 +450,7 @@ export function renderStats({
 }
 
 /* ------------------------------------------------------------------ *
- * 8) Data mutators expected by main.js
+ * 7) Data mutators expected by main.js
  * ------------------------------------------------------------------ */
 export function incrementEpisode(title, list = []) {
   return (list || []).map(anime => {
@@ -430,8 +481,23 @@ export function updateAnimeScore(animeId, newScore, list = []) {
   });
 }
 
+/**
+ * Update anime status in the local data array
+ */
+export function updateAnimeStatus(animeId, newStatus, list = []) {
+  return (list || []).map(anime => {
+    if (anime.id === animeId) {
+      return {
+        ...anime,
+        status: newStatus
+      };
+    }
+    return anime;
+  });
+}
+
 /* ------------------------------------------------------------------ *
- * 9) Settings → config.js helpers
+ * 8) Settings → config.js helpers
  * ------------------------------------------------------------------ */
 function readConfigFromUI() {
   const get = (id) => $(id);
@@ -480,3 +546,229 @@ export function saveAndGenerateConfigFile() {
     ITEMS_PER_PAGE: cfg.EPISODES_PER_PAGE || 25,
   };
 }
+
+/**
+ * Render anime in grid view with cover art and inline editing
+ */
+export function renderAnimeGrid(data = [], currentSort = { column: 'title', direction: 'asc' }) {
+  const container = document.getElementById('anime-grid');
+  if (!container) return;
+  
+  const sorted = sortAnimeData(data, currentSort);
+  
+  if (sorted.length === 0) {
+    container.innerHTML = `
+      <div class="grid-empty">
+        <svg class="mx-auto h-16 w-16 opacity-50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <p class="text-lg font-semibold mt-4">No anime found</p>
+        <p class="text-sm mt-2">Try adjusting your search or filters</p>
+      </div>
+    `;
+    return;
+  }
+  
+  const cards = sorted.map(a => {
+    const title = a.title || 'Unknown';
+    const score = a.score ?? 0;
+    const watched = a.episodesWatched ?? a.progress ?? 0;
+    const total = a.totalEpisodes || '?';
+    const coverImage = a.coverImage || 'https://placehold.co/300x450/1f2937/94a3b8?text=No+Image';
+    const genres = Array.isArray(a.genres) ? a.genres.slice(0, 3).join(', ') : '';
+    
+    const scoreClass = score === 0 ? 'score-none' :
+      score >= 8 ? 'score-high' :
+      score >= 6 ? 'score-good' :
+      score >= 4 ? 'score-mid' : 'score-low';
+    
+    const statusBadge = getStatusBadgeClass(a.status);
+    
+    const canAddEpisode = !a.totalEpisodes || watched < a.totalEpisodes;
+    const episodeButtonClass = canAddEpisode ? 'add-episode-btn' : 'add-episode-btn-disabled';
+    const episodeButtonDisabled = canAddEpisode ? '' : 'disabled';
+    
+    // Score editor HTML
+    const scoreEditorHtml = `
+      <div class="grid-card-score score-editor-container ${scoreClass}">
+        <div class="score-display ${scoreClass}">
+          <span>${score > 0 ? score.toFixed(1) : 'N/A'}</span>
+          <button class="score-edit-btn" title="Edit score">✏️</button>
+        </div>
+        <div class="score-editor hidden">
+          <input 
+            type="number" 
+            class="score-input" 
+            min="0" 
+            max="10" 
+            step="0.1" 
+            value="${score}" 
+            data-anime-id="${escapeAttr(a.id)}"
+            data-anime-title="${escapeAttr(title)}"
+          />
+          <div class="score-actions">
+            <button class="score-save-btn" title="Save score">✓</button>
+            <button class="score-cancel-btn" title="Cancel">✕</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Status editor HTML
+    const statusEditorHtml = statusBadge ? `
+      <div class="grid-card-status status-editor-container">
+        <div class="status-badge-clickable ${statusBadge.class}" title="Click to edit status">
+          <span>${statusBadge.text}</span>
+          <span class="status-edit-icon">✏️</span>
+        </div>
+        <div class="status-editor hidden">
+          <select 
+            class="status-select" 
+            data-anime-id="${escapeAttr(a.id)}"
+            data-anime-title="${escapeAttr(title)}">
+            <option value="Watching" ${a.status === 'Watching' ? 'selected' : ''}>Watching</option>
+            <option value="Completed" ${a.status === 'Completed' ? 'selected' : ''}>Completed</option>
+            <option value="Planning" ${a.status === 'Planning' ? 'selected' : ''}>Planning</option>
+            <option value="Paused" ${a.status === 'Paused' ? 'selected' : ''}>Paused</option>
+            <option value="Dropped" ${a.status === 'Dropped' ? 'selected' : ''}>Dropped</option>
+            <option value="Repeating" ${a.status === 'Repeating' ? 'selected' : ''}>Repeating</option>
+          </select>
+          <div class="status-actions">
+            <button class="status-save-btn" title="Save status">✓</button>
+            <button class="status-cancel-btn" title="Cancel">✕</button>
+          </div>
+        </div>
+      </div>
+    ` : '';
+    
+    return `
+      <div class="grid-card" data-anime-id="${escapeAttr(a.id)}">
+        <div class="grid-card-cover">
+          <img 
+            src="${escapeAttr(coverImage)}" 
+            alt="${escapeAttr(title)}"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            onerror="this.onerror=null;this.src='https://placehold.co/300x450/1f2937/94a3b8?text=No+Image';"
+          />
+          ${scoreEditorHtml}
+          ${statusEditorHtml}
+        </div>
+        <div class="grid-card-content">
+          <div class="grid-card-title">${escapeHtml(title)}</div>
+          <div class="grid-card-progress">${watched}/${total} episodes</div>
+          ${genres ? `<div class="grid-card-genres">${escapeHtml(genres)}</div>` : ''}
+          <div class="grid-card-actions">
+            <button
+              class="${episodeButtonClass}"
+              data-title="${escapeAttr(title)}"
+              data-total="${a.totalEpisodes || 0}"
+              data-watched="${watched}"
+              ${episodeButtonDisabled}
+              title="${canAddEpisode ? 'Increment episode count' : 'Cannot exceed total episodes'}">
+              +1 Ep
+            </button>
+            <button
+              class="similar-btn"
+              data-title="${escapeAttr(title)}"
+              title="Find similar anime">
+              Similar
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = cards;
+}
+
+/**
+ * Get status badge styling for grid cards
+ */
+export function getStatusBadgeClass(status) {
+  if (!status) return null;
+
+  const statusMap = {
+    'current': { class: 'status-watching', text: 'Watching' },
+    'watching': { class: 'status-watching', text: 'Watching' },
+    'completed': { class: 'status-completed', text: 'Completed' },
+    'planning': { class: 'status-planning', text: 'Planning' },
+    'paused': { class: 'status-paused', text: 'Paused' },
+    'on_hold': { class: 'status-paused', text: 'Paused' },
+    'dropped': { class: 'status-dropped', text: 'Dropped' },
+    'repeating': { class: 'status-repeating', text: 'Rewatching' },
+    're-watching': { class: 'status-repeating', text: 'Rewatching' },
+  };
+
+  const normalized = String(status).toLowerCase();
+  return statusMap[normalized] || { class: 'status-planning', text: status };
+}
+
+/**
+ * Toggle between table and grid view
+ */
+export function setViewMode(mode, data = [], currentSort = {}) {
+  const tableContainer = document.querySelector('#list-tab .overflow-y-auto');
+  const gridContainer = document.getElementById('anime-grid');
+  const tableBtnTable = document.querySelector('[data-view="table"]');
+  const tableBtnGrid = document.querySelector('[data-view="grid"]');
+  
+  if (mode === 'grid') {
+    if (tableContainer) tableContainer.classList.add('hidden');
+    if (gridContainer) gridContainer.classList.remove('hidden');
+    if (tableBtnTable) tableBtnTable.classList.remove('active');
+    if (tableBtnGrid) tableBtnGrid.classList.add('active');
+    
+    renderAnimeGrid(data, currentSort);
+    localStorage.setItem('animeViewMode', 'grid');
+  } else {
+    if (tableContainer) tableContainer.classList.remove('hidden');
+    if (gridContainer) gridContainer.classList.add('hidden');
+    if (tableBtnTable) tableBtnTable.classList.add('active');
+    if (tableBtnGrid) tableBtnGrid.classList.remove('active');
+    
+    renderAnimeTable(data, currentSort);
+    localStorage.setItem('animeViewMode', 'table');
+  }
+}
+
+/**
+ * Apply filters and sort to current view
+ */
+export function applyFiltersToCurrentView(data = [], currentSort = {}) {
+  const viewMode = localStorage.getItem('animeViewMode') || 'table';
+  
+  const searchInput = document.getElementById('search-bar');
+  const statusSelect = document.getElementById('status-filter');
+  const genreSelect = document.getElementById('genre-filter');
+
+  const q = (searchInput?.value || '').trim().toLowerCase();
+  const chosenStatus = (statusSelect?.value || 'all');
+  const chosenGenre = (genreSelect?.value || 'all');
+
+  let filteredData = Array.isArray(data) ? [...data] : [];
+
+  if (q) {
+    filteredData = filteredData.filter(row => {
+      const title = (row.title || '').toLowerCase();
+      const genresString = (row.genres || []).map(g => (g || '').toLowerCase()).join(' ');
+      return title.includes(q) || genresString.includes(q);
+    });
+  }
+
+  if (chosenStatus !== 'all') {
+    filteredData = filteredData.filter(row => (row.status || '') === chosenStatus);
+  }
+
+  if (chosenGenre !== 'all') {
+    filteredData = filteredData.filter(row => (row.genres || []).includes(chosenGenre));
+  }
+
+  if (viewMode === 'grid') {
+    renderAnimeGrid(filteredData, currentSort);
+  } else {
+    renderAnimeTable(filteredData, currentSort);
+  }
+}
+

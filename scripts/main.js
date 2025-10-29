@@ -16,11 +16,20 @@ import {
   saveAndGenerateConfigFile,
   renderStats,
   renderAnimeTable,
-  applyTableFiltersAndSort,
+  renderAnimeGrid,
   populateFilters,
   incrementEpisode,
   updateAnimeScore,
+  updateAnimeStatus,
 } from './ui.js';
+
+// ⭐ NEW: Import list module
+import { 
+  initListTab, 
+  triggerFilterUpdate,
+  clearAllFilters 
+} from './list.js';
+
 import { loadTheme, setTheme } from './themes.js';
 import { saveDataToLocalStorage, checkForSavedData } from './storage.js';
 import { calculateStatistics, downloadEnrichedJSON } from './data.js';
@@ -34,7 +43,9 @@ import {
 import {
   renderEnhancedWatchingTab, initAiringSchedule, exportToCalendar
 } from './airing.js';
-
+import { 
+	openAnimeDetailsModal, closeAnimeDetailsModal, initAnimeDetailsModal 
+	} from './anime-modal.js';
 
 // --- 2. State Variables ---
 let GEMINI_API_KEY = window.CONFIG.GEMINI_API_KEY || '';
@@ -42,12 +53,12 @@ let ITEMS_PER_PAGE = window.CONFIG.EPISODES_PER_PAGE || 25;
 
 let seasonalAnimeData = null;
 let animeData = [];
+window.animeData = []; // ⭐ Make available globally for list.js
 let genreChartInstance, scoreChartInstance;
 let lastStats = null;
-let currentSort = {
-  column: 'title',
-  direction: 'asc'
-};
+
+// ⭐ REMOVED: currentSort (now handled in list.js)
+
 window.episodesWatchedTotal = 0;
 
 let isGachaInitialized = false;
@@ -101,6 +112,7 @@ async function syncWithAnilist() {
     if (response.status === 401) {
       localStorage.removeItem('animeDashboardData');
       animeData = [];
+      window.animeData = []; // ⭐ Update global ref
       isGachaInitialized = false;
 
       showLoading(false);
@@ -157,6 +169,7 @@ async function logout() {
   } finally {
     localStorage.removeItem('animeDashboardData');
     animeData = [];
+    window.animeData = []; // ⭐ Update global ref
     lastStats = null;
     seasonalAnimeData = null;
     isGachaInitialized = false;
@@ -182,6 +195,9 @@ function processAndRenderDashboard(data) {
     if (loginScreen) loginScreen.classList.add('hidden');
     if (welcomeScreen) welcomeScreen.classList.add('hidden');
 
+    // ⭐ Make data globally available
+    window.animeData = data;
+
     populateFilters(data);
     lastStats = calculateStatistics(data);
     renderStats(lastStats);
@@ -190,7 +206,9 @@ function processAndRenderDashboard(data) {
     genreChartInstance = chartInstances.genreChartInstance;
     scoreChartInstance = chartInstances.scoreChartInstance;
 
-    renderAnimeTable(data, currentSort);
+    // ⭐ CHANGED: Let list.js handle initial render
+    triggerFilterUpdate();
+    
     renderEnhancedWatchingTab(data);
 
     if (isGachaInitialized) {
@@ -229,13 +247,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const exportCalendarBtn = document.getElementById('export-calendar-btn');
   const tabNav = document.getElementById('tab-nav');
   const themeSwitcher = document.getElementById('theme-switcher');
-  const animeTableHead = document.getElementById('anime-table-head');
+  // const animeTableHead = document.getElementById('anime-table-head'); // ⭐ No longer needed here
   const settingsSaveButton = document.getElementById('settings-save');
   const settingsCancelButton = document.getElementById('settings-cancel');
   const similarModalClose = document.getElementById('similar-modal-close');
-  const searchBar = document.getElementById('search-bar');
-  const statusFilter = document.getElementById('status-filter');
-  const genreFilter = document.getElementById('genre-filter');
+  // const searchBar = document.getElementById('search-bar'); // ⭐ No longer needed here
+  // const statusFilter = document.getElementById('status-filter'); // ⭐ No longer needed here
+  // const genreFilter = document.getElementById('genre-filter'); // ⭐ No longer needed here
   const geminiButton = document.getElementById('gemini-button');
   const gachaRollButton = document.getElementById('gacha-roll-button');
   const cosmeticModalClose = document.getElementById('cosmetic-modal-close');
@@ -249,6 +267,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadTheme();
   initAiringSchedule();
   initCalendar();
+  initAnimeDetailsModal();
+  
+  // ⭐ NEW: Initialize list tab
+  initListTab();
 
   // =====================================================================
   // ⭐ UPDATED: Auth Flow - Check server status first
@@ -261,6 +283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (authStatus.loggedIn) {
       const loadedData = checkForSavedData();
       animeData = loadedData.animeData;
+      window.animeData = loadedData.animeData; // ⭐ Update global ref
 
       if (animeData && animeData.length > 0) {
         if (loginScreen) loginScreen.classList.add('hidden');
@@ -275,6 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       localStorage.removeItem('animeDashboardData');
       animeData = [];
+      window.animeData = []; // ⭐ Update global ref
       isGachaInitialized = false;
       if (loginScreen) loginScreen.classList.remove('hidden');
       if (welcomeScreen) welcomeScreen.classList.add('hidden');
@@ -305,11 +329,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (newEntry && newEntry.id && !animeData.find(a => a.id === newEntry.id)) {
       console.log('Adding new anime to local state:', newEntry.title);
       animeData.push(newEntry);
+      window.animeData = animeData; // ⭐ Update global reference
       lastStats = calculateStatistics(animeData);
       saveDataToLocalStorage(animeData);
       renderStats(lastStats);
       populateFilters(animeData);
-      renderAnimeTable(animeData, currentSort);
+      triggerFilterUpdate(); // ⭐ Use list.js function
       renderEnhancedWatchingTab(animeData);
     }
   });
@@ -321,6 +346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (storedData) {
         try {
             animeData = JSON.parse(storedData);
+            window.animeData = animeData; // ⭐ Update global ref
             document.getElementById('welcome-back-screen').classList.add('hidden');
             await initializeGacha();
             processAndRenderDashboard(animeData);
@@ -344,6 +370,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (exportCalendarBtn) {
       exportCalendarBtn.addEventListener('click', () => exportToCalendar(animeData));
   }
+
+  // =====================================================================
+  // ⭐ REMOVED: View Toggle Listeners (now in list.js)
+  // =====================================================================
+
   if (tabNav) {
     tabNav.addEventListener('click', async (e) => {
       if (e.target.tagName === 'BUTTON') {
@@ -395,25 +426,9 @@ document.addEventListener('DOMContentLoaded', async () => {
        });
   }
 
-  // List Tab Filtering and Sorting
-  if (searchBar) searchBar.addEventListener('input', () => applyTableFiltersAndSort(animeData, currentSort));
-  if (statusFilter) statusFilter.addEventListener('change', () => applyTableFiltersAndSort(animeData, currentSort));
-  if (genreFilter) genreFilter.addEventListener('change', () => applyTableFiltersAndSort(animeData, currentSort));
-  if (animeTableHead) {
-      animeTableHead.addEventListener('click', (e) => {
-          const header = e.target.closest('.sortable-header');
-          if (header) {
-              const column = header.dataset.sort;
-              if (currentSort.column === column) {
-                  currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-              } else {
-                  currentSort.column = column;
-                  currentSort.direction = 'asc';
-              }
-              applyTableFiltersAndSort(animeData, currentSort);
-          }
-      });
-  }
+  // =====================================================================
+  // ⭐ REMOVED: List Tab Filtering and Sorting (now in list.js)
+  // =====================================================================
 
    // AI Insights Tab
    if (geminiButton) {
@@ -482,14 +497,151 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Event delegation for dynamically created buttons
   document.body.addEventListener('click', async (e) => {
 
-    // Watching Tab & List Tab: "+1 Episode" button
+    // =================================================================
+    // MODAL OPEN HANDLERS
+    // =================================================================
+
+    // Grid card click - open details modal
+    if (e.target.closest('.grid-card')) {
+      const card = e.target.closest('.grid-card');
+      
+      // Don't open modal if clicking on interactive elements
+      if (
+        e.target.closest('.grid-card-actions') ||
+        e.target.closest('.score-editor-container') ||
+        e.target.closest('.status-editor-container') ||
+        e.target.closest('button') ||
+        e.target.closest('input') ||
+        e.target.closest('select')
+      ) {
+        return;
+      }
+      
+      const animeId = parseInt(card.dataset.animeId);
+      const anime = animeData.find(a => a.id === animeId);
+      if (anime) {
+        openAnimeDetailsModal(anime);
+      }
+      return; // Stop propagation
+    }
+
+    // Table row click - open details modal
+    if (e.target.closest('#anime-table tbody tr')) {
+      const row = e.target.closest('tr');
+      
+      // Don't open modal if clicking on interactive elements
+      if (
+        e.target.closest('.add-episode-btn') ||
+        e.target.closest('.similar-btn') ||
+        e.target.closest('.score-editor-container') ||
+        e.target.closest('.status-editor-container') ||
+        e.target.closest('button') ||
+        e.target.closest('input') ||
+        e.target.closest('select')
+      ) {
+        return;
+      }
+      
+      const titleElement = row.querySelector('.main-title');
+      if (!titleElement) return;
+      
+      const animeTitle = titleElement.textContent.trim();
+      const anime = animeData.find(a => a.title === animeTitle);
+      if (anime) {
+        openAnimeDetailsModal(anime);
+      }
+      return; // Stop propagation
+    }
+
+    // =================================================================
+    // MODAL INTERNAL HANDLERS
+    // =================================================================
+
+    // Episode +1 button inside modal
+    if (e.target.id === 'anime-details-add-episode') {
+      const button = e.target;
+      const animeId = parseInt(button.dataset.animeId);
+      const title = button.dataset.title;
+      const watched = parseInt(button.dataset.watched) || 0;
+      const total = parseInt(button.dataset.total) || 0;
+      
+      const anime = animeData.find(a => a.id === animeId);
+      if (!anime) return;
+      
+      if (total > 0 && watched >= total) {
+        showToast(`Cannot exceed total episodes (${total})`, 'error');
+        return;
+      }
+      
+      const newProgress = watched + 1;
+      button.disabled = true;
+      button.textContent = '...';
+      
+      try {
+        const response = await fetch('/api/anilist/update-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mediaId: animeId, progress: newProgress })
+        });
+        
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Failed to update');
+        
+        showToast(`Updated '${title}' to Ep ${newProgress}!`, 'success');
+        
+        // Update local data
+        animeData = incrementEpisode(title, animeData);
+        lastStats = calculateStatistics(animeData);
+        
+        // Update modal display
+        document.getElementById('anime-details-progress').textContent = `${newProgress}/${total}`;
+        button.dataset.watched = newProgress;
+        
+        // Check if completed
+        if (total > 0 && newProgress >= total) {
+          button.disabled = true;
+        }
+        
+        // Update gacha tokens
+        if (isGachaInitialized) {
+          const currentState = await loadGachaState();
+          await updateGachaTokens(lastStats.totalEpisodes, currentState?.totalPulls || 0);
+          renderGachaState();
+        }
+        
+        saveDataToLocalStorage(animeData);
+        renderStats(lastStats);
+        window.animeData = animeData; // ⭐ Update global ref
+        triggerFilterUpdate(); // ⭐ Refresh list view
+        renderEnhancedWatchingTab(animeData);
+        
+      } catch (error) {
+        console.error('Failed to update progress:', error);
+        showToast(`Error: ${error.message}`, 'error');
+      } finally {
+        if (total === 0 || newProgress < total) {
+          button.disabled = false;
+          button.textContent = '+1';
+        }
+      }
+    }
+
+    // Watching Tab & List Tab: "+1 Episode" button with validation
     if (e.target.classList.contains('add-episode-btn')) {
       const button = e.target;
       const title = button.dataset.title;
+      const watched = parseInt(button.dataset.watched) || 0;
+      const total = parseInt(button.dataset.total) || 0;
       const anime = animeData.find(a => a.title === title);
 
       if (!anime || !anime.id) {
         showToast('Error: Cannot update progress. Anime data missing or invalid.', 'error');
+        return;
+      }
+
+      // Validate against total episodes
+      if (total > 0 && watched >= total) {
+        showToast(`Cannot exceed total episodes (${total})`, 'error');
         return;
       }
 
@@ -510,6 +662,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         animeData = incrementEpisode(title, animeData);
         lastStats = calculateStatistics(animeData);
 
+        // Check if completed
+        if (anime.totalEpisodes && newProgress >= anime.totalEpisodes) {
+          // Auto-complete with confirmation toast
+          setTimeout(async () => {
+            const confirmed = await showConfirm(`You've finished '${title}'! Mark as completed?`);
+            if (confirmed) {
+              try {
+                const statusResponse = await fetch('/api/anilist/update-status', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ mediaId: anime.id, status: 'Completed' })
+                });
+                const statusResult = await statusResponse.json();
+                if (!statusResponse.ok) throw new Error(statusResult.error || 'Failed to update status');
+
+                showToast(`Marked '${title}' as Completed!`, 'success');
+                animeData = updateAnimeStatus(anime.id, 'Completed', animeData);
+                
+                saveDataToLocalStorage(animeData);
+                populateFilters(animeData);
+                window.animeData = animeData; // ⭐ Update global ref
+                triggerFilterUpdate(); // ⭐ Refresh list view
+                renderEnhancedWatchingTab(animeData);
+              } catch (statusError) {
+                console.error('Failed to update status:', statusError);
+                showToast(`Error marking as complete: ${statusError.message}`, 'error');
+              }
+            }
+          }, 500);
+        }
+
         if (isGachaInitialized) {
             try {
                 const currentState = await loadGachaState();
@@ -523,7 +706,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveDataToLocalStorage(animeData);
         renderStats(lastStats);
         renderEnhancedWatchingTab(animeData);
-        renderAnimeTable(animeData, currentSort);
+        window.animeData = animeData; // ⭐ Update global ref
+        triggerFilterUpdate(); // ⭐ Refresh list view
 
       } catch (error) {
         console.error('Failed to update progress:', error);
@@ -548,11 +732,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const editor = container.querySelector('.score-editor');
       const input = editor.querySelector('.score-input');
       
-      // Hide display, show editor
       scoreDisplay.classList.add('hidden');
       editor.classList.remove('hidden');
       
-      // Focus input and select all
       setTimeout(() => {
         input.focus();
         input.select();
@@ -569,22 +751,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       const animeTitle = input.dataset.animeTitle;
       const newScore = parseFloat(input.value);
       
-      // Validate score
       if (isNaN(newScore) || newScore < 0 || newScore > 10) {
         showToast('Score must be between 0 and 10', 'error');
         return;
       }
       
-      // Get the anime from local data to check if score actually changed
       const anime = animeData.find(a => a.id === animeId);
       if (anime && anime.score === newScore) {
-        // No change, just close editor
         editor.classList.add('hidden');
         container.querySelector('.score-display').classList.remove('hidden');
         return;
       }
       
-      // Disable button during save
       button.disabled = true;
       container.classList.add('loading');
       
@@ -598,25 +776,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Failed to update score');
         
-        // Success - Update local data
         showToast(`Updated score for '${animeTitle}' to ${newScore}!`, 'success');
         animeData = updateAnimeScore(animeId, newScore, animeData);
         
-        // Recalculate stats with new score
         lastStats = calculateStatistics(animeData);
         renderStats(lastStats);
         
-        // Save to localStorage
         saveDataToLocalStorage(animeData);
-        
-        // Re-render table with updated score
-        applyTableFiltersAndSort(animeData, currentSort);
+        window.animeData = animeData; // ⭐ Update global ref
+        triggerFilterUpdate(); // ⭐ Refresh list view
         
       } catch (error) {
         console.error('Failed to update score:', error);
         showToast(`Error: ${error.message}`, 'error');
         
-        // Reset input to original value on error
         if (anime) {
           input.value = anime.score || 0;
         }
@@ -634,15 +807,98 @@ document.addEventListener('DOMContentLoaded', async () => {
       const scoreDisplay = container.querySelector('.score-display');
       const animeId = parseInt(input.dataset.animeId);
       
-      // Reset input to current score
       const anime = animeData.find(a => a.id === animeId);
       if (anime) {
         input.value = anime.score || 0;
       }
       
-      // Hide editor, show display
       editor.classList.add('hidden');
       scoreDisplay.classList.remove('hidden');
+    }
+
+    // =====================================================================
+    // STATUS EDITOR EVENT HANDLERS
+    // =====================================================================
+
+    // Open status editor
+    if (e.target.classList.contains('status-badge-clickable') || e.target.closest('.status-badge-clickable')) {
+      const badge = e.target.closest('.status-badge-clickable');
+      if (!badge) return;
+      
+      const container = badge.closest('.status-editor-container');
+      const editor = container.querySelector('.status-editor');
+      
+      badge.classList.add('hidden');
+      editor.classList.remove('hidden');
+    }
+
+    // Save status
+    if (e.target.classList.contains('status-save-btn')) {
+      const button = e.target;
+      const editor = button.closest('.status-editor');
+      const select = editor.querySelector('.status-select');
+      const container = editor.closest('.status-editor-container');
+      const animeId = parseInt(select.dataset.animeId);
+      const animeTitle = select.dataset.animeTitle;
+      const newStatus = select.value;
+      
+      const anime = animeData.find(a => a.id === animeId);
+      if (anime && anime.status === newStatus) {
+        editor.classList.add('hidden');
+        container.querySelector('.status-badge-clickable').classList.remove('hidden');
+        return;
+      }
+      
+      button.disabled = true;
+      container.classList.add('loading');
+      
+      try {
+        const response = await fetch('/api/anilist/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mediaId: animeId, status: newStatus })
+        });
+        
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Failed to update status');
+        
+        showToast(`Updated status for '${animeTitle}' to ${newStatus}!`, 'success');
+        animeData = updateAnimeStatus(animeId, newStatus, animeData);
+        
+        saveDataToLocalStorage(animeData);
+        populateFilters(animeData);
+        window.animeData = animeData; // ⭐ Update global ref
+        triggerFilterUpdate(); // ⭐ Refresh list view
+        renderEnhancedWatchingTab(animeData);
+        
+      } catch (error) {
+        console.error('Failed to update status:', error);
+        showToast(`Error: ${error.message}`, 'error');
+        
+        if (anime) {
+          select.value = anime.status;
+        }
+      } finally {
+        button.disabled = false;
+        container.classList.remove('loading');
+      }
+    }
+
+    // Cancel status edit
+    if (e.target.classList.contains('status-cancel-btn')) {
+      const editor = e.target.closest('.status-editor');
+      const container = editor.closest('.status-editor-container');
+      const select = editor.querySelector('.status-select');
+      const badge = container.querySelector('.status-badge-clickable');
+      const animeId = parseInt(select.dataset.animeId);
+      
+      const anime = animeData.find(a => a.id === animeId);
+      if (anime) {
+        select.value = anime.status;
+      }
+      
+      editor.classList.add('hidden');
+      badge.classList.remove('hidden');
     }
 
     // List Tab: "Find Similar" button

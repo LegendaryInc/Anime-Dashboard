@@ -184,32 +184,60 @@
             </div>
           </div>
 
-          <div id="list-tab" class="tab-content hidden">
-            <div class="anime-card rounded-xl p-4 shadow-md">
-              <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                <h3 class="font-bold text-xl mb-2 sm:mb-0 theme-text-primary">Your Anime List</h3>
-                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <select id="status-filter" class="filter-select"></select>
-                  <select id="genre-filter" class="filter-select"></select>
-                  <input id="search-bar" type="text" placeholder="Search..." class="w-full sm:w-48 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
-                </div>
-              </div>
-              <div class="overflow-y-auto" style="max-height: 500px;">
-                <table id="anime-table" class="w-full text-left"> 
-                  <thead id="anime-table-head">
-                    <tr class="border-b-2 border-gray-200">
-                      <th class="p-3 sortable-header" data-sort="title">Title</th>
-                      <th class="p-3 sortable-header" data-sort="score">Score</th>
-                      <th class="p-3 sortable-header" data-sort="episodesWatched">Progress</th>
-                      <th class="p-3">Genres</th>
-                      <th class="p-3">Details</th>
-                    </tr>
-                  </thead>
-                  <tbody id="anime-list-body"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+
+
+		<div id="list-tab" class="tab-content hidden">
+		  <div class="anime-card rounded-xl p-4 shadow-md">
+			<!-- Top Controls Row -->
+			<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+			  <div class="flex items-center gap-4">
+				<h3 class="font-bold text-xl theme-text-primary">Your Anime List</h3>
+				
+				<!-- View Toggle -->
+				<div class="view-toggle">
+				  <button class="view-toggle-btn active" data-view="table">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+					  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+					</svg>
+					Table
+				  </button>
+				  <button class="view-toggle-btn" data-view="grid">
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+					  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+					</svg>
+					Grid
+				  </button>
+				</div>
+			  </div>
+			  
+			  <!-- Filters -->
+			  <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+				<select id="status-filter" class="filter-select"></select>
+				<select id="genre-filter" class="filter-select"></select>
+				<input id="search-bar" type="text" placeholder="Search..." class="w-full sm:w-48 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+			  </div>
+			</div>
+			
+			<!-- Table View -->
+			<div class="overflow-y-auto" style="max-height: 500px;">
+			  <table id="anime-table" class="w-full text-left"> 
+				<thead id="anime-table-head">
+				  <tr class="border-b-2 border-gray-200">
+					<th class="p-3 sortable-header" data-sort="title">Title</th>
+					<th class="p-3 sortable-header" data-sort="score">Score</th>
+					<th class="p-3 sortable-header" data-sort="episodesWatched">Progress</th>
+					<th class="p-3">Genres</th>
+					<th class="p-3">Details</th>
+				  </tr>
+				</thead>
+				<tbody id="anime-list-body"></tbody>
+			  </table>
+			</div>
+			
+			<!-- Grid View (Hidden by default) -->
+			<div id="anime-grid" class="hidden"></div>
+		  </div>
+		</div>
 
           <div id="insights-tab" class="tab-content hidden">
             <div class="anime-card rounded-xl p-6 shadow-md text-center">
@@ -358,7 +386,154 @@
       </div>
     </div>
   </div>
-
+<!-- Add this RIGHT BEFORE the Toast container (before </body>) in your index.html -->
+<!-- Enhanced Anime Details Modal -->
+<div id="anime-details-modal-backdrop" class="modal-backdrop">
+  <div id="anime-details-modal-content" class="anime-details-modal-content anime-card">
+    <button id="anime-details-modal-close" class="modal-close-btn" title="Close">✕</button>
+    
+    <div class="anime-details-container">
+      <div class="anime-details-cover">
+        <img id="anime-details-cover-img" src="" alt="Cover" />
+        <div id="anime-details-trailer-container" class="trailer-container hidden">
+          <iframe id="anime-details-trailer" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+      
+      <div class="anime-details-info">
+        <div class="anime-details-header">
+          <h2 id="anime-details-title" class="theme-text-primary">Loading...</h2>
+          <div class="anime-details-meta">
+            <span id="anime-details-year" class="meta-badge"></span>
+            <span id="anime-details-format" class="meta-badge"></span>
+            <span id="anime-details-episodes-count" class="meta-badge"></span>
+          </div>
+        </div>
+        
+        <div class="anime-details-stats">
+          <div class="stat-item">
+            <span class="stat-label">Your Score</span>
+            <div class="score-editor-container">
+              <div class="score-display">
+                <span id="anime-details-score">N/A</span>
+                <button class="score-edit-btn">✏️</button>
+              </div>
+              <div class="score-editor hidden">
+                <input type="number" class="score-input" min="0" max="10" step="0.1" value="0" />
+                <div class="score-actions">
+                  <button class="score-save-btn">✓</button>
+                  <button class="score-cancel-btn">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-item">
+            <span class="stat-label">Progress</span>
+            <div class="progress-display">
+              <span id="anime-details-progress">0/12</span>
+              <button id="anime-details-add-episode" class="add-episode-btn-small">+1</button>
+            </div>
+          </div>
+          
+          <div class="stat-item">
+            <span class="stat-label">Status</span>
+            <div class="status-editor-container">
+              <div class="status-badge-clickable">
+                <span id="anime-details-status">Watching</span>
+                <span class="status-edit-icon">✏️</span>
+              </div>
+              <div class="status-editor hidden">
+                <select class="status-select">
+                  <option value="Watching">Watching</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Planning">Planning</option>
+                  <option value="Paused">Paused</option>
+                  <option value="Dropped">Dropped</option>
+                  <option value="Repeating">Repeating</option>
+                </select>
+                <div class="status-actions">
+                  <button class="status-save-btn">✓</button>
+                  <button class="status-cancel-btn">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="anime-details-tabs">
+          <button class="anime-details-tab active" data-tab="overview">Overview</button>
+          <button class="anime-details-tab" data-tab="notes">Notes 📝</button>
+          <button class="anime-details-tab" data-tab="related">Related</button>
+        </div>
+        
+        <div class="anime-details-tab-content">
+          <div id="anime-details-overview-tab" class="details-tab-pane active">
+            <div class="detail-section">
+              <h3 class="section-title">Synopsis</h3>
+              <p id="anime-details-synopsis" class="synopsis-text theme-text-secondary">Loading...</p>
+            </div>
+            
+            <div class="detail-section">
+              <h3 class="section-title">Information</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Studios</span>
+                  <span id="anime-details-studios" class="info-value">—</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Source</span>
+                  <span id="anime-details-source" class="info-value">—</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Season</span>
+                  <span id="anime-details-season" class="info-value">—</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Average Score</span>
+                  <span id="anime-details-avg-score" class="info-value">—</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="detail-section">
+              <h3 class="section-title">Genres</h3>
+              <div id="anime-details-genres" class="genre-tags-container"></div>
+            </div>
+            
+            <div class="detail-section" id="anime-details-trailer-section">
+              <h3 class="section-title">Trailer</h3>
+              <button id="anime-details-show-trailer" class="btn-secondary">▶️ Watch Trailer</button>
+            </div>
+          </div>
+          
+          <div id="anime-details-notes-tab" class="details-tab-pane">
+            <div class="detail-section">
+              <div class="notes-header">
+                <h3 class="section-title">Personal Notes</h3>
+                <span class="notes-info theme-text-muted">Syncs with AniList</span>
+              </div>
+              <textarea id="anime-details-notes" class="notes-textarea" placeholder="Add your personal notes here...&#10;&#10;• Thoughts on the story&#10;• Favorite moments&#10;• Things to remember&#10;• Why you rated it this way" maxlength="2000"></textarea>
+              <div class="notes-footer">
+                <span id="anime-details-notes-count" class="notes-count theme-text-muted">0/2000</span>
+                <button id="anime-details-save-notes" class="btn-primary">Save Notes</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="anime-details-related-tab" class="details-tab-pane">
+            <div class="detail-section">
+              <h3 class="section-title">Related Anime</h3>
+              <div id="anime-details-related-content" class="related-anime-grid">
+                <p class="theme-text-muted">Loading related anime...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   <!-- Toast notification container -->
   <div class="toast-container"></div>
 

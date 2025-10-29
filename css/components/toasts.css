@@ -131,3 +131,172 @@ body.theme-neon .toast-warning {
     max-width: none; 
   }
 }
+
+/* ===================================================================
+   CONFIRM DIALOG STYLES
+   Add this to the end of your toasts.css file
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   Confirm Dialog Backdrop
+   ------------------------------------------------------------------- */
+.confirm-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.confirm-backdrop.confirm-show {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------- 
+   Confirm Dialog Box
+   ------------------------------------------------------------------- */
+.confirm-dialog {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transform: scale(0.9);
+  transition: transform 0.2s ease;
+}
+
+.confirm-backdrop.confirm-show .confirm-dialog {
+  transform: scale(1);
+}
+
+body.theme-neon .confirm-dialog {
+  background: rgba(10, 5, 30, 0.95);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   Confirm Dialog Content
+   ------------------------------------------------------------------- */
+.confirm-content {
+  text-align: center;
+}
+
+.confirm-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.confirm-message {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+body.theme-neon .confirm-message {
+  color: #e0e7ff;
+  text-shadow: 0 0 8px rgba(224, 231, 255, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   Confirm Dialog Actions
+   ------------------------------------------------------------------- */
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.confirm-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.confirm-yes {
+  background: #10b981;
+  color: white;
+}
+
+.confirm-yes:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.confirm-no {
+  background: #6b7280;
+  color: white;
+}
+
+.confirm-no:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+body.theme-neon .confirm-yes {
+  background: #10b981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+body.theme-neon .confirm-yes:hover {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+}
+
+body.theme-neon .confirm-no {
+  background: rgba(107, 114, 128, 0.8);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+body.theme-neon .confirm-no:hover {
+  background: rgba(75, 85, 99, 0.9);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   Mobile Responsiveness
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .confirm-dialog {
+    padding: 20px;
+    max-width: 320px;
+  }
+  
+  .confirm-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+  }
+  
+  .confirm-message {
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+  
+  .confirm-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .confirm-btn {
+    width: 100%;
+  }
+}

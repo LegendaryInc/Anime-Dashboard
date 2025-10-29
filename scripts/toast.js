@@ -1,114 +1,110 @@
 // =====================================================================
-// --- TOAST.JS - Toast Notification Utility ---
-// =====================================================================
-// A lightweight toast notification system to replace alert() calls.
-// Usage: 
-//   import { showToast } from './toast.js';
-//   showToast('Your message here', 'success');
+// --- TOAST NOTIFICATION MODULE (toast.js) ---
 // =====================================================================
 
 /**
- * Shows a toast notification
+ * Show a toast notification
  * @param {string} message - The message to display
- * @param {string} type - Type of toast: 'success', 'error', 'warning', 'info'
- * @param {number} duration - How long to show the toast in milliseconds (default: 4000)
+ * @param {string} type - Type of toast: 'success', 'error', 'info', 'warning'
+ * @param {number} duration - Duration in milliseconds (default: 3000)
  */
-export function showToast(message, type = 'info', duration = 4000) {
-  // Create container if it doesn't exist
-  let container = document.getElementById('toast-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toast-container';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-  }
-
-  // Create toast element
+export function showToast(message, type = 'info', duration = 3000) {
+  const container = document.querySelector('.toast-container') || createToastContainer();
+  
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   
-  // Icon based on type
+  const icon = getIcon(type);
+  toast.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <span class="toast-message">${escapeHtml(message)}</span>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Trigger animation
+  setTimeout(() => toast.classList.add('toast-show'), 10);
+  
+  // Auto-remove
+  setTimeout(() => {
+    toast.classList.remove('toast-show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+/**
+ * Show a confirmation dialog
+ * @param {string} message - The confirmation message
+ * @returns {Promise<boolean>} - Resolves to true if confirmed, false if cancelled
+ */
+export function showConfirm(message) {
+  return new Promise((resolve) => {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'confirm-backdrop';
+    
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog';
+    dialog.innerHTML = `
+      <div class="confirm-content">
+        <div class="confirm-icon">❓</div>
+        <p class="confirm-message">${escapeHtml(message)}</p>
+        <div class="confirm-actions">
+          <button class="confirm-btn confirm-yes">Yes</button>
+          <button class="confirm-btn confirm-no">No</button>
+        </div>
+      </div>
+    `;
+    
+    backdrop.appendChild(dialog);
+    document.body.appendChild(backdrop);
+    
+    // Trigger animation
+    setTimeout(() => backdrop.classList.add('confirm-show'), 10);
+    
+    const cleanup = (result) => {
+      backdrop.classList.remove('confirm-show');
+      setTimeout(() => {
+        backdrop.remove();
+        resolve(result);
+      }, 200);
+    };
+    
+    dialog.querySelector('.confirm-yes').addEventListener('click', () => cleanup(true));
+    dialog.querySelector('.confirm-no').addEventListener('click', () => cleanup(false));
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) cleanup(false);
+    });
+  });
+}
+
+/**
+ * Get icon for toast type
+ */
+function getIcon(type) {
   const icons = {
     success: '✓',
     error: '✕',
     warning: '⚠',
     info: 'ℹ'
   };
-  
-  toast.innerHTML = `
-    <span class="toast-icon">${icons[type] || icons.info}</span>
-    <span class="toast-message">${message}</span>
-  `;
-  
-  // Add to container
-  container.appendChild(toast);
-  
-  // Trigger entrance animation
-  setTimeout(() => toast.classList.add('toast-show'), 10);
-  
-  // Auto-remove after duration
-  setTimeout(() => {
-    toast.classList.remove('toast-show');
-    toast.classList.add('toast-hide');
-    setTimeout(() => {
-      if (toast.parentNode) {
-        toast.parentNode.removeChild(toast);
-      }
-    }, 300);
-  }, duration);
+  return icons[type] || icons.info;
 }
 
 /**
- * Shows a confirmation dialog with custom styling (replacement for confirm())
- * @param {string} message - The confirmation message
- * @returns {Promise<boolean>} - Resolves to true if confirmed, false if cancelled
+ * Create toast container if it doesn't exist
  */
-export function showConfirm(message) {
-  return new Promise((resolve) => {
-    // Create overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'confirm-overlay';
-    
-    // Create dialog
-    const dialog = document.createElement('div');
-    dialog.className = 'confirm-dialog';
-    dialog.innerHTML = `
-      <div class="confirm-content">
-        <div class="confirm-icon">⚠️</div>
-        <div class="confirm-message">${message.replace(/\n/g, '<br>')}</div>
-        <div class="confirm-buttons">
-          <button class="confirm-btn confirm-btn-cancel">Cancel</button>
-          <button class="confirm-btn confirm-btn-confirm">Confirm</button>
-        </div>
-      </div>
-    `;
-    
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-    
-    // Trigger entrance animation
-    setTimeout(() => {
-      overlay.classList.add('confirm-show');
-    }, 10);
-    
-    // Handle button clicks
-    const confirmBtn = dialog.querySelector('.confirm-btn-confirm');
-    const cancelBtn = dialog.querySelector('.confirm-btn-cancel');
-    
-    const cleanup = (result) => {
-      overlay.classList.remove('confirm-show');
-      setTimeout(() => {
-        if (overlay.parentNode) {
-          overlay.parentNode.removeChild(overlay);
-        }
-      }, 300);
-      resolve(result);
-    };
-    
-    confirmBtn.addEventListener('click', () => cleanup(true));
-    cancelBtn.addEventListener('click', () => cleanup(false));
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) cleanup(false);
-    });
-  });
+function createToastContainer() {
+  const container = document.createElement('div');
+  container.className = 'toast-container';
+  document.body.appendChild(container);
+  return container;
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }

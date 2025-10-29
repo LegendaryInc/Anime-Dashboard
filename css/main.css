@@ -34,6 +34,7 @@
 @import 'features/calendar.css';   /* Calendar view & controls */
 @import 'features/gacha.css';      /* Gacha system & shop */
 @import 'features/charts.css';     /* Chart containers */
+@import 'features/grid-view.css';     /* Grid View Changes */
 
 /* =================================================================== 
    5. THEME EFFECTS (Visual enhancements)

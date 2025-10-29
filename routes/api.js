@@ -270,6 +270,93 @@ router.post('/anilist/update-score', async (req, res) => {
   }
 });
 
+/* ---------------- API: Update AniList Status ---------------- */
+router.post('/anilist/update-status', async (req, res) => {
+  const { mediaId, status } = req.body;
+
+  if (!req.session?.auth?.service || req.session.auth.service !== 'anilist') {
+    return res.status(401).json({ error: 'Not authenticated with AniList' });
+  }
+
+  if (!mediaId || !status) {
+    return res.status(400).json({ error: 'Missing mediaId or status' });
+  }
+
+  // Map frontend status to AniList status
+  const statusMap = {
+    'Current': 'CURRENT',
+    'Watching': 'CURRENT',
+    'Completed': 'COMPLETED',
+    'Planning': 'PLANNING',
+    'Plan to Watch': 'PLANNING',
+    'Paused': 'PAUSED',
+    'Dropped': 'DROPPED',
+    'Rewatching': 'REPEATING',
+    'Repeating': 'REPEATING'
+  };
+
+  const anilistStatus = statusMap[status] || status.toUpperCase();
+
+  const accessToken = req.session.auth?.accessToken;
+  if (!accessToken) {
+    return res.status(401).json({ error: 'No valid access token' });
+  }
+
+  const mutation = `
+    mutation ($mediaId: Int, $status: MediaListStatus) {
+      SaveMediaListEntry(mediaId: $mediaId, status: $status) {
+        id
+        mediaId
+        status
+        progress
+        score
+      }
+    }
+  `;
+
+  try {
+    const response = await axios.post(
+      'https://graphql.anilist.co',
+      {
+        query: mutation,
+        variables: { mediaId: parseInt(mediaId), status: anilistStatus }
+      },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    if (response.data.errors) {
+      console.error('AniList GraphQL errors:', response.data.errors);
+      return res.status(400).json({ 
+        error: response.data.errors[0]?.message || 'GraphQL error updating status' 
+      });
+    }
+
+    console.log(`✅ AniList User: Updated status for media ${mediaId} to ${anilistStatus}`);
+    
+    // Map back to frontend status
+    const newStatus = ({
+      'CURRENT': 'Current',
+      'COMPLETED': 'Completed',
+      'PLANNING': 'Planning',
+      'PAUSED': 'Paused',
+      'DROPPED': 'Dropped',
+      'REPEATING': 'Repeating'
+    })[response.data.data.SaveMediaListEntry.status] || response.data.data.SaveMediaListEntry.status;
+
+    res.json({
+      success: true,
+      entry: {
+        ...response.data.data.SaveMediaListEntry,
+        status: newStatus
+      }
+    });
+
+  } catch (err) {
+    console.error('Status update error:', err?.response?.data || err.message);
+    res.status(500).json({ error: 'Internal server error updating status' });
+  }
+});
+
 /* ---------------- API: Add to Planning List ---------------- */
 router.post('/anilist/add-planning', async (req, res) => {
   const { malId, title } = req.body;
