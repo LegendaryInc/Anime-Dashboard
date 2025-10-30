@@ -138,11 +138,29 @@ app.get('/api/cache-stats', (req, res) => {
 // Serve Static Files (Secure - Only Specific Directories)
 // =====================================================================
 
+// Configure express.static with proper MIME types
+const staticOptions = {
+  setHeaders: (res, filepath) => {
+    // Set correct MIME types for CSS files
+    if (filepath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+    // Set correct MIME types for JavaScript files
+    if (filepath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    // Set correct MIME types for JSON files
+    if (filepath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
+  }
+};
+
 // Serve frontend assets from specific directories only
-app.use('/scripts', express.static(path.join(__dirname, 'scripts')));
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use('/cosmetics', express.static(path.join(__dirname, 'cosmetics')));
+app.use('/scripts', express.static(path.join(__dirname, 'scripts'), staticOptions));
+app.use('/css', express.static(path.join(__dirname, 'css'), staticOptions));
+app.use('/images', express.static(path.join(__dirname, 'images'), staticOptions));
+app.use('/cosmetics', express.static(path.join(__dirname, 'cosmetics'), staticOptions));
 
 // Serve manifest files explicitly
 app.get('/gacha-manifest.json', (req, res) => {
