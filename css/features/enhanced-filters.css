@@ -1,0 +1,592 @@
+/* ===================================================================
+   ENHANCED FILTER CONTROLS STYLING
+   Complete styling for advanced filtering system
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   FILTER CONTAINER
+   ------------------------------------------------------------------- */
+.filter-controls-container {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+body.theme-neon .filter-controls-container {
+  background: rgba(10, 5, 30, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   FILTER ROWS
+   ------------------------------------------------------------------- */
+.filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------------- 
+   SEARCH BAR
+   ------------------------------------------------------------------- */
+.search-container {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon .search-input {
+  background: rgba(30, 20, 60, 0.5);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #e0e7ff;
+}
+
+body.theme-neon .search-input:focus {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   FILTER PRESETS
+   ------------------------------------------------------------------- */
+.filter-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+}
+
+body.theme-neon .filter-presets-row {
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.presets-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.filter-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.preset-btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  border-radius: 20px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.preset-btn:hover {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
+}
+
+.preset-btn-custom {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #a855f7;
+  position: relative;
+  padding-right: 32px;
+}
+
+.preset-delete {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.7rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.preset-btn-custom:hover .preset-delete {
+  opacity: 1;
+}
+
+.preset-delete:hover {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+body.theme-neon .preset-btn {
+  background: rgba(30, 20, 60, 0.5);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #c4b5fd;
+}
+
+body.theme-neon .preset-btn:hover {
+  border-color: rgba(168, 85, 247, 0.8);
+  background: rgba(168, 85, 247, 0.2);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+.clear-filters-btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 20px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.clear-filters-btn:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------- 
+   FILTER GROUPS
+   ------------------------------------------------------------------- */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.theme-neon .filter-label {
+  color: #c4b5fd;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon .filter-select {
+  background: rgba(30, 20, 60, 0.5);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #e0e7ff;
+}
+
+body.theme-neon .filter-select:focus {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   ADVANCED FILTERS TOGGLE
+   ------------------------------------------------------------------- */
+.advanced-toggle-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.advanced-toggle-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+
+body.theme-neon .advanced-toggle-btn {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.15);
+  color: #c4b5fd;
+}
+
+body.theme-neon .advanced-toggle-btn:hover {
+  background: rgba(168, 85, 247, 0.25);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   ADVANCED FILTERS PANEL
+   ------------------------------------------------------------------- */
+.advanced-filters-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 16px;
+  border-top: 2px solid var(--border-color);
+  animation: slideDown 0.3s ease;
+}
+
+.advanced-filters-panel.hidden {
+  display: none;
+}
+
+body.theme-neon .advanced-filters-panel {
+  border-top-color: rgba(139, 92, 246, 0.3);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ADVANCED FILTER SECTIONS
+   ------------------------------------------------------------------- */
+.advanced-filters-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+body.theme-neon .section-title {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* ------------------------------------------------------------------- 
+   MULTI-SELECT FILTERS
+   ------------------------------------------------------------------- */
+.filter-select-multi {
+  padding: 8px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-select-multi option {
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.filter-select-multi option:checked {
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  color: white;
+  font-weight: 600;
+}
+
+.filter-select-multi:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon .filter-select-multi {
+  background: rgba(30, 20, 60, 0.5);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #e0e7ff;
+}
+
+body.theme-neon .filter-select-multi option:checked {
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+  color: white;
+}
+
+body.theme-neon .filter-select-multi:focus {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   RANGE FILTERS
+   ------------------------------------------------------------------- */
+.range-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.range-display {
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: auto;
+}
+
+body.theme-neon .range-display {
+  color: #c4b5fd;
+  text-shadow: 0 0 8px rgba(196, 181, 253, 0.4);
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.range-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon .range-input {
+  background: rgba(30, 20, 60, 0.5);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #e0e7ff;
+}
+
+body.theme-neon .range-input:focus {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.range-separator {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------- 
+   CHECKBOX CONTROLS
+   ------------------------------------------------------------------- */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* ------------------------------------------------------------------- 
+   EPISODE PRESET BUTTONS
+   ------------------------------------------------------------------- */
+.episode-presets {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.episode-preset-btn {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.episode-preset-btn:hover {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+}
+
+body.theme-neon .episode-preset-btn {
+  background: rgba(30, 20, 60, 0.5);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #c4b5fd;
+}
+
+body.theme-neon .episode-preset-btn:hover {
+  border-color: rgba(168, 85, 247, 0.8);
+  background: rgba(168, 85, 247, 0.2);
+  color: #e0e7ff;
+}
+
+/* ------------------------------------------------------------------- 
+   RESULTS COUNTER
+   ------------------------------------------------------------------- */
+.results-counter {
+  padding: 8px 12px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  text-align: center;
+}
+
+body.theme-neon .results-counter {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.result-count-text {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--accent);
+}
+
+body.theme-neon .result-count-text {
+  color: #c4b5fd;
+  text-shadow: 0 0 8px rgba(196, 181, 253, 0.4);
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .range-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-controls-container {
+    padding: 16px;
+  }
+  
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-container {
+    min-width: 100%;
+  }
+  
+  .filter-group {
+    min-width: 100%;
+  }
+  
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filter-presets-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .presets-label {
+    width: 100%;
+  }
+  
+  .filter-presets {
+    width: 100%;
+  }
+  
+  .clear-filters-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .episode-presets {
+    flex-direction: column;
+  }
+  
+  .episode-preset-btn {
+    width: 100%;
+  }
+  
+  .range-inputs {
+    flex-direction: column;
+  }
+  
+  .range-separator {
+    transform: rotate(90deg);
+  }
+}

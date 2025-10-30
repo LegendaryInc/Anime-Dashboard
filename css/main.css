@@ -35,6 +35,8 @@
 @import 'features/gacha.css';      /* Gacha system & shop */
 @import 'features/charts.css';     /* Chart containers */
 @import 'features/grid-view.css';     /* Grid View Changes */
+@import 'features/enhanced-filters.css';     /* Enhanced Filter Features */
+@import 'features/insights.css';     /* Enhanced AI Insights */
 
 /* =================================================================== 
    5. THEME EFFECTS (Visual enhancements)

@@ -8,12 +8,13 @@
    ------------------------------------------------------------------- */
 .toast-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 9999;
+  top: -200px;
+  right: -400px;
+  z-index: 99999; /* 🔧 INCREASED from 9999 to ensure it's above everything */
   display: flex;
   flex-direction: column;
   gap: 10px;
+  pointer-events: none; /* Allow clicks to pass through container */
 }
 
 /* ------------------------------------------------------------------- 
@@ -33,6 +34,7 @@
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   font-size: 14px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: auto; /* 🔧 Re-enable clicks on individual toasts */
 }
 
 .toast-show {
@@ -124,6 +126,7 @@ body.theme-neon .toast-warning {
   .toast-container { 
     left: 10px; 
     right: 10px; 
+    top: 10px; /* 🔧 Adjusted for mobile */
   }
   
   .toast { 
@@ -134,7 +137,6 @@ body.theme-neon .toast-warning {
 
 /* ===================================================================
    CONFIRM DIALOG STYLES
-   Add this to the end of your toasts.css file
    =================================================================== */
 
 /* ------------------------------------------------------------------- 
@@ -151,7 +153,7 @@ body.theme-neon .toast-warning {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 100000; /* 🔧 Higher than toasts */
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -204,6 +206,7 @@ body.theme-neon .confirm-dialog {
   color: var(--text-primary);
   margin-bottom: 24px;
   line-height: 1.5;
+  white-space: pre-line; /* 🔧 Preserve line breaks in messages */
 }
 
 body.theme-neon .confirm-message {

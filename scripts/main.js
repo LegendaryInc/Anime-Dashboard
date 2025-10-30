@@ -23,18 +23,20 @@ import {
   updateAnimeStatus,
 } from './ui.js';
 
-// ⭐ NEW: Import list module
+// ⭐ Import enhanced list module
 import { 
   initListTab, 
   triggerFilterUpdate,
-  clearAllFilters 
+  clearAllFilters,
+  populateAdvancedFilters
 } from './list.js';
 
 import { loadTheme, setTheme } from './themes.js';
 import { saveDataToLocalStorage, checkForSavedData } from './storage.js';
 import { calculateStatistics, downloadEnrichedJSON } from './data.js';
 import { renderCharts } from './charts.js';
-import { getSimilarAnime, getGeminiRecommendations } from './ai.js';
+// ⭐ MODIFIED: Added generatePersonalInsights
+import { getSimilarAnime, getGeminiRecommendations, generatePersonalInsights } from './ai.js';
 import { fetchSeasonalAnime, initCalendar } from './calendar.js';
 import {
   rollGacha, renderGachaState, updateGachaTokens, displayGachaResult,
@@ -57,11 +59,10 @@ window.animeData = []; // ⭐ Make available globally for list.js
 let genreChartInstance, scoreChartInstance;
 let lastStats = null;
 
-// ⭐ REMOVED: currentSort (now handled in list.js)
-
 window.episodesWatchedTotal = 0;
 
 let isGachaInitialized = false;
+let insightsInitialized = false; // ⭐ NEW: Insights tab tracker
 
 
 // --- 3. Core Application Flow ---
@@ -198,15 +199,23 @@ function processAndRenderDashboard(data) {
     // ⭐ Make data globally available
     window.animeData = data;
 
+    // ⭐ UPDATED: Populate both basic and advanced filters
     populateFilters(data);
+    populateAdvancedFilters(data);
+    
     lastStats = calculateStatistics(data);
     renderStats(lastStats);
+
+    // ⭐ NEW: Update insights if tab has been initialized
+    if (insightsInitialized) {
+      updateInsightsData(lastStats);
+    }
 
     const chartInstances = renderCharts(lastStats, genreChartInstance, scoreChartInstance);
     genreChartInstance = chartInstances.genreChartInstance;
     scoreChartInstance = chartInstances.scoreChartInstance;
 
-    // ⭐ CHANGED: Let list.js handle initial render
+    // ⭐ Let list.js handle initial render
     triggerFilterUpdate();
     
     renderEnhancedWatchingTab(data);
@@ -234,6 +243,84 @@ function processAndRenderDashboard(data) {
     }, 10);
 }
 
+// =====================================================================
+// ⭐ NEW: INSIGHTS TAB INTEGRATION
+// =====================================================================
+
+// Global variable to track current category
+let currentInsightsCategory = 'personalized';
+
+/**
+ * Initialize Insights tab functionality
+ */
+export function initializeInsightsTab(stats) {
+  // Generate personal insights on load
+  generatePersonalInsights(stats);
+
+  // Category tab listeners
+  const tabButtons = document.querySelectorAll('.insights-tab-btn');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Update active state
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Get category and fetch recommendations
+      currentInsightsCategory = btn.dataset.category;
+      fetchRecommendations(currentInsightsCategory, stats);
+    });
+  });
+
+  // Refresh button listener
+  const refreshBtn = document.getElementById('insights-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      fetchRecommendations(currentInsightsCategory, stats);
+    });
+  }
+
+  // Make refresh function globally accessible
+  window.refreshInsights = () => {
+    fetchRecommendations(currentInsightsCategory, stats);
+  };
+}
+
+/**
+ * Fetch recommendations for a given category
+ */
+async function fetchRecommendations(category, stats) {
+  // ⭐ Use module-level API key
+  const apiKey = GEMINI_API_KEY; 
+  
+  if (!apiKey) {
+    const contentContainer = document.getElementById('insights-content');
+    if (contentContainer) {
+      contentContainer.innerHTML = `
+        <div class="insights-error">
+          <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          <p class="error-title">API Key Required</p>
+          <p class="error-message">Please add your Gemini API key in settings to use AI recommendations</p>
+          <button class="btn-primary" onclick="document.getElementById('settings-button').click()">
+            Open Settings
+          </button>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  await getGeminiRecommendations(stats, apiKey, category);
+}
+
+/**
+ * Update insights when data changes
+ */
+export function updateInsightsData(stats) {
+  generatePersonalInsights(stats);
+}
+
 
 // --- 4. Event Listeners ---
 
@@ -247,14 +334,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const exportCalendarBtn = document.getElementById('export-calendar-btn');
   const tabNav = document.getElementById('tab-nav');
   const themeSwitcher = document.getElementById('theme-switcher');
-  // const animeTableHead = document.getElementById('anime-table-head'); // ⭐ No longer needed here
   const settingsSaveButton = document.getElementById('settings-save');
   const settingsCancelButton = document.getElementById('settings-cancel');
   const similarModalClose = document.getElementById('similar-modal-close');
-  // const searchBar = document.getElementById('search-bar'); // ⭐ No longer needed here
-  // const statusFilter = document.getElementById('status-filter'); // ⭐ No longer needed here
-  // const genreFilter = document.getElementById('genre-filter'); // ⭐ No longer needed here
-  const geminiButton = document.getElementById('gemini-button');
+  // ⭐ REMOVED: const geminiButton = document.getElementById('gemini-button');
   const gachaRollButton = document.getElementById('gacha-roll-button');
   const cosmeticModalClose = document.getElementById('cosmetic-modal-close');
   const gachaResetButton = document.getElementById('gacha-reset-button');
@@ -269,7 +352,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCalendar();
   initAnimeDetailsModal();
   
-  // ⭐ NEW: Initialize list tab
+  // ⭐ NEW: Initialize enhanced list tab
   initListTab();
 
   // =====================================================================
@@ -331,10 +414,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       animeData.push(newEntry);
       window.animeData = animeData; // ⭐ Update global reference
       lastStats = calculateStatistics(animeData);
+      
+      // ⭐ NEW: Update insights
+      if (insightsInitialized) {
+        updateInsightsData(lastStats);
+      }
+      
       saveDataToLocalStorage(animeData);
       renderStats(lastStats);
+      
+      // ⭐ UPDATED: Populate both filter systems
       populateFilters(animeData);
+      populateAdvancedFilters(animeData);
       triggerFilterUpdate(); // ⭐ Use list.js function
+      
       renderEnhancedWatchingTab(animeData);
     }
   });
@@ -371,15 +464,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       exportCalendarBtn.addEventListener('click', () => exportToCalendar(animeData));
   }
 
-  // =====================================================================
-  // ⭐ REMOVED: View Toggle Listeners (now in list.js)
-  // =====================================================================
-
   if (tabNav) {
     tabNav.addEventListener('click', async (e) => {
       if (e.target.tagName === 'BUTTON') {
         const tab = e.target.dataset.tab;
         setActiveTab(tab);
+
+        // ⭐ NEW: Initialize insights tab on first view
+        if (tab === 'insights' && !insightsInitialized) {
+          initializeInsightsTab(lastStats); // Use globally available stats
+          insightsInitialized = true;
+        }
 
         if (tab === 'calendar' && !seasonalAnimeData) {
           seasonalAnimeData = await fetchSeasonalAnime();
@@ -426,14 +521,12 @@ document.addEventListener('DOMContentLoaded', async () => {
        });
   }
 
-  // =====================================================================
-  // ⭐ REMOVED: List Tab Filtering and Sorting (now in list.js)
-  // =====================================================================
-
-   // AI Insights Tab
+   // ⭐ REMOVED: Old AI Insights Tab button
+   /*
    if (geminiButton) {
        geminiButton.addEventListener('click', () => getGeminiRecommendations(lastStats, GEMINI_API_KEY));
    }
+   */
 
    // Gacha Tab
    if (gachaRollButton) {
@@ -593,6 +686,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         animeData = incrementEpisode(title, animeData);
         lastStats = calculateStatistics(animeData);
         
+        // ⭐ NEW: Update insights
+        if (insightsInitialized) {
+          updateInsightsData(lastStats);
+        }
+        
         // Update modal display
         document.getElementById('anime-details-progress').textContent = `${newProgress}/${total}`;
         button.dataset.watched = newProgress;
@@ -662,6 +760,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         animeData = incrementEpisode(title, animeData);
         lastStats = calculateStatistics(animeData);
 
+        // ⭐ NEW: Update insights
+        if (insightsInitialized) {
+          updateInsightsData(lastStats);
+        }
+
         // Check if completed
         if (anime.totalEpisodes && newProgress >= anime.totalEpisodes) {
           // Auto-complete with confirmation toast
@@ -682,6 +785,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 saveDataToLocalStorage(animeData);
                 populateFilters(animeData);
+                populateAdvancedFilters(animeData);
                 window.animeData = animeData; // ⭐ Update global ref
                 triggerFilterUpdate(); // ⭐ Refresh list view
                 renderEnhancedWatchingTab(animeData);
@@ -782,6 +886,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         lastStats = calculateStatistics(animeData);
         renderStats(lastStats);
         
+        // ⭐ NEW: Update insights
+        if (insightsInitialized) {
+          updateInsightsData(lastStats);
+        }
+        
         saveDataToLocalStorage(animeData);
         window.animeData = animeData; // ⭐ Update global ref
         triggerFilterUpdate(); // ⭐ Refresh list view
@@ -865,8 +974,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast(`Updated status for '${animeTitle}' to ${newStatus}!`, 'success');
         animeData = updateAnimeStatus(animeId, newStatus, animeData);
         
+        // Note: This action might change stats (e.g., avg score), so we recalculate
+        lastStats = calculateStatistics(animeData);
+        renderStats(lastStats);
+        
+        // ⭐ NEW: Update insights
+        if (insightsInitialized) {
+          updateInsightsData(lastStats);
+        }
+        
         saveDataToLocalStorage(animeData);
         populateFilters(animeData);
+        populateAdvancedFilters(animeData);
         window.animeData = animeData; // ⭐ Update global ref
         triggerFilterUpdate(); // ⭐ Refresh list view
         renderEnhancedWatchingTab(animeData);

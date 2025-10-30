@@ -1,7 +1,73 @@
 /* ===================================================================
-   CHARTS FEATURE
+   CHARTS FEATURE - ENHANCED
    Chart containers and responsive styling for data visualizations
    =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   STAT CARDS ROW
+   ------------------------------------------------------------------- */
+.stat-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card-mini {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stat-card-mini:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-neon .stat-card-mini {
+  background: rgba(10, 5, 30, 0.6);
+  backdrop-filter: blur(20px);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-neon .stat-card-mini:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6),
+              0 0 20px rgba(232, 121, 249, 0.3);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+body.theme-neon .stat-value {
+  color: #e879f9;
+  text-shadow: 0 0 10px rgba(232, 121, 249, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   CHARTS GRID
+   ------------------------------------------------------------------- */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
 
 /* ------------------------------------------------------------------- 
    CHART CONTAINER
@@ -39,8 +105,9 @@ body.theme-neon .chart-container:hover {
 .chart-title {
   color: var(--text-primary);
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   margin-bottom: 16px;
+  text-align: center;
 }
 
 body.theme-neon .chart-title {
@@ -84,7 +151,17 @@ body.theme-neon .chart-title {
 /* ------------------------------------------------------------------- 
    MOBILE RESPONSIVENESS
    ------------------------------------------------------------------- */
+@media (max-width: 1200px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
+  .stat-cards-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
   .chart-container {
     padding: 16px;
   }
@@ -94,6 +171,24 @@ body.theme-neon .chart-title {
   }
   
   .chart-title {
-    font-size: 1.125rem;
+    font-size: 1rem;
+  }
+  
+  .charts-grid {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-cards-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-card-mini {
+    padding: 12px;
+  }
+  
+  .stat-value {
+    font-size: 1.25rem;
   }
 }

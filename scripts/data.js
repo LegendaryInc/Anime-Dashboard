@@ -54,7 +54,15 @@ export function calculateStatistics(data) {
       timeWatchedMinutes: 0,
       meanScore: 0,
       genreCounts: {},
-      scoreCounts: {}
+      scoreCounts: {},
+      studioCounts: {},
+      formatCounts: {},
+      statusCounts: {},
+      averageScoreByGenre: {},
+      completionRate: 0,
+      topStudio: null,
+      highestRatedGenre: null,
+      averageEpisodesPerAnime: 0
     };
   }
 
@@ -65,7 +73,7 @@ export function calculateStatistics(data) {
   const totalAnime = watchedAnime.length;
   const totalEpisodes = watchedAnime.reduce((sum, a) => sum + (Number(a.episodesWatched) || 0), 0);
   
-  // Set the global total for the gacha system (this is okay for now)
+  // Set the global total for the gacha system
   window.episodesWatchedTotal = totalEpisodes; 
 
   const totalMinutes = watchedAnime.reduce((sum, anime) => sum + parseDurationToMinutes(anime.duration, Number(anime.episodesWatched) || 0), 0);
@@ -78,6 +86,7 @@ export function calculateStatistics(data) {
     (scoredAnime.reduce((sum, a) => sum + a.score, 0) / scoredAnime.length).toFixed(2) :
     0;
 
+  // Genre counts
   const genreCounts = {};
   watchedAnime.forEach(a => {
     if (a.genres && Array.isArray(a.genres)) {
@@ -85,25 +94,17 @@ export function calculateStatistics(data) {
     }
   });
 
+  // Score counts
   const scoreCounts = {
-    '0': 0,
-    '1': 0,
-    '2': 0,
-    '3': 0,
-    '4': 0,
-    '5': 0,
-    '6': 0,
-    '7': 0,
-    '8': 0,
-    '9': 0,
-    '10': 0
+    '0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0,
+    '6': 0, '7': 0, '8': 0, '9': 0, '10': 0
   };
   watchedAnime.forEach(a => {
     const scoreKey = a.score !== null && a.score !== undefined ? Math.round(a.score).toString() : '0';
     if (scoreCounts[scoreKey] !== undefined) {
       scoreCounts[scoreKey]++;
     } else {
-      scoreCounts['0']++; // Count unscored as '0'
+      scoreCounts['0']++;
     }
   });
 
@@ -111,6 +112,77 @@ export function calculateStatistics(data) {
   if (scoreCounts['0'] === 0) {
     delete scoreCounts['0'];
   }
+
+  // ⭐ NEW: Studio counts
+  const studioCounts = {};
+  watchedAnime.forEach(a => {
+    if (a.studios && Array.isArray(a.studios)) {
+      a.studios.forEach(studio => {
+        studioCounts[studio] = (studioCounts[studio] || 0) + 1;
+      });
+    }
+  });
+
+  // ⭐ NEW: Format counts (TV, Movie, OVA, etc.)
+  const formatCounts = {};
+  watchedAnime.forEach(a => {
+    if (a.format) {
+      const format = a.format;
+      formatCounts[format] = (formatCounts[format] || 0) + 1;
+    }
+  });
+
+  // ⭐ NEW: Status counts (for all anime, not just watched)
+  const statusCounts = {};
+  data.forEach(a => {
+    if (a.status) {
+      const status = a.status;
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    }
+  });
+
+  // ⭐ NEW: Average score by genre
+  const genreScoreSums = {};
+  const genreScoreCounts = {};
+  
+  scoredAnime.forEach(a => {
+    if (a.genres && Array.isArray(a.genres) && a.score > 0) {
+      a.genres.forEach(genre => {
+        if (!genreScoreSums[genre]) {
+          genreScoreSums[genre] = 0;
+          genreScoreCounts[genre] = 0;
+        }
+        genreScoreSums[genre] += a.score;
+        genreScoreCounts[genre]++;
+      });
+    }
+  });
+
+  const averageScoreByGenre = {};
+  Object.keys(genreScoreSums).forEach(genre => {
+    averageScoreByGenre[genre] = (genreScoreSums[genre] / genreScoreCounts[genre]).toFixed(2);
+  });
+
+  // ⭐ NEW: Completion rate
+  const startedAnime = data.filter(a => 
+    a.status && ['completed', 'current', 'dropped', 'paused'].includes(a.status.toLowerCase())
+  ).length;
+  const completedAnime = data.filter(a => 
+    a.status && a.status.toLowerCase() === 'completed'
+  ).length;
+  const completionRate = startedAnime > 0 ? ((completedAnime / startedAnime) * 100).toFixed(1) : 0;
+
+  // ⭐ NEW: Top studio
+  const topStudio = Object.entries(studioCounts)
+    .sort(([, a], [, b]) => b - a)[0]?.[0] || null;
+
+  // ⭐ NEW: Highest rated genre
+  const highestRatedGenre = Object.entries(averageScoreByGenre)
+    .filter(([, score]) => genreScoreCounts[Object.keys(averageScoreByGenre).find(k => averageScoreByGenre[k] === score)] >= 3) // At least 3 anime
+    .sort(([, a], [, b]) => parseFloat(b) - parseFloat(a))[0]?.[0] || null;
+
+  // ⭐ NEW: Average episodes per anime
+  const averageEpisodesPerAnime = totalAnime > 0 ? (totalEpisodes / totalAnime).toFixed(1) : 0;
 
   return {
     totalAnime,
@@ -121,7 +193,15 @@ export function calculateStatistics(data) {
     timeWatchedMinutes,
     meanScore,
     genreCounts,
-    scoreCounts
+    scoreCounts,
+    studioCounts,
+    formatCounts,
+    statusCounts,
+    averageScoreByGenre,
+    completionRate,
+    topStudio,
+    highestRatedGenre,
+    averageEpisodesPerAnime
   };
 }
 
@@ -132,8 +212,6 @@ export function calculateStatistics(data) {
 export function downloadEnrichedJSON(animeData) {
   const errorMessage = document.getElementById('error-message');
   if (!animeData || animeData.length === 0) {
-    // This is a UI function, but small enough to live here for now.
-    // A stricter refactor would have this call `showError` from ui.js.
     if (errorMessage) {
         errorMessage.textContent = "No anime data to download!";
         errorMessage.classList.remove('hidden');

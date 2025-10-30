@@ -1,0 +1,499 @@
+/* ===================================================================
+   INSIGHTS TAB - ENHANCED WITH CARDS & PERSONAL STATS
+   AI recommendations with images and personal insights
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   PERSONAL STATS SECTION
+   ------------------------------------------------------------------- */
+.insights-header {
+  margin-bottom: 20px;
+}
+
+.insights-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.insights-section-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.insights-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.insight-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  transition: all 0.3s ease;
+}
+
+.insight-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color, #6366f1);
+}
+
+.insight-stat-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.insight-stat-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.insight-stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.insight-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.insight-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.insight-stat-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Neon theme overrides */
+body.theme-neon .insight-stat-card {
+  background: rgba(20, 15, 45, 0.8);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+}
+
+body.theme-neon .insight-stat-card:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+}
+
+body.theme-neon .insight-stat-label,
+body.theme-neon .insight-stat-value,
+body.theme-neon .insight-stat-subtext {
+  color: #e2e8f0;
+}
+
+body.theme-neon .insight-stat-icon {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   MAIN HEADER & TABS
+   ------------------------------------------------------------------- */
+.insights-main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.insights-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.insights-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 2px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.insights-tab-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.insights-tab-btn:hover {
+  border-color: var(--primary-color, #6366f1);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.insights-tab-btn.active {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Neon theme tabs */
+body.theme-neon .insights-tab-btn {
+  background: rgba(20, 15, 45, 0.8);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #e2e8f0;
+}
+
+body.theme-neon .insights-tab-btn:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+}
+
+body.theme-neon .insights-tab-btn.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   LOADING & PLACEHOLDER STATES
+   ------------------------------------------------------------------- */
+.insights-loading-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.insights-placeholder {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.placeholder-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.placeholder-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.placeholder-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* ------------------------------------------------------------------- 
+   RECOMMENDATION GRID
+   ------------------------------------------------------------------- */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rec-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.rec-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color, #6366f1);
+}
+
+.rec-card-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.rec-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.rec-card:hover .rec-card-image img {
+  transform: scale(1.05);
+}
+
+.rec-card-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  opacity: 0.6;
+}
+
+.rec-card-placeholder svg {
+  width: 48px;
+  height: 48px;
+}
+
+.rec-vibe-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rec-card-content {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rec-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rec-card-reason {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  flex: 1;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rec-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.rec-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 2px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rec-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.rec-action-btn:hover {
+  border-color: var(--primary-color, #6366f1);
+  background: var(--primary-color, #6366f1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.rec-search-btn:hover {
+  border-color: #3b82f6;
+  background: #3b82f6;
+}
+
+.rec-add-btn:hover {
+  border-color: #10b981;
+  background: #10b981;
+}
+
+/* Neon theme cards */
+body.theme-neon .rec-card {
+  background: rgba(20, 15, 45, 0.85);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+}
+
+body.theme-neon .rec-card:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+}
+
+body.theme-neon .rec-card-title {
+  color: #e2e8f0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+body.theme-neon .rec-card-reason {
+  color: #cbd5e1;
+}
+
+body.theme-neon .rec-action-btn {
+  background: rgba(30, 20, 60, 0.8);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #e2e8f0;
+}
+
+body.theme-neon .rec-action-btn:hover {
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+/* ------------------------------------------------------------------- 
+   EMPTY & ERROR STATES
+   ------------------------------------------------------------------- */
+.insights-empty,
+.insights-error {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon,
+.error-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.empty-title,
+.error-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-subtitle,
+.error-message {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.retry-btn {
+  margin-top: 16px;
+}
+
+/* ------------------------------------------------------------------- 
+   RESPONSIVE DESIGN
+   ------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .insights-main-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .insights-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rec-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .insights-tabs {
+    flex-direction: column;
+  }
+
+  .insights-tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .rec-card-actions {
+    flex-direction: column;
+  }
+
+  .rec-action-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .rec-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .insights-placeholder {
+    padding: 40px 20px;
+  }
+  
+  .placeholder-icon,
+  .empty-icon,
+  .error-icon {
+    width: 48px;
+    height: 48px;
+  }
+}

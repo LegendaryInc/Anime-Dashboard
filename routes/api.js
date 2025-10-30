@@ -78,6 +78,11 @@ router.get('/get-anilist-data', async (req, res) => {
                 coverImage { extraLarge }
                 nextAiringEpisode { airingAt episode }
                 externalLinks { site url }
+                studios(isMain: true) {
+                  nodes {
+                    name
+                  }
+                }
               }
             }
           }
@@ -118,7 +123,12 @@ router.get('/get-anilist-data', async (req, res) => {
         genres: Array.isArray(m.genres) ? m.genres : [],
         duration: (typeof m.duration === 'number' && m.duration > 0)
           ? `${m.duration} min per ep` : null,
-        type: m.format || null,
+        // ✅ FIX: Store format for charts
+        format: m.format || null,
+        type: m.format || null, // Keep for backwards compatibility
+        // ✅ FIX: Store studios as array for charts
+        studios: m.studios?.nodes?.map(s => s.name) || [],
+        studio: m.studios?.nodes?.[0]?.name || null, // Keep first studio for display
         coverImage: m.coverImage?.extraLarge || null,
         airingSchedule: m.nextAiringEpisode
           ? { airingAt: m.nextAiringEpisode.airingAt, episode: m.nextAiringEpisode.episode }
@@ -398,6 +408,11 @@ router.post('/anilist/add-planning', async (req, res) => {
           coverImage { extraLarge }
           nextAiringEpisode { airingAt episode }
           externalLinks { site url }
+          studios(isMain: true) {
+            nodes {
+              name
+            }
+          }
         }
       }
     }
@@ -450,7 +465,12 @@ router.post('/anilist/add-planning', async (req, res) => {
       genres: Array.isArray(m.genres) ? m.genres : [],
       duration: (typeof m.duration === 'number' && m.duration > 0)
         ? `${m.duration} min per ep` : null,
-      type: m.format || null,
+      // ✅ FIX: Store format for charts
+      format: m.format || null,
+      type: m.format || null, // Keep for backwards compatibility
+      // ✅ FIX: Store studios as array for charts
+      studios: m.studios?.nodes?.map(s => s.name) || [],
+      studio: m.studios?.nodes?.[0]?.name || null, // Keep first studio for display
       coverImage: m.coverImage?.extraLarge || null,
       airingSchedule: m.nextAiringEpisode
         ? { airingAt: m.nextAiringEpisode.airingAt, episode: m.nextAiringEpisode.episode }

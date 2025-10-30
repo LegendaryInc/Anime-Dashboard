@@ -1,51 +1,97 @@
 // =====================================================================
-// --- GACHA FEATURE SCRIPT (gacha.js) - WITH BACKEND INTEGRATION ---
+// --- GACHA FEATURE SCRIPT (gacha.js) - ENHANCED WITH FILTERS ---
 // =====================================================================
 
 import { showToast, showConfirm } from './toast.js';
+import { 
+  validateApiResponse, 
+  ValidationError, 
+  withRetry,
+  isSessionExpired,
+  sanitizeGachaState,
+  createErrorResponse,
+  logError
+} from './validation.js';
+import {
+  validateGachaStateResponse,
+  validateGachaRollResponse,
+  validateTokenCalculationResponse,
+  validatePackPurchaseResponse
+} from './types.js';
 
-// --- Backend API Integration ---
+// =====================================================================
+// STATE MANAGEMENT
+// =====================================================================
+
+let gachaManifest = null;
+let cosmeticsManifest = null;
+let currentlyCustomizingCardUrl = null;
+
+// Operation state tracking
+let isOperationInProgress = false;
+let currentOperation = null;
+let lastOperationTimestamp = 0;
+
+// State snapshot for rollback
+let stateSnapshot = null;
+
+// 🆕 Filter & Sort State
+let collectionFilters = {
+  search: '',
+  sortBy: 'rarity-desc', // rarity-desc, rarity-asc, name-asc, name-desc, anime-asc, date-desc
+  rarityFilter: [], // Array of rarity values to show
+  animeFilter: 'all', // 'all' or specific anime name
+  cosmeticFilter: 'all' // 'all', 'with-cosmetics', 'without-cosmetics'
+};
+
+// =====================================================================
+// BACKEND API INTEGRATION
+// =====================================================================
+
 const GachaAPI = {
   async getState() {
-    const response = await fetch('/api/gacha/state');
-    if (!response.ok) throw new Error('Failed to get gacha state');
-    return await response.json();
+    return withRetry(async () => {
+      const response = await fetch('/api/gacha/state');
+      return await validateApiResponse(response, validateGachaStateResponse);
+    });
   },
 
   async calculateTokens(totalEpisodes) {
-    const response = await fetch('/api/gacha/calculate-tokens', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ totalEpisodes })
+    return withRetry(async () => {
+      const response = await fetch('/api/gacha/calculate-tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ totalEpisodes })
+      });
+      return await validateApiResponse(response, validateTokenCalculationResponse);
     });
-    if (!response.ok) throw new Error('Failed to calculate tokens');
-    return await response.json();
   },
 
   async roll(card) {
-    const response = await fetch('/api/gacha/roll', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ card })
+    return withRetry(async () => {
+      const response = await fetch('/api/gacha/roll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card })
+      });
+      return await validateApiResponse(response, validateGachaRollResponse);
+    }, {
+      maxRetries: 2,
+      shouldRetry: (error) => error.statusCode >= 500 && error.statusCode !== 503
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to perform roll');
-    }
-    return await response.json();
   },
 
   async buyPack(packCost, cosmetics) {
-    const response = await fetch('/api/gacha/buy-pack', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ packCost, cosmetics })
+    return withRetry(async () => {
+      const response = await fetch('/api/gacha/buy-pack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ packCost, cosmetics })
+      });
+      return await validateApiResponse(response, validatePackPurchaseResponse);
+    }, {
+      maxRetries: 2
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to buy pack');
-    }
-    return await response.json();
   },
 
   async applyCosmetic(cardId, cosmeticName) {
@@ -54,10 +100,12 @@ const GachaAPI = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cardId, cosmeticName })
     });
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to apply cosmetic');
+      const error = await response.json().catch(() => ({}));
+      throw new ValidationError(error.error || 'Failed to apply cosmetic', response.status);
     }
+    
     return await response.json();
   },
 
@@ -66,20 +114,134 @@ const GachaAPI = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to reset collection');
+      const error = await response.json().catch(() => ({}));
+      throw new ValidationError(error.error || 'Failed to reset collection', response.status);
     }
+    
     return await response.json();
   }
 };
 
-// --- State Management ---
-let gachaManifest = null;
-let cosmeticsManifest = null;
-let currentlyCustomizingCardUrl = null;
+// =====================================================================
+// OPERATION GUARDS & STATE MANAGEMENT
+// =====================================================================
 
-// --- Helper Functions ---
+function createStateSnapshot() {
+  return {
+    tokens: window.gachaTokens,
+    shards: window.gachaShards,
+    collection: JSON.parse(JSON.stringify(window.waifuCollection)),
+    appliedCosmetics: { ...window.appliedCosmetics },
+    ownedCosmetics: [...window.ownedCosmetics],
+    timestamp: Date.now()
+  };
+}
+
+function restoreStateSnapshot(snapshot) {
+  if (!snapshot) return;
+  
+  window.gachaTokens = snapshot.tokens;
+  window.gachaShards = snapshot.shards;
+  window.waifuCollection = snapshot.collection;
+  window.appliedCosmetics = snapshot.appliedCosmetics;
+  window.ownedCosmetics = snapshot.ownedCosmetics;
+  
+  console.log('🔄 State rolled back to snapshot from', new Date(snapshot.timestamp).toISOString());
+}
+
+function canProceedWithOperation(operationName, minInterval = 500) {
+  if (isOperationInProgress) {
+    console.warn(`⚠️ Operation blocked: ${currentOperation} is still in progress`);
+    return false;
+  }
+  
+  const timeSinceLastOp = Date.now() - lastOperationTimestamp;
+  if (timeSinceLastOp < minInterval) {
+    console.warn(`⚠️ Operation blocked: too soon after last operation (${timeSinceLastOp}ms)`);
+    return false;
+  }
+  
+  return true;
+}
+
+function startOperation(operationName) {
+  if (!canProceedWithOperation(operationName)) {
+    throw new Error(`Cannot start operation: ${operationName}`);
+  }
+  
+  isOperationInProgress = true;
+  currentOperation = operationName;
+  stateSnapshot = createStateSnapshot();
+  lastOperationTimestamp = Date.now();
+  
+  updateOperationUI(true);
+  
+  console.log(`🔒 Operation started: ${operationName}`);
+}
+
+function endOperation(success = true) {
+  const operation = currentOperation;
+  isOperationInProgress = false;
+  currentOperation = null;
+  
+  if (!success) {
+    console.log(`❌ Operation failed: ${operation}, rolling back...`);
+    restoreStateSnapshot(stateSnapshot);
+  } else {
+    console.log(`✅ Operation completed: ${operation}`);
+  }
+  
+  stateSnapshot = null;
+  
+  updateOperationUI(false);
+  renderGachaState();
+}
+
+function updateOperationUI(isLoading) {
+  const rollButton = document.getElementById('gacha-roll-button');
+  const resetButton = document.getElementById('gacha-reset-button');
+  
+  if (rollButton) {
+    const hasTokens = window.gachaTokens >= 1;
+    rollButton.disabled = isLoading || !hasTokens;
+    
+    if (isLoading) {
+      rollButton.classList.add('loading');
+      rollButton.innerHTML = `
+        <span class="spinner"></span>
+        <span>Rolling...</span>
+      `;
+    } else {
+      rollButton.classList.remove('loading');
+      rollButton.textContent = 'ROLL (1 Token)';
+    }
+    
+    rollButton.classList.toggle('opacity-50', rollButton.disabled);
+  }
+  
+  if (resetButton) {
+    resetButton.disabled = isLoading;
+    resetButton.classList.toggle('opacity-50', resetButton.disabled);
+  }
+  
+  // Disable all buy pack buttons
+  document.querySelectorAll('.buy-pack-btn').forEach(btn => {
+    btn.disabled = isLoading;
+    btn.classList.toggle('opacity-50', btn.disabled);
+    
+    if (isLoading) {
+      btn.classList.add('loading');
+    } else {
+      btn.classList.remove('loading');
+    }
+  });
+}
+
+// =====================================================================
+// HELPER FUNCTIONS
+// =====================================================================
 
 function formatName(slug) {
   if (!slug) return '';
@@ -109,6 +271,11 @@ function getRarityString(rarity) {
   return rarityMap[rarity] || 'Common';
 }
 
+function getRarityNumber(rarityString) {
+  const rarityMap = { 'Common': 2, 'Rare': 3, 'Epic': 4, 'Legendary': 5 };
+  return rarityMap[rarityString] || 2;
+}
+
 function convertBackendCollectionToDisplay(backendCollection) {
   return backendCollection.map(card => ({
     name: card.name || card.card_name,
@@ -117,11 +284,222 @@ function convertBackendCollectionToDisplay(backendCollection) {
     rarity: card.rarity === 'Legendary' ? 'Prismatic' : 
             card.rarity === 'Epic' ? 4 :
             card.rarity === 'Rare' ? 3 : 2,
-    count: card.count || 1
+    count: card.count || 1,
+    acquiredAt: card.acquiredAt || Date.now()
   }));
 }
 
-// --- Core Gacha & UI Functions ---
+// =====================================================================
+// 🆕 FILTER & SORT FUNCTIONS
+// =====================================================================
+
+function getUniqueAnimeList() {
+  const animeSet = new Set(window.waifuCollection.map(card => card.anime));
+  return Array.from(animeSet).sort();
+}
+
+function filterAndSortCollection() {
+  let filtered = [...window.waifuCollection];
+  
+  // Apply search filter
+  if (collectionFilters.search) {
+    const searchLower = collectionFilters.search.toLowerCase();
+    filtered = filtered.filter(card => 
+      card.name.toLowerCase().includes(searchLower) ||
+      card.anime.toLowerCase().includes(searchLower)
+    );
+  }
+  
+  // Apply rarity filter
+  if (collectionFilters.rarityFilter.length > 0) {
+    filtered = filtered.filter(card => {
+      const cardRarity = typeof card.rarity === 'number' ? card.rarity : 'Prismatic';
+      return collectionFilters.rarityFilter.includes(cardRarity);
+    });
+  }
+  
+  // Apply anime filter
+  if (collectionFilters.animeFilter !== 'all') {
+    filtered = filtered.filter(card => card.anime === collectionFilters.animeFilter);
+  }
+  
+  // Apply cosmetic filter
+  if (collectionFilters.cosmeticFilter === 'with-cosmetics') {
+    filtered = filtered.filter(card => window.appliedCosmetics[card.image_url]);
+  } else if (collectionFilters.cosmeticFilter === 'without-cosmetics') {
+    filtered = filtered.filter(card => !window.appliedCosmetics[card.image_url]);
+  }
+  
+  // Apply sorting
+  filtered.sort((a, b) => {
+    switch (collectionFilters.sortBy) {
+      case 'rarity-desc':
+        return getRarityValue(b.rarity) - getRarityValue(a.rarity);
+      case 'rarity-asc':
+        return getRarityValue(a.rarity) - getRarityValue(b.rarity);
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      case 'anime-asc':
+        return a.anime.localeCompare(b.anime);
+      case 'date-desc':
+        return (b.acquiredAt || 0) - (a.acquiredAt || 0);
+      default:
+        return 0;
+    }
+  });
+  
+  return filtered;
+}
+
+function getRarityValue(rarity) {
+  if (rarity === 'Prismatic') return 6;
+  return typeof rarity === 'number' ? rarity : 0;
+}
+
+function calculateCollectionStats(filtered) {
+  const stats = {
+    total: filtered.length,
+    byRarity: {
+      Prismatic: 0,
+      5: 0,
+      4: 0,
+      3: 0,
+      2: 0,
+      1: 0
+    }
+  };
+  
+  filtered.forEach(card => {
+    const rarity = card.rarity;
+    if (stats.byRarity[rarity] !== undefined) {
+      stats.byRarity[rarity]++;
+    }
+  });
+  
+  return stats;
+}
+
+// =====================================================================
+// 🆕 UI INITIALIZATION FOR FILTERS
+// =====================================================================
+
+export function initializeGachaFilters() {
+  const searchInput = document.getElementById('gacha-search');
+  const sortSelect = document.getElementById('gacha-sort');
+  const animeFilter = document.getElementById('gacha-anime-filter');
+  const cosmeticFilter = document.getElementById('gacha-cosmetic-filter');
+  const clearFiltersBtn = document.getElementById('gacha-clear-filters');
+  
+  // Search input
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      collectionFilters.search = e.target.value;
+      renderGachaState();
+    });
+  }
+  
+  // Sort select
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      collectionFilters.sortBy = e.target.value;
+      renderGachaState();
+    });
+  }
+  
+  // Anime filter
+  if (animeFilter) {
+    animeFilter.addEventListener('change', (e) => {
+      collectionFilters.animeFilter = e.target.value;
+      renderGachaState();
+    });
+  }
+  
+  // Cosmetic filter
+  if (cosmeticFilter) {
+    cosmeticFilter.addEventListener('change', (e) => {
+      collectionFilters.cosmeticFilter = e.target.value;
+      renderGachaState();
+    });
+  }
+  
+  // Rarity checkboxes
+  const rarityCheckboxes = document.querySelectorAll('.rarity-filter-checkbox');
+  rarityCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      updateRarityFilter();
+      renderGachaState();
+    });
+  });
+  
+  // Clear filters button
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      clearAllFilters();
+    });
+  }
+}
+
+function updateRarityFilter() {
+  const checkedBoxes = document.querySelectorAll('.rarity-filter-checkbox:checked');
+  collectionFilters.rarityFilter = Array.from(checkedBoxes).map(cb => {
+    const value = cb.value;
+    return value === 'Prismatic' ? 'Prismatic' : parseInt(value);
+  });
+}
+
+function clearAllFilters() {
+  // Reset filter state
+  collectionFilters = {
+    search: '',
+    sortBy: 'rarity-desc',
+    rarityFilter: [],
+    animeFilter: 'all',
+    cosmeticFilter: 'all'
+  };
+  
+  // Reset UI elements
+  const searchInput = document.getElementById('gacha-search');
+  const sortSelect = document.getElementById('gacha-sort');
+  const animeFilter = document.getElementById('gacha-anime-filter');
+  const cosmeticFilter = document.getElementById('gacha-cosmetic-filter');
+  
+  if (searchInput) searchInput.value = '';
+  if (sortSelect) sortSelect.value = 'rarity-desc';
+  if (animeFilter) animeFilter.value = 'all';
+  if (cosmeticFilter) cosmeticFilter.value = 'all';
+  
+  // Uncheck all rarity filters
+  document.querySelectorAll('.rarity-filter-checkbox').forEach(cb => {
+    cb.checked = false;
+  });
+  
+  renderGachaState();
+  showToast('Filters cleared', 'success');
+}
+
+function populateAnimeFilter() {
+  const animeFilter = document.getElementById('gacha-anime-filter');
+  if (!animeFilter) return;
+  
+  const animeList = getUniqueAnimeList();
+  
+  // Clear existing options except "All Anime"
+  animeFilter.innerHTML = '<option value="all">All Anime</option>';
+  
+  // Add anime options
+  animeList.forEach(anime => {
+    const option = document.createElement('option');
+    option.value = anime;
+    option.textContent = anime;
+    animeFilter.appendChild(option);
+  });
+}
+
+// =====================================================================
+// CORE GACHA & UI FUNCTIONS
+// =====================================================================
 
 export async function loadGachaData() {
   try {
@@ -129,6 +507,7 @@ export async function loadGachaData() {
       fetch('gacha-manifest.json'),
       fetch('cosmetics-manifest.json')
     ]);
+    
     if (!gachaRes.ok) throw new Error('Gacha manifest could not be loaded.');
     if (!cosmeticRes.ok) throw new Error('Cosmetics manifest could not be loaded.');
 
@@ -150,22 +529,32 @@ export async function loadGachaData() {
 export async function loadGachaState() {
   try {
     const state = await GachaAPI.getState();
+    const sanitized = sanitizeGachaState(state);
     
-    window.gachaTokens = state.tokens;
-    window.gachaShards = state.shards;
-    window.waifuCollection = convertBackendCollectionToDisplay(state.collection);
-    window.appliedCosmetics = state.appliedCosmetics || {};
-    window.ownedCosmetics = state.ownedCosmetics || [];
+    window.gachaTokens = sanitized.tokens;
+    window.gachaShards = sanitized.shards;
+    window.waifuCollection = convertBackendCollectionToDisplay(sanitized.collection);
+    window.appliedCosmetics = sanitized.appliedCosmetics;
+    window.ownedCosmetics = sanitized.ownedCosmetics;
     
     console.log('✅ Gacha state loaded from backend');
     return state;
   } catch (error) {
-    console.error('❌ Failed to load gacha state:', error);
+    logError(error, 'loadGachaState');
+    
+    if (isSessionExpired(error)) {
+      showToast('Your session has expired. Please log out and log back in.', 'error', 5000);
+      setTimeout(() => window.location.href = '/logout', 2000);
+    } else {
+      showToast('Failed to load gacha state', 'error');
+    }
+    
     window.gachaTokens = 0;
     window.gachaShards = 0;
     window.waifuCollection = [];
     window.appliedCosmetics = {};
     window.ownedCosmetics = [];
+    
     throw error;
   }
 }
@@ -177,10 +566,13 @@ export async function updateGachaTokens(totalEpisodes, totalPulls) {
     window.gachaShards = result.shards;
     console.log(`✅ Tokens updated: ${result.tokens} tokens, ${result.shards} shards`);
   } catch (error) {
-    console.error('❌ Failed to update tokens:', error);
-    const tokensPerEpisode = window.CONFIG.GACHA_EPISODES_PER_TOKEN || 50;
+    logError(error, 'updateGachaTokens', { totalEpisodes, totalPulls });
+    
+    const tokensPerEpisode = window.CONFIG?.GACHA_EPISODES_PER_TOKEN || 50;
     const earnedTokens = Math.floor(totalEpisodes / tokensPerEpisode);
     window.gachaTokens = Math.max(0, earnedTokens - totalPulls);
+    
+    showToast('Token calculation failed, using local estimate', 'warning');
   }
 }
 
@@ -191,31 +583,72 @@ export function renderGachaState() {
   const gachaCollectionDisplay = document.getElementById('gacha-collection-display');
   const gachaStatsDisplay = document.getElementById('gacha-stats-display');
 
+  // Update token/shard counts
   if (gachaTokenCount) gachaTokenCount.textContent = window.gachaTokens;
   if (gachaShardCount) gachaShardCount.textContent = window.gachaShards;
-  if (gachaRollButton) {
+  
+  // Update roll button state
+  if (gachaRollButton && !isOperationInProgress) {
     gachaRollButton.disabled = window.gachaTokens < 1;
     gachaRollButton.classList.toggle('opacity-50', gachaRollButton.disabled);
   }
 
+  // 🆕 Populate anime filter dropdown
+  populateAnimeFilter();
+
+  // 🆕 Apply filters and sorting
+  const filteredCollection = filterAndSortCollection();
+  const stats = calculateCollectionStats(filteredCollection);
+
+  // 🆕 Update stats display
   if (gachaStatsDisplay) {
-    if (window.waifuCollection.length > 0) {
-      const uniqueCharacters = new Set(window.waifuCollection.map(card => card.name)).size;
-      gachaStatsDisplay.innerHTML = `<span class="text-sm text-gray-500">Total: ${window.waifuCollection.length} | Unique: ${uniqueCharacters}</span>`;
-    } else {
-      gachaStatsDisplay.innerHTML = '';
-    }
+    const totalCards = window.waifuCollection.length;
+    const uniqueCharacters = new Set(window.waifuCollection.map(card => card.name)).size;
+    
+    const rarityBadges = `
+      ${stats.byRarity.Prismatic > 0 ? `<span class="stat-badge prismatic">✨ ${stats.byRarity.Prismatic}</span>` : ''}
+      ${stats.byRarity[5] > 0 ? `<span class="stat-badge legendary">★★★★★ ${stats.byRarity[5]}</span>` : ''}
+      ${stats.byRarity[4] > 0 ? `<span class="stat-badge epic">★★★★ ${stats.byRarity[4]}</span>` : ''}
+      ${stats.byRarity[3] > 0 ? `<span class="stat-badge rare">★★★ ${stats.byRarity[3]}</span>` : ''}
+      ${stats.byRarity[2] > 0 ? `<span class="stat-badge common">★★ ${stats.byRarity[2]}</span>` : ''}
+    `;
+    
+    gachaStatsDisplay.innerHTML = `
+      <div class="gacha-stats-bar">
+        <span class="stat-item"><strong>Total:</strong> ${totalCards}</span>
+        <span class="stat-item"><strong>Unique:</strong> ${uniqueCharacters}</span>
+        <span class="stat-separator">|</span>
+        ${rarityBadges}
+      </div>
+      ${stats.total !== totalCards ? `<div class="filter-info">Showing ${stats.total} of ${totalCards} cards</div>` : ''}
+    `;
   }
 
+  // 🆕 Render filtered collection
   if (gachaCollectionDisplay) {
     gachaCollectionDisplay.innerHTML = '';
-    if (window.waifuCollection.length === 0) {
-      gachaCollectionDisplay.innerHTML = `<p class="col-span-full text-gray-500 py-4">Your collection is empty!</p>`;
+    
+    if (filteredCollection.length === 0) {
+      const isFiltered = collectionFilters.search || 
+                        collectionFilters.rarityFilter.length > 0 || 
+                        collectionFilters.animeFilter !== 'all' ||
+                        collectionFilters.cosmeticFilter !== 'all';
+      
+      const message = isFiltered 
+        ? 'No cards match your filters. Try adjusting your search or filters.'
+        : 'Your collection is empty! Roll to get your first card!';
+      
+      gachaCollectionDisplay.innerHTML = `
+        <p class="col-span-full text-center py-8 theme-text-muted">
+          ${message}
+        </p>
+      `;
     } else {
-      window.waifuCollection.forEach(card => {
+      filteredCollection.forEach(card => {
         const cardElement = document.createElement('div');
         const rarity = card.rarity || 1;
         const appliedBorder = window.appliedCosmetics[card.image_url] || '';
+        const duplicateCount = card.count || 1;
 
         let starsHTML = '';
         let rarityClass = '';
@@ -235,6 +668,7 @@ export function renderGachaState() {
             <img src="${card.image_url}" alt="${card.name}"
                  onerror="this.onerror=null; this.src='https://placehold.co/225x350/cccccc/333333?text=No+Image';"
                  class="card-image">
+            ${duplicateCount > 1 ? `<div class="duplicate-badge">x${duplicateCount}</div>` : ''}
           </div>
           <div class="card-name">${card.name}</div>
           <div class="card-anime" title="${card.anime}">${card.anime}</div>
@@ -247,10 +681,12 @@ export function renderGachaState() {
   }
 }
 
-/**
- * 🆕 Resets the user's gacha collection (backend version).
- */
 export async function resetGachaCollection() {
+  if (!canProceedWithOperation('reset', 2000)) {
+    showToast('Please wait before resetting again', 'warning');
+    return false;
+  }
+  
   const confirmMessage = '⚠️ Are you sure you want to reset your entire gacha collection?\n\nThis will:\n- Delete all cards\n- Remove all cosmetics\n- Reset tokens to 5\n- Reset shards to 0\n\nThis action CANNOT be undone!';
   
   const confirmed = await showConfirm(confirmMessage);
@@ -259,9 +695,10 @@ export async function resetGachaCollection() {
   }
 
   try {
+    startOperation('reset');
+    
     const result = await GachaAPI.resetCollection();
     
-    // Update local state
     window.gachaTokens = result.tokens;
     window.gachaShards = result.shards;
     window.waifuCollection = [];
@@ -269,10 +706,6 @@ export async function resetGachaCollection() {
     window.ownedCosmetics = [];
     window.totalPulls = 0;
     
-    // Re-render UI
-    renderGachaState();
-    
-    // Clear result display
     const gachaResultDisplay = document.getElementById('gacha-result-display');
     if (gachaResultDisplay) {
       gachaResultDisplay.innerHTML = `
@@ -283,27 +716,33 @@ export async function resetGachaCollection() {
     }
     
     showToast('Collection reset successfully!', 'success');
-    console.log('✅ Gacha collection reset successfully');
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to reset collection:', error);
     
-    // Check if user needs to re-authenticate
-    if (error.message.includes('<!DOCTYPE') || error.message.includes('is not valid JSON')) {
+    endOperation(true);
+    return true;
+    
+  } catch (error) {
+    logError(error, 'resetGachaCollection');
+    
+    endOperation(false);
+    
+    if (isSessionExpired(error)) {
       showToast('Your session has expired. Please log out and log back in.', 'error', 5000);
-      // Optionally auto-redirect to logout
-      setTimeout(() => {
-        window.location.href = '/logout';
-      }, 2000);
+      setTimeout(() => window.location.href = '/logout', 2000);
     } else {
       showToast(`Failed to reset collection: ${error.message}`, 'error');
     }
+    
     return false;
   }
 }
 
 export async function rollGacha() {
   const gachaResultDisplay = document.getElementById('gacha-result-display');
+  
+  if (!canProceedWithOperation('roll', 500)) {
+    showToast('Please wait before rolling again', 'warning', 1500);
+    return { status: 'error', message: 'Operation in progress' };
+  }
   
   if (window.gachaTokens < 1) {
     if (gachaResultDisplay) {
@@ -334,30 +773,49 @@ export async function rollGacha() {
   };
 
   try {
+    startOperation('roll');
+    
     const backendCard = convertCardToBackendFormat(finalCharacter);
     const result = await GachaAPI.roll(backendCard);
 
     window.gachaTokens = result.tokens;
     window.gachaShards = result.shards;
 
+    let returnValue;
     if (result.isDuplicate) {
-      return {
+      returnValue = {
         status: 'duplicate',
         shardsAwarded: result.shardsAwarded,
         card: finalCharacter
       };
     } else {
+      finalCharacter.acquiredAt = Date.now();
       window.waifuCollection.unshift(finalCharacter);
-      return {
+      returnValue = {
         status: 'new',
         card: finalCharacter
       };
     }
+    
+    endOperation(true);
+    return returnValue;
+    
   } catch (error) {
-    console.error('❌ Gacha roll failed:', error);
+    logError(error, 'rollGacha', { card: finalCharacter });
+    
+    endOperation(false);
+    
     if (gachaResultDisplay) {
       gachaResultDisplay.innerHTML = `<p class="text-red-500 font-semibold">Roll failed: ${error.message}</p>`;
     }
+    
+    if (isSessionExpired(error)) {
+      showToast('Your session has expired. Please log in again.', 'error', 5000);
+      setTimeout(() => window.location.href = '/logout', 2000);
+    } else {
+      showToast(`Roll failed: ${error.message}`, 'error');
+    }
+    
     return { status: 'error', message: error.message };
   }
 }
@@ -411,12 +869,19 @@ export async function buyCosmeticPack(packId) {
   const pack = cosmeticsManifest.packs[packId];
   if (!pack) return null;
 
+  if (!canProceedWithOperation('buyPack', 1000)) {
+    showToast('Please wait before buying another pack', 'warning');
+    return null;
+  }
+
   if (window.gachaShards < pack.cost) {
     showToast("Not enough shards!", "error");
     return null;
   }
 
   try {
+    startOperation('buyPack');
+    
     const cosmeticNames = pack.items.map(item => item.id);
     const result = await GachaAPI.buyPack(pack.cost, cosmeticNames);
     
@@ -440,9 +905,15 @@ export async function buyCosmeticPack(packId) {
     }
 
     showToast(`Purchased ${pack.name}!`, 'success');
+    
+    endOperation(true);
     return wonItem;
+    
   } catch (error) {
-    console.error('❌ Failed to buy pack:', error);
+    logError(error, 'buyCosmeticPack', { packId, packCost: pack.cost });
+    
+    endOperation(false);
+    
     showToast(`Failed to buy pack: ${error.message}`, 'error');
     return null;
   }
@@ -495,7 +966,7 @@ export async function applyCosmetic(cosmeticId) {
     showToast('Cosmetic applied!', 'success');
     return true;
   } catch (error) {
-    console.error('❌ Failed to apply cosmetic:', error);
+    logError(error, 'applyCosmetic', { cardUrl: currentlyCustomizingCardUrl, cosmeticId });
     showToast(`Failed to apply cosmetic: ${error.message}`, 'error');
     return false;
   }

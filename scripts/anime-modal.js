@@ -189,7 +189,7 @@ function populateModalWithData(anime) {
   
   document.getElementById('anime-details-studios').textContent = studios;
   document.getElementById('anime-details-source').textContent = source;
-  document.getElementById('anime-details-season').textContent = season;
+  document.getElementById('anime-details-season').textContent = seasonText;
   document.getElementById('anime-details-avg-score').textContent = avgScore;
   
   // Genres

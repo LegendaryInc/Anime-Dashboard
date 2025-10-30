@@ -1,5 +1,5 @@
 // =====================================================================
-// ui.js – UI helpers & render utilities
+// ui.js — UI helpers & render utilities
 // =====================================================================
 
 import { showToast, showConfirm } from './toast.js';
@@ -117,6 +117,7 @@ export function showSettingsModal() {
 export function populateFilters(data) {
   const statusFilterEl = $('status-filter');
   const genreFilterEl  = $('genre-filter');
+  
   if (!statusFilterEl || !genreFilterEl) return;
 
   const statuses = [...new Set((data || []).map(a => a.status).filter(Boolean))].sort();
@@ -137,6 +138,14 @@ export function populateFilters(data) {
     option.textContent = genre;
     genreFilterEl.appendChild(option);
   });
+  
+  // ⭐ UPDATED: Also populate genre multi-select for advanced filters
+  const genreMultiSelect = document.getElementById('genre-multi-select');
+  if (genreMultiSelect) {
+    genreMultiSelect.innerHTML = genres.map(genre => 
+      `<option value="${genre}">${genre}</option>`
+    ).join('');
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -275,70 +284,131 @@ export function renderAnimeTable(data = [], currentSort = { column: 'title', dir
     const episodeButtonClass = canAddEpisode ? 'add-episode-btn' : 'add-episode-btn-disabled';
     const episodeButtonDisabled = canAddEpisode ? '' : 'disabled';
 
-// Replace the return statement in your renderAnimeTable function's map with this:
-
-	return `
-	  <tr class="table-row" data-anime-title="${escapeAttr(title)}" data-anime-id="${escapeAttr(a.id)}">
-		<td class="p-3 title">
-		  <div class="flex items-center gap-3">
-			<div class="table-cover-thumb">
-			  <img 
-				src="${escapeAttr(a.coverImage || 'https://placehold.co/80x112/1f2937/94a3b8?text=No+Image')}" 
-				alt="${escapeAttr(title)}"
-				loading="lazy"
-				referrerpolicy="no-referrer"
-				onerror="this.onerror=null;this.src='https://placehold.co/80x112/1f2937/94a3b8?text=No+Image';"
-			  />
-			</div>
-			<div class="flex flex-col gap-1 min-w-0">
-			  <span class="main-title font-medium">${escapeHtml(title)}</span>
-			  ${statusBadgeData}
-			</div>
-		  </div>
-		</td>
-		<td class="p-3 score text-center">
-		  ${scoreHtml}
-		</td>
-		<td class="p-3 episodes text-center">
-		  <div class="flex flex-col gap-1 items-center">
-			${progressStatusBadge}
-			<span class="font-medium">${total}</span>
-		  </div>
-		</td>
-		<td class="p-3 genres">
-		  <div class="text-sm">
-			${genresHtml}
-		  </div>
-		</td>
-		<td class="p-3 actions text-right">
-		  <div class="flex gap-2 justify-end">
-			<button
-			  class="${episodeButtonClass} px-3 py-1.5 text-sm rounded-lg font-medium"
-			  data-title="${escapeAttr(title)}"
-			  data-total="${a.totalEpisodes || 0}"
-			  data-watched="${watched}"
-			  ${episodeButtonDisabled}
-			  title="${canAddEpisode ? 'Increment episode count' : 'Cannot exceed total episodes'}">
-			  +1 Ep
-			</button>
-			<button
-			  class="similar-btn px-3 py-1.5 text-sm rounded-lg font-medium"
-			  data-title="${escapeAttr(title)}"
-			  title="Find similar anime">
-			  Similar
-			</button>
-		  </div>
-		</td>
-	  </tr>
-	`;
+    return `
+      <tr class="table-row" data-anime-title="${escapeAttr(title)}" data-anime-id="${escapeAttr(a.id)}">
+        <td class="p-3 title">
+          <div class="flex items-center gap-3">
+            <div class="table-cover-thumb">
+              <img 
+                src="${escapeAttr(a.coverImage || 'https://placehold.co/80x112/1f2937/94a3b8?text=No+Image')}" 
+                alt="${escapeAttr(title)}"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                onerror="this.onerror=null;this.src='https://placehold.co/80x112/1f2937/94a3b8?text=No+Image';"
+              />
+            </div>
+            <div class="flex flex-col gap-1 min-w-0">
+              <span class="main-title font-medium">${escapeHtml(title)}</span>
+              ${statusBadgeData}
+            </div>
+          </div>
+        </td>
+        <td class="p-3 score text-center">
+          ${scoreHtml}
+        </td>
+        <td class="p-3 episodes text-center">
+          <div class="flex flex-col gap-1 items-center">
+            ${progressStatusBadge}
+            <span class="font-medium">${total}</span>
+          </div>
+        </td>
+        <td class="p-3 genres">
+          <div class="text-sm">
+            ${genresHtml}
+          </div>
+        </td>
+        <td class="p-3 actions text-right">
+          <div class="flex gap-2 justify-end">
+            <button
+              class="${episodeButtonClass} px-3 py-1.5 text-sm rounded-lg font-medium"
+              data-title="${escapeAttr(title)}"
+              data-total="${a.totalEpisodes || 0}"
+              data-watched="${watched}"
+              ${episodeButtonDisabled}
+              title="${canAddEpisode ? 'Increment episode count' : 'Cannot exceed total episodes'}">
+              +1 Ep
+            </button>
+            <button
+              class="similar-btn px-3 py-1.5 text-sm rounded-lg font-medium"
+              data-title="${escapeAttr(title)}"
+              title="Find similar anime">
+              Similar
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
   }).join('');
 
   tbody.innerHTML = rows;
 }
 
 /**
- * Sort anime data by column
+ * Toggle between table and grid view
  */
+export function setViewMode(mode, data = [], currentSort = {}) {
+  const tableContainer = document.querySelector('#list-tab .overflow-y-auto');
+  const gridContainer = document.getElementById('anime-grid');
+  const tableBtnTable = document.querySelector('[data-view="table"]');
+  const tableBtnGrid = document.querySelector('[data-view="grid"]');
+  
+  if (mode === 'grid') {
+    if (tableContainer) tableContainer.classList.add('hidden');
+    if (gridContainer) gridContainer.classList.remove('hidden');
+    if (tableBtnTable) tableBtnTable.classList.remove('active');
+    if (tableBtnGrid) tableBtnGrid.classList.add('active');
+    
+    renderAnimeGrid(data, currentSort);
+    localStorage.setItem('animeViewMode', 'grid');
+  } else {
+    if (tableContainer) tableContainer.classList.remove('hidden');
+    if (gridContainer) gridContainer.classList.add('hidden');
+    if (tableBtnTable) tableBtnTable.classList.add('active');
+    if (tableBtnGrid) tableBtnGrid.classList.remove('active');
+    
+    renderAnimeTable(data, currentSort);
+    localStorage.setItem('animeViewMode', 'table');
+  }
+}
+
+/**
+ * Apply filters and sort to current view
+ */
+export function applyFiltersToCurrentView(data = [], currentSort = {}) {
+  const viewMode = localStorage.getItem('animeViewMode') || 'table';
+  
+  const searchInput = document.getElementById('search-bar');
+  const statusSelect = document.getElementById('status-filter');
+  const genreSelect = document.getElementById('genre-filter');
+
+  const q = (searchInput?.value || '').trim().toLowerCase();
+  const chosenStatus = (statusSelect?.value || 'all');
+  const chosenGenre = (genreSelect?.value || 'all');
+
+  let filteredData = Array.isArray(data) ? [...data] : [];
+
+  if (q) {
+    filteredData = filteredData.filter(row => {
+      const title = (row.title || '').toLowerCase();
+      const genresString = (row.genres || []).map(g => (g || '').toLowerCase()).join(' ');
+      return title.includes(q) || genresString.includes(q);
+    });
+  }
+
+  if (chosenStatus !== 'all') {
+    filteredData = filteredData.filter(row => (row.status || '') === chosenStatus);
+  }
+
+  if (chosenGenre !== 'all') {
+    filteredData = filteredData.filter(row => (row.genres || []).includes(chosenGenre));
+  }
+
+  if (viewMode === 'grid') {
+    renderAnimeGrid(filteredData, currentSort);
+  } else {
+    renderAnimeTable(filteredData, currentSort);
+  }
+}
 function sortAnimeData(data, currentSort) {
   const sorted = [...data];
   const { column, direction } = currentSort;
@@ -703,72 +773,5 @@ export function getStatusBadgeClass(status) {
 
   const normalized = String(status).toLowerCase();
   return statusMap[normalized] || { class: 'status-planning', text: status };
-}
-
-/**
- * Toggle between table and grid view
- */
-export function setViewMode(mode, data = [], currentSort = {}) {
-  const tableContainer = document.querySelector('#list-tab .overflow-y-auto');
-  const gridContainer = document.getElementById('anime-grid');
-  const tableBtnTable = document.querySelector('[data-view="table"]');
-  const tableBtnGrid = document.querySelector('[data-view="grid"]');
-  
-  if (mode === 'grid') {
-    if (tableContainer) tableContainer.classList.add('hidden');
-    if (gridContainer) gridContainer.classList.remove('hidden');
-    if (tableBtnTable) tableBtnTable.classList.remove('active');
-    if (tableBtnGrid) tableBtnGrid.classList.add('active');
-    
-    renderAnimeGrid(data, currentSort);
-    localStorage.setItem('animeViewMode', 'grid');
-  } else {
-    if (tableContainer) tableContainer.classList.remove('hidden');
-    if (gridContainer) gridContainer.classList.add('hidden');
-    if (tableBtnTable) tableBtnTable.classList.add('active');
-    if (tableBtnGrid) tableBtnGrid.classList.remove('active');
-    
-    renderAnimeTable(data, currentSort);
-    localStorage.setItem('animeViewMode', 'table');
-  }
-}
-
-/**
- * Apply filters and sort to current view
- */
-export function applyFiltersToCurrentView(data = [], currentSort = {}) {
-  const viewMode = localStorage.getItem('animeViewMode') || 'table';
-  
-  const searchInput = document.getElementById('search-bar');
-  const statusSelect = document.getElementById('status-filter');
-  const genreSelect = document.getElementById('genre-filter');
-
-  const q = (searchInput?.value || '').trim().toLowerCase();
-  const chosenStatus = (statusSelect?.value || 'all');
-  const chosenGenre = (genreSelect?.value || 'all');
-
-  let filteredData = Array.isArray(data) ? [...data] : [];
-
-  if (q) {
-    filteredData = filteredData.filter(row => {
-      const title = (row.title || '').toLowerCase();
-      const genresString = (row.genres || []).map(g => (g || '').toLowerCase()).join(' ');
-      return title.includes(q) || genresString.includes(q);
-    });
-  }
-
-  if (chosenStatus !== 'all') {
-    filteredData = filteredData.filter(row => (row.status || '') === chosenStatus);
-  }
-
-  if (chosenGenre !== 'all') {
-    filteredData = filteredData.filter(row => (row.genres || []).includes(chosenGenre));
-  }
-
-  if (viewMode === 'grid') {
-    renderAnimeGrid(filteredData, currentSort);
-  } else {
-    renderAnimeTable(filteredData, currentSort);
-  }
 }
 
