@@ -135,9 +135,50 @@ app.get('/api/cache-stats', (req, res) => {
 
 
 // =====================================================================
-// Serve SPA (static files + fallback to index.html)
+// Serve Static Files (Secure - Only Specific Directories)
 // =====================================================================
-app.use(express.static(path.join(__dirname, '')));
+
+// Serve frontend assets from specific directories only
+app.use('/scripts', express.static(path.join(__dirname, 'scripts')));
+app.use('/css', express.static(path.join(__dirname, 'css')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/cosmetics', express.static(path.join(__dirname, 'cosmetics')));
+
+// Serve manifest files explicitly
+app.get('/gacha-manifest.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'gacha-manifest.json'));
+});
+
+app.get('/cosmetics-manifest.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'cosmetics-manifest.json'));
+});
+
+// Serve config.js if it exists (for local development)
+app.get('/config.js', (req, res) => {
+  const configPath = path.join(__dirname, 'config.js');
+  if (require('fs').existsSync(configPath)) {
+    res.sendFile(configPath);
+  } else {
+    // In production, generate config from environment variables
+    const config = `window.CONFIG = {
+  DASHBOARD_TITLE: "${process.env.DASHBOARD_TITLE || 'My Anime Dashboard'}",
+  DASHBOARD_SUBTITLE: "${process.env.DASHBOARD_SUBTITLE || 'Visualize your anime watching journey.'}",
+  GEMINI_API_KEY: "${process.env.GEMINI_API_KEY || ''}",
+  EPISODES_PER_PAGE: ${process.env.EPISODES_PER_PAGE || 25},
+  CHART_GENRE_LIMIT: ${process.env.CHART_GENRE_LIMIT || 10},
+  GACHA_EPISODES_PER_TOKEN: ${process.env.GACHA_EPISODES_PER_TOKEN || 50},
+  GACHA_INITIAL_TOKENS: ${process.env.GACHA_INITIAL_TOKENS || 5},
+  GEMINI_MODEL: "${process.env.GEMINI_MODEL || 'gemini-2.5-flash'}",
+  API_BASE: "${process.env.BASE_URL || 'http://localhost:3000'}"
+};`;
+    res.type('application/javascript').send(config);
+  }
+});
+
+// Serve root index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Fallback for client-side routing
 app.get(/^(?!\/(api|auth)).*$/, (req, res) => {
