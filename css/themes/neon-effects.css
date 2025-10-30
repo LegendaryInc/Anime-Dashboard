@@ -61,6 +61,26 @@ body.theme-neon::after {
   opacity: 0.9;
 }
 
+/* ===================================================================
+   DEFAULT STATE - Hide all neon effects
+   =================================================================== */
+.light-streak {
+  display: none;
+}
+
+/* Only show light streaks when neon theme is active */
+body.theme-neon .light-streak {
+  display: block;
+  position: fixed;
+  height: 3px;
+  border-radius: 2px;
+  animation: streak-horizontal linear infinite;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+}
+
+/* Rest of your existing neon-effects.css code follows... */
 /* ------------------------------------------------------------------- 
    ANIMATED LIGHT STREAKS
    ------------------------------------------------------------------- */
@@ -330,5 +350,76 @@ body.theme-neon ::-webkit-scrollbar-track {
   
   body.theme-neon .container::before {
     opacity: 0.4;
+  }
+}
+/* ===================================================================
+   CITY BUILDINGS (Add this to neon-effects.css)
+   =================================================================== */
+
+/* Hide by default - only show on neon theme */
+.city-buildings {
+  display: none;
+}
+
+body.theme-neon .city-buildings {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 250px;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 20px;
+  padding: 0 5%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.3;
+}
+
+.building {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 10, 35, 0.9) 0%,
+    rgba(26, 11, 46, 0.95) 100%
+  );
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  box-shadow: 
+    inset 0 0 30px rgba(139, 92, 246, 0.1),
+    0 -5px 20px rgba(139, 92, 246, 0.15);
+  position: relative;
+  transition: opacity 0.3s ease;
+}
+
+/* Building windows effect */
+.building::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 5%;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 15px,
+      rgba(255, 255, 100, 0.3) 15px,
+      rgba(255, 255, 100, 0.3) 17px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 12px,
+      rgba(255, 255, 100, 0.3) 12px,
+      rgba(255, 255, 100, 0.3) 14px
+    );
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  body.theme-neon .city-buildings {
+    height: 150px;
+    opacity: 0.2;
   }
 }
