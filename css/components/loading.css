@@ -1,0 +1,216 @@
+/* ===================================================================
+   LOADING STATES & SPINNERS
+   Theme-specific loading indicators and animations
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   BASE LOADING SPINNER
+   ------------------------------------------------------------------- */
+.loading-spinner,
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Small spinner variant */
+.loading-spinner.small,
+.spinner.small {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+/* Large spinner variant */
+.loading-spinner.large,
+.spinner.large {
+  width: 40px;
+  height: 40px;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   DEFAULT THEME LOADING
+   ------------------------------------------------------------------- */
+:root .loading-spinner,
+:root .spinner {
+  border-top-color: var(--accent);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   SAKURA THEME LOADING
+   ------------------------------------------------------------------- */
+body.theme-sakura .loading-spinner,
+body.theme-sakura .spinner {
+  border-top-color: #EC4899;
+  border-color: rgba(236, 72, 153, 0.2);
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+}
+
+body.theme-sakura #loading-spinner svg,
+body.theme-sakura .animate-spin {
+  color: #EC4899;
+}
+
+body.theme-sakura #insights-loading svg {
+  color: #EC4899;
+}
+
+/* ------------------------------------------------------------------- 
+   SKY THEME LOADING
+   ------------------------------------------------------------------- */
+body.theme-sky .loading-spinner,
+body.theme-sky .spinner {
+  border-top-color: #0EA5E9;
+  border-color: rgba(14, 165, 233, 0.2);
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
+}
+
+body.theme-sky #loading-spinner svg,
+body.theme-sky .animate-spin {
+  color: #0EA5E9;
+}
+
+body.theme-sky #insights-loading svg {
+  color: #0EA5E9;
+}
+
+/* ------------------------------------------------------------------- 
+   NEON THEME LOADING
+   ------------------------------------------------------------------- */
+body.theme-neon .loading-spinner,
+body.theme-neon .spinner {
+  border-top-color: #e879f9;
+  border-color: rgba(232, 121, 249, 0.3);
+  box-shadow: 
+    0 0 10px rgba(232, 121, 249, 0.5),
+    0 0 20px rgba(232, 121, 249, 0.3);
+  animation: spin 0.8s linear infinite, neon-pulse 2s ease-in-out infinite;
+}
+
+body.theme-neon #loading-spinner svg,
+body.theme-neon .animate-spin {
+  color: #e879f9;
+  filter: drop-shadow(0 0 8px rgba(232, 121, 249, 0.8));
+  animation: spin 1s linear infinite, neon-pulse 2s ease-in-out infinite;
+}
+
+body.theme-neon #insights-loading svg {
+  color: #e879f9;
+  filter: drop-shadow(0 0 8px rgba(232, 121, 249, 0.8));
+}
+
+@keyframes neon-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(232, 121, 249, 0.8));
+  }
+  50% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 15px rgba(232, 121, 249, 1));
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   LOADING SKELETON (Text placeholder)
+   ------------------------------------------------------------------- */
+.loading-skeleton {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--text-secondary) 25%,
+    transparent 37%,
+    transparent 63%,
+    var(--text-secondary) 75%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease-in-out infinite;
+  color: transparent;
+  border-radius: 4px;
+  min-width: 60px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Theme-specific skeleton colors */
+body.theme-sakura .loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(236, 72, 153, 0.3) 25%,
+    transparent 37%,
+    transparent 63%,
+    rgba(236, 72, 153, 0.3) 75%
+  );
+}
+
+body.theme-sky .loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(14, 165, 233, 0.3) 25%,
+    transparent 37%,
+    transparent 63%,
+    rgba(14, 165, 233, 0.3) 75%
+  );
+}
+
+body.theme-neon .loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(232, 121, 249, 0.4) 25%,
+    transparent 37%,
+    transparent 63%,
+    rgba(232, 121, 249, 0.4) 75%
+  );
+}
+
+/* ------------------------------------------------------------------- 
+   LOADING CONTAINERS
+   ------------------------------------------------------------------- */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.loading-container .loading-spinner,
+.loading-container .spinner {
+  margin: 0 auto;
+}
+
+/* ------------------------------------------------------------------- 
+   REDUCED MOTION
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner,
+  .spinner {
+    animation: none;
+    border-top-color: var(--accent);
+  }
+  
+  .loading-skeleton {
+    animation: none;
+    background: var(--text-secondary);
+  }
+}
+

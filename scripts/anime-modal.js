@@ -242,6 +242,37 @@ function populateModalWithData(anime) {
     saveNotesBtn.dataset.animeTitle = anime.title;
   }
   
+  // Watch Dates
+  const startedDateInput = document.getElementById('anime-details-started-date');
+  const completedDateInput = document.getElementById('anime-details-completed-date');
+  const clearStartedBtn = document.getElementById('anime-details-clear-started');
+  const clearCompletedBtn = document.getElementById('anime-details-clear-completed');
+  const saveDatesBtn = document.getElementById('anime-details-save-dates');
+  
+  // Helper to format date from AniList format (year, month, day) to YYYY-MM-DD
+  const formatDateForInput = (date) => {
+    if (!date || !date.year) return '';
+    const year = date.year || '';
+    const month = String(date.month || 1).padStart(2, '0');
+    const day = String(date.day || 1).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  if (startedDateInput) {
+    startedDateInput.value = formatDateForInput(anime.startedAt);
+    startedDateInput.dataset.animeId = anime.id;
+  }
+  
+  if (completedDateInput) {
+    completedDateInput.value = formatDateForInput(anime.completedAt);
+    completedDateInput.dataset.animeId = anime.id;
+  }
+  
+  if (saveDatesBtn) {
+    saveDatesBtn.dataset.animeId = anime.id;
+    saveDatesBtn.dataset.animeTitle = anime.title;
+  }
+  
   // Reset tabs to overview
   document.querySelectorAll('.anime-details-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.details-tab-pane').forEach(p => p.classList.remove('active'));
@@ -399,15 +430,74 @@ function escapeHtml(str) {
 }
 
 /**
+ * Save watch dates to AniList
+ */
+export async function saveAnimeDates(animeId, startedAt, completedAt, animeTitle) {
+  try {
+    // Convert date string (YYYY-MM-DD) to AniList format {year, month, day}
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null;
+      const [year, month, day] = dateStr.split('-').map(Number);
+      if (!year || isNaN(year)) return null;
+      return { year, month: month || 0, day: day || 0 };
+    };
+    
+    const startedAtObj = parseDate(startedAt);
+    const completedAtObj = parseDate(completedAt);
+    
+    const response = await fetch('/api/anilist/update-dates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mediaId: parseInt(animeId),
+        startedAt: startedAtObj,
+        completedAt: completedAtObj
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to save dates');
+    }
+    
+    // Update local data
+    const anime = window.animeData?.find(a => a.id === parseInt(animeId));
+    if (anime) {
+      anime.startedAt = result.entry.startedAt;
+      anime.completedAt = result.entry.completedAt;
+      saveDataToLocalStorage(window.animeData);
+    }
+    
+    return { success: true, entry: result.entry };
+    
+  } catch (error) {
+    console.error('Failed to save dates:', error);
+    throw error;
+  }
+}
+
+/**
  * Save notes to AniList
  */
 export async function saveAnimeNotes(animeId, notes, animeTitle) {
   try {
-    const response = await fetch('/api/anilist/update-notes', {
+    console.log('📝 [saveAnimeNotes] Attempting to save notes for anime:', animeId);
+    console.log('📝 [saveAnimeNotes] Using update-score endpoint (which works)');
+    
+    // Use the working update-score endpoint, passing notes as well
+    const response = await fetch('/api/anilist/update-score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mediaId: parseInt(animeId), notes })
+      credentials: 'include', // Important for cookies/session
+      body: JSON.stringify({ 
+        mediaId: parseInt(animeId), 
+        notes: notes 
+      })
     });
+    
+    console.log('📝 [saveAnimeNotes] Response status:', response.status);
+    console.log('📝 [saveAnimeNotes] Response ok:', response.ok);
     
     const result = await response.json();
     
@@ -437,6 +527,9 @@ export function initAnimeDetailsModal() {
   const closeBtn = document.getElementById('anime-details-modal-close');
   const backdrop = document.getElementById('anime-details-modal-backdrop');
   const saveNotesBtn = document.getElementById('anime-details-save-notes');
+  const saveDatesBtn = document.getElementById('anime-details-save-dates');
+  const clearStartedBtn = document.getElementById('anime-details-clear-started');
+  const clearCompletedBtn = document.getElementById('anime-details-clear-completed');
   
   if (closeBtn) {
     closeBtn.addEventListener('click', closeAnimeDetailsModal);
@@ -488,6 +581,53 @@ export function initAnimeDetailsModal() {
         btn.textContent = 'Save Notes';
         btn.disabled = false;
       }
+    });
+  }
+  
+  // Save dates button
+  if (saveDatesBtn) {
+    saveDatesBtn.addEventListener('click', async () => {
+      const btn = saveDatesBtn;
+      const startedDateInput = document.getElementById('anime-details-started-date');
+      const completedDateInput = document.getElementById('anime-details-completed-date');
+      const animeId = btn.dataset.animeId;
+      const animeTitle = btn.dataset.animeTitle;
+      const startedAt = startedDateInput?.value || '';
+      const completedAt = completedDateInput?.value || '';
+      
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      
+      try {
+        await saveAnimeDates(animeId, startedAt, completedAt, animeTitle);
+        showToast(`Watch dates saved for '${animeTitle}'!`, 'success');
+        btn.textContent = 'Saved ✓';
+        
+        setTimeout(() => {
+          btn.textContent = 'Save Dates';
+          btn.disabled = false;
+        }, 2000);
+        
+      } catch (error) {
+        showToast(`Failed to save dates: ${error.message}`, 'error');
+        btn.textContent = 'Save Dates';
+        btn.disabled = false;
+      }
+    });
+  }
+  
+  // Clear date buttons
+  if (clearStartedBtn) {
+    clearStartedBtn.addEventListener('click', () => {
+      const startedDateInput = document.getElementById('anime-details-started-date');
+      if (startedDateInput) startedDateInput.value = '';
+    });
+  }
+  
+  if (clearCompletedBtn) {
+    clearCompletedBtn.addEventListener('click', () => {
+      const completedDateInput = document.getElementById('anime-details-completed-date');
+      if (completedDateInput) completedDateInput.value = '';
     });
   }
   

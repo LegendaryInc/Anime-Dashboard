@@ -1,0 +1,89 @@
+/* ===================================================================
+   LAZY LOADING STYLES
+   Image loading states and transitions
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   LAZY LOADING STATES
+   ------------------------------------------------------------------- */
+img.lazy-loading {
+  opacity: 0.5;
+  filter: blur(4px);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+img.lazy-loaded {
+  opacity: 1;
+  filter: blur(0);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+img.lazy-error {
+  opacity: 0.8;
+  filter: grayscale(100%);
+}
+
+/* ------------------------------------------------------------------- 
+   PLACEHOLDER STYLING
+   ------------------------------------------------------------------- */
+img[data-src],
+img[data-lazy-src] {
+  background: linear-gradient(
+    135deg,
+    var(--bg-secondary) 0%,
+    var(--bg-tertiary) 100%
+  );
+  background-size: 200% 200%;
+  animation: placeholder-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes placeholder-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   SMOOTH TRANSITIONS
+   ------------------------------------------------------------------- */
+img {
+  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+}
+
+/* ------------------------------------------------------------------- 
+   THEME VARIATIONS
+   ------------------------------------------------------------------- */
+body.theme-neon img[data-src],
+body.theme-neon img[data-lazy-src] {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 5, 30, 0.8) 0%,
+    rgba(20, 10, 50, 0.8) 100%
+  );
+}
+
+body.theme-neon img.lazy-loading {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   PERFORMANCE OPTIMIZATIONS
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  img.lazy-loading,
+  img.lazy-loaded {
+    transition: none;
+  }
+  
+  img[data-src],
+  img[data-lazy-src] {
+    animation: none;
+  }
+}
+

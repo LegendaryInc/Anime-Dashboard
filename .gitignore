@@ -7,3 +7,19 @@
 # Frontend Configuration with API Key
 config.js
 /generated/prisma
+
+# Vite build output
+/dist
+
+# Image management tools
+.image-hashes.json
+/data/.image-hashes.json
+/images/downloads
+/images/to-organize
+
+# Data files (user-generated content)
+/data/character-images.json
+/data/my-characters-list.json
+/data/gacha-manifest-new.json
+/data/gacha-manifest-backup.json
+/data/*-template.*

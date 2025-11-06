@@ -27,7 +27,7 @@
   background: linear-gradient(135deg, #ffc0cb 0%, #ffb6c1 50%, #ff69b4 100%);
   border-radius: 50% 0 50% 0;
   opacity: 0.7;
-  animation: sakura-fall linear infinite;
+  animation: sakura-fall 10s linear infinite;
   transform-origin: center;
 }
 
@@ -77,6 +77,21 @@
   animation-duration: 10s;
 }
 
+.petal:nth-child(4n) {
+  background: linear-gradient(135deg, #ffc0cb 0%, #f8a5c2 50%, #ff69b4 100%);
+  animation-duration: 11s;
+  width: 13px;
+  height: 13px;
+}
+
+.petal:nth-child(5n) {
+  background: linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 50%, #ffb6c1 100%);
+  animation-duration: 9s;
+  width: 11px;
+  height: 11px;
+  opacity: 0.6;
+}
+
 /* ------------------------------------------------------------------- 
    MOBILE OPTIMIZATION
    Reduce number of petals on mobile
@@ -85,6 +100,35 @@
   .petal:nth-child(n+8) { 
     display: none; 
   }
+}
+
+/* ------------------------------------------------------------------- 
+   SAKURA THEME ENHANCED EFFECTS
+   Cherry blossom borders and subtle glows
+   ------------------------------------------------------------------- */
+body.theme-sakura .card,
+body.theme-sakura .stat-card,
+body.theme-sakura .watch-card {
+  position: relative;
+}
+
+body.theme-sakura .card:hover,
+body.theme-sakura .stat-card:hover,
+body.theme-sakura .watch-card:hover {
+  box-shadow: 0 12px 24px rgba(236, 72, 153, 0.2),
+              0 0 0 1px rgba(236, 72, 153, 0.3);
+}
+
+body.theme-sakura .btn-primary:hover {
+  box-shadow: 0 14px 28px rgba(236, 72, 153, 0.35),
+              0 0 0 1px rgba(236, 72, 153, 0.2);
+}
+
+/* Sakura theme border glow on focus */
+body.theme-sakura .filter-select:focus,
+body.theme-sakura #search-bar:focus {
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2),
+              0 0 12px rgba(236, 72, 153, 0.15);
 }
 
 /* ------------------------------------------------------------------- 

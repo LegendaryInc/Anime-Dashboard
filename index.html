@@ -5,24 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Anime Dashboard</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 
-  <link rel="stylesheet" href="/css/main.css"/>
+  <!-- Tailwind CSS from CDN (needed without bundler) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="stylesheet" href="/css/main.css" />
+
+  <!-- Chart.js from CDN (needed without bundler) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  
   <script src="config.js"></script>
 </head>
 <body>
   <!-- Background animations container -->
   <div id="background-animations"></div>
-
-  <!-- Neon theme light streaks -->
-  <div class="light-streak"></div>
-  <div class="light-streak"></div>
-  <div class="light-streak"></div>
-  <div class="light-streak"></div>
 
   <!-- Neon theme city buildings -->
   <div class="city-buildings">
@@ -146,7 +144,6 @@
                   <button data-tab="list" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Full List</button>
                   <button data-tab="insights" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Insights ✨</button>
                   <button data-tab="calendar" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Calendar 📅</button>
-                  <button data-tab="gacha" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Gacha 🎰</button>
                 </nav>
               </div>
             </div>
@@ -541,138 +538,7 @@
               </div>
             </div>
 
-			<!-- Gacha Tab -->
-			<div id="gacha-tab" class="tab-content hidden">
-			  <!-- Gacha Roll Section -->
-			  <div class="anime-card rounded-xl p-6 shadow-md text-center mb-6">
-				<h3 class="font-bold text-2xl mb-4 border-b pb-2 theme-text-primary">Waifu Gacha Roll 🎰</h3>
-				<div class="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
-				  <div class="text-xl font-semibold theme-text-primary">
-					Tokens: <span id="gacha-token-count" class="text-indigo-600">0</span>
-				  </div>
-				  <div class="text-xl font-semibold theme-text-primary">
-					✨ Shards: <span id="gacha-shard-count" class="text-indigo-600">0</span>
-				  </div>
-				  <button id="gacha-roll-button" class="btn-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg" disabled>
-					ROLL (1 Token)
-				  </button>
-				</div>
-				<div id="gacha-result-display" class="min-h-[200px] border border-dashed border-gray-300 rounded-xl p-4 flex items-center justify-center theme-text-muted">
-				  Connect to AniList to start earning tokens! (1 token per 50 episodes)
-				</div>
-			  </div>
-
-			  <!-- Shard Shop Section -->
-			  <div id="shard-shop-section" class="anime-card rounded-xl p-6 shadow-md mb-6">
-				<h3 class="font-bold text-2xl mb-4 text-center border-b pb-2 theme-text-primary">✨ Shard Shop</h3>
-				<div id="cosmetic-pack-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center"></div>
-				<div id="cosmetic-result-display" class="min-h-[150px] mt-6 border-dashed border-gray-300 rounded-xl p-4 flex-col items-center justify-center theme-text-muted hidden">
-				  <h4 class="font-bold text-lg mb-2 theme-text-primary">Pack Contents:</h4>
-				  <div id="cosmetic-rewards" class="flex flex-wrap justify-center gap-4"></div>
-				</div>
-			  </div>
-
-			  <!-- Collection Section -->
-			  <div class="anime-card rounded-xl p-6 shadow-md">
-				<div class="flex justify-between items-center mb-4 border-b pb-2">
-				  <h3 class="font-bold text-xl theme-text-primary">Your Waifu Collection</h3>
-				</div>
-
-				<!-- 🆕 Collection Stats Bar -->
-				<div id="gacha-stats-display" class="gacha-stats-container mb-4"></div>
-
-				<!-- 🆕 Filter & Sort Controls -->
-				<div class="gacha-filter-controls mb-6">
-				  <!-- Search Bar -->
-				  <div class="filter-section">
-					<input 
-					  type="text" 
-					  id="gacha-search" 
-					  placeholder="🔍 Search by character or anime..." 
-					  class="search-input"
-					/>
-				  </div>
-
-				  <!-- Sort, Filters, and Clear Button Row -->
-				  <div class="filter-row">
-					<!-- Sort Dropdown -->
-					<div class="filter-group">
-					  <label for="gacha-sort" class="filter-label">Sort By</label>
-					  <select id="gacha-sort" class="filter-select">
-						<option value="rarity-desc">Rarity (High to Low)</option>
-						<option value="rarity-asc">Rarity (Low to High)</option>
-						<option value="name-asc">Name (A-Z)</option>
-						<option value="name-desc">Name (Z-A)</option>
-						<option value="anime-asc">Anime (A-Z)</option>
-						<option value="date-desc">Recently Acquired</option>
-					  </select>
-					</div>
-
-					<!-- Anime Filter -->
-					<div class="filter-group">
-					  <label for="gacha-anime-filter" class="filter-label">Anime</label>
-					  <select id="gacha-anime-filter" class="filter-select">
-						<option value="all">All Anime</option>
-						<!-- Populated dynamically -->
-					  </select>
-					</div>
-
-					<!-- Cosmetic Filter -->
-					<div class="filter-group">
-					  <label for="gacha-cosmetic-filter" class="filter-label">Cosmetics</label>
-					  <select id="gacha-cosmetic-filter" class="filter-select">
-						<option value="all">All Cards</option>
-						<option value="with-cosmetics">With Cosmetics</option>
-						<option value="without-cosmetics">Without Cosmetics</option>
-					  </select>
-					</div>
-
-					<!-- Clear Filters Button -->
-					<button id="gacha-clear-filters" class="clear-filters-btn">
-					  ✕ Clear Filters
-					</button>
-				  </div>
-
-				  <!-- Rarity Filter Checkboxes -->
-				  <div class="filter-section">
-					<label class="filter-label mb-2 block">Filter by Rarity:</label>
-					<div class="rarity-filter-group">
-					  <label class="rarity-filter-label">
-						<input type="checkbox" class="rarity-filter-checkbox" value="Prismatic" />
-						<span class="rarity-label prismatic">✨ Prismatic</span>
-					  </label>
-					  <label class="rarity-filter-label">
-						<input type="checkbox" class="rarity-filter-checkbox" value="5" />
-						<span class="rarity-label legendary">★★★★★</span>
-					  </label>
-					  <label class="rarity-filter-label">
-						<input type="checkbox" class="rarity-filter-checkbox" value="4" />
-						<span class="rarity-label epic">★★★★</span>
-					  </label>
-					  <label class="rarity-filter-label">
-						<input type="checkbox" class="rarity-filter-checkbox" value="3" />
-						<span class="rarity-label rare">★★★</span>
-					  </label>
-					  <label class="rarity-filter-label">
-						<input type="checkbox" class="rarity-filter-checkbox" value="2" />
-						<span class="rarity-label common">★★</span>
-					  </label>
-					</div>
-				  </div>
-				</div>
-
-				<!-- Collection Grid -->
-				<div id="gacha-collection-display" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center"></div>
-
-				<!-- Admin Controls -->
-				<div class="flex justify-between items-center mb-4 mt-6 pt-4 border-t">
-				  <h3 class="text-xl font-bold theme-text-primary">Admin commands:</h3>
-				  <button id="gacha-reset-button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-					🔄 Reset Collection 
-				  </button>
-				</div>
-			  </div>
-			</div>
+			<!-- Gacha Tab - removed (backed up to gacha-backup/gacha-tab.html) -->
 
   <!-- Similar Anime Modal -->
   <div id="similar-modal-backdrop" class="modal-backdrop">
@@ -727,10 +593,7 @@
             <label for="config-genre-limit" class="block font-semibold mb-1 theme-text-primary">Chart Genre Limit</label>
             <input type="number" id="config-genre-limit" min="5" max="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
           </div>
-          <div>
-            <label for="config-gacha-ept" class="block font-semibold mb-1 theme-text-primary">Episodes Per Gacha Token</label>
-            <input type="number" id="config-gacha-ept" min="1" max="1000" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
-          </div>
+          <!-- Gacha config removed -->
         </div>
       </div>
 
@@ -742,6 +605,70 @@
   </div>
 
   <!-- Enhanced Anime Details Modal -->
+        <!-- Card Details Modal (Feature 5) -->
+        <div id="card-details-modal-backdrop" class="modal-backdrop">
+          <div id="card-details-modal-content" class="modal-content anime-card rounded-xl p-6 max-w-2xl">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-2xl font-bold theme-text-primary">Card Details</h3>
+              <button id="card-details-modal-close" class="text-2xl theme-text-muted hover:theme-text-primary">&times;</button>
+            </div>
+            <div id="card-details-content" class="text-center">
+              <!-- Content populated dynamically -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Shard Exchange Modal -->
+        <div id="shard-exchange-modal-backdrop" class="modal-backdrop">
+          <div id="shard-exchange-modal-content" class="modal-content anime-card rounded-xl p-6 max-w-md">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-2xl font-bold theme-text-primary">💱 Exchange Shards</h3>
+              <button id="shard-exchange-modal-close" class="text-2xl theme-text-muted hover:theme-text-primary">&times;</button>
+            </div>
+            <div class="mb-4">
+              <p class="text-sm theme-text-muted mb-4">Exchange shards for tokens to keep rolling!</p>
+              <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-4">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="theme-text-secondary">Exchange Rate:</span>
+                  <span class="font-bold theme-text-primary">50 shards = 1 token</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                  <span class="theme-text-secondary">Daily Limit:</span>
+                  <span class="font-bold theme-text-primary" id="exchange-daily-limit">10 tokens/day</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="theme-text-secondary">Remaining Today:</span>
+                  <span class="font-bold text-indigo-600 dark:text-indigo-400" id="exchange-remaining">10</span>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium theme-text-secondary mb-2">
+                  Tokens to Exchange:
+                </label>
+                <input 
+                  type="number" 
+                  id="exchange-token-amount" 
+                  min="1" 
+                  max="10" 
+                  value="1" 
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 theme-text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <div class="mt-2 text-sm theme-text-muted">
+                  <span id="exchange-shard-cost">Cost: 50 shards</span>
+                </div>
+              </div>
+              <div class="flex gap-4">
+                <button id="shard-exchange-confirm" class="btn-primary flex-1 py-2 px-4 rounded-lg font-semibold">
+                  💱 Exchange
+                </button>
+                <button id="shard-exchange-cancel" class="btn-secondary flex-1 py-2 px-4 rounded-lg font-semibold">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
   <div id="anime-details-modal-backdrop" class="modal-backdrop">
     <div id="anime-details-modal-content" class="anime-details-modal-content anime-card">
       <button id="anime-details-modal-close" class="modal-close-btn" title="Close">✕</button>
@@ -873,6 +800,28 @@
                   <button id="anime-details-save-notes" class="btn-primary">Save Notes</button>
                 </div>
               </div>
+              
+              <div class="detail-section">
+                <div class="notes-header">
+                  <h3 class="section-title">Watch History</h3>
+                  <span class="notes-info theme-text-muted">Track when you watched this anime</span>
+                </div>
+                <div class="watch-dates-container">
+                  <div class="date-input-group">
+                    <label for="anime-details-started-date" class="date-label">Date Started</label>
+                    <input type="date" id="anime-details-started-date" class="date-input" />
+                    <button id="anime-details-clear-started" class="date-clear-btn" title="Clear date">✕</button>
+                  </div>
+                  <div class="date-input-group">
+                    <label for="anime-details-completed-date" class="date-label">Date Completed</label>
+                    <input type="date" id="anime-details-completed-date" class="date-input" />
+                    <button id="anime-details-clear-completed" class="date-clear-btn" title="Clear date">✕</button>
+                  </div>
+                  <div class="date-footer">
+                    <button id="anime-details-save-dates" class="btn-primary">Save Dates</button>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div id="anime-details-related-tab" class="details-tab-pane">
@@ -892,6 +841,6 @@
   <!-- Toast notification container -->
   <div class="toast-container"></div>
 
-  <script src="/scripts/main.js" type="module"></script>
+  <script type="module" src="/scripts/main.js"></script>
 </body>
 </html>

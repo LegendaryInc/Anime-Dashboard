@@ -1,0 +1,251 @@
+<!-- Gacha Tab HTML Section - Backed up before removal -->
+<!-- This is the entire gacha tab section from index.html -->
+<!-- Lines 534-779 from original index.html -->
+
+			<!-- Gacha Tab -->
+			<div id="gacha-tab" class="tab-content hidden">
+			  <!-- Gacha Roll Section -->
+			  <div class="anime-card rounded-xl p-6 shadow-md mb-6">
+				<div class="text-center mb-6">
+				  <h3 class="font-bold text-3xl mb-2 theme-text-primary flex items-center justify-center gap-2">
+					<span>🎰</span>
+					<span>Waifu Gacha Roll</span>
+				  </h3>
+				  <p class="text-sm theme-text-muted">Spin the wheel and collect your favorite characters!</p>
+				</div>
+				
+				<!-- Currency Display -->
+				<div class="flex flex-wrap justify-center items-center gap-6 mb-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
+				  <div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+					<span class="text-lg font-bold theme-text-primary">💰</span>
+					<span class="text-sm font-medium theme-text-secondary">Tokens:</span>
+					<span id="gacha-token-count" class="text-xl font-bold text-indigo-600 dark:text-indigo-400">0</span>
+				  </div>
+				  <div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+					<span class="text-lg font-bold">✨</span>
+					<span class="text-sm font-medium theme-text-secondary">Shards:</span>
+					<span id="gacha-shard-count" class="text-xl font-bold text-purple-600 dark:text-purple-400">0</span>
+				  </div>
+				  <div class="flex flex-wrap justify-center gap-4">
+					<button id="gacha-roll-button" class="btn-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105" disabled>
+					  🎲 ROLL (1 Token)
+					</button>
+					<button id="gacha-10roll-button" class="btn-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105" style="background: linear-gradient(135deg, #a855f7, #ec4899);" disabled>
+					  ✨ 10-PULL (10 Tokens)
+					</button>
+					<button id="shard-exchange-button" class="btn-secondary font-bold py-3 px-6 rounded-full text-sm shadow-md hover:shadow-lg transition-all transform hover:scale-105" title="Exchange shards for tokens (50 shards = 1 token)">
+					  💱 Exchange
+					</button>
+				  </div>
+				  <div id="daily-exchange-info" class="text-xs theme-text-muted text-center w-full mt-2">
+					<span id="remaining-exchanges">Daily exchanges: 10 remaining</span>
+				  </div>
+				</div>
+				
+				<!-- Rarity Rates Preview (Feature 20) -->
+				<div id="rarity-rates-display" class="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+				  <div class="flex flex-wrap justify-center items-center gap-4 text-xs">
+					<span class="font-semibold theme-text-primary">Pull Rates:</span>
+					<span class="theme-text-secondary">✨ 0.1%</span>
+					<span class="theme-text-secondary">★★★★★ 1.9%</span>
+					<span class="theme-text-secondary">★★★★ 8%</span>
+					<span class="theme-text-secondary">★★★ 30%</span>
+					<span class="theme-text-secondary">★★ 60%</span>
+				  </div>
+				</div>
+				
+				<!-- Result Display Area -->
+				<div id="gacha-result-display" class="min-h-[300px] border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 flex items-center justify-center theme-text-muted bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+				  <div class="text-center">
+					<p class="text-lg font-medium mb-2">Ready to roll!</p>
+					<p class="text-sm">Click the ROLL button above to get your first character card</p>
+				  </div>
+				</div>
+			  </div>
+
+			  <!-- Shard Shop Section -->
+			  <div id="shard-shop-section" class="anime-card rounded-xl p-6 shadow-md mb-6">
+				<div class="text-center mb-6">
+				  <h3 class="font-bold text-2xl mb-2 theme-text-primary flex items-center justify-center gap-2">
+					<span>✨</span>
+					<span>Shard Shop</span>
+				  </h3>
+				  <p class="text-sm theme-text-muted">Spend your shards on exclusive cosmetic packs or buy specific cosmetics directly!</p>
+				</div>
+				
+				<!-- Shop Tabs -->
+				<div class="flex justify-center gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+				  <button id="shop-tab-packs" class="shop-tab-btn active px-6 py-2 font-semibold border-b-2 border-indigo-600 dark:border-indigo-400 theme-text-primary">
+					📦 Packs
+				  </button>
+				  <button id="shop-tab-direct" class="shop-tab-btn px-6 py-2 font-semibold border-b-2 border-transparent theme-text-muted hover:theme-text-primary transition-colors">
+					💎 Direct Purchase
+				  </button>
+				</div>
+				
+				<!-- Packs Tab -->
+				<div id="shop-packs-tab" class="shop-tab-content">
+				  <div id="cosmetic-pack-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+				  <div id="cosmetic-result-display" class="min-h-[150px] mt-6 border-dashed border-gray-300 rounded-xl p-4 flex-col items-center justify-center theme-text-muted hidden">
+					<h4 class="font-bold text-lg mb-2 theme-text-primary">Pack Contents:</h4>
+					<div id="cosmetic-rewards" class="flex flex-wrap justify-center gap-4"></div>
+				  </div>
+				</div>
+				
+				<!-- Direct Purchase Tab -->
+				<div id="shop-direct-tab" class="shop-tab-content hidden">
+				  <!-- Filters -->
+				  <div class="mb-6 flex flex-wrap gap-4 items-center justify-center">
+					<input 
+					  type="text" 
+					  id="cosmetic-search" 
+					  placeholder="🔍 Search cosmetics..." 
+					  class="search-input flex-1 min-w-[200px]"
+					/>
+					<select id="cosmetic-type-filter" class="filter-select">
+					  <option value="all">All Types</option>
+					  <option value="border">Borders</option>
+					  <option value="theme">Themes</option>
+					  <option value="background">Backgrounds</option>
+					</select>
+					<select id="cosmetic-rarity-filter" class="filter-select">
+					  <option value="all">All Rarities</option>
+					  <option value="common">Common</option>
+					  <option value="rare">Rare</option>
+					  <option value="epic">Epic</option>
+					  <option value="legendary">Legendary</option>
+					  <option value="prismatic">Prismatic</option>
+					</select>
+					<select id="cosmetic-owned-filter" class="filter-select">
+					  <option value="all">All</option>
+					  <option value="owned">Owned</option>
+					  <option value="unowned">Not Owned</option>
+					</select>
+				  </div>
+				  
+				  <!-- Cosmetics Grid -->
+				  <div id="cosmetic-direct-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+					<!-- Cosmetics will be rendered here -->
+				  </div>
+				</div>
+			  </div>
+
+			  <!-- Collection Section -->
+			  <div class="anime-card rounded-xl p-6 shadow-md">
+				<div class="flex justify-between items-center mb-4 border-b pb-2">
+				  <h3 class="font-bold text-xl theme-text-primary">Your Waifu Collection</h3>
+				</div>
+
+				<!-- 🆕 Collection Stats Bar -->
+				<div id="gacha-stats-display" class="gacha-stats-container mb-4"></div>
+				
+				<!-- 🆕 Collection Statistics Dashboard -->
+				<div id="collection-dashboard" class="collection-dashboard mb-6">
+				  <button id="dashboard-toggle" class="dashboard-toggle-btn w-full flex items-center justify-between p-4 rounded-lg border-2 border-indigo-200 dark:border-indigo-800 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all">
+					<span class="font-bold text-lg theme-text-primary flex items-center gap-2">
+					  <span>📊</span>
+					  <span>Collection Statistics Dashboard</span>
+					</span>
+					<span class="dashboard-toggle-icon text-2xl theme-text-muted">▼</span>
+				  </button>
+				  <div id="dashboard-content" class="dashboard-content hidden">
+					<!-- Stats will be rendered here -->
+				  </div>
+				</div>
+
+				<!-- 🆕 Filter & Sort Controls -->
+				<div class="gacha-filter-controls mb-6">
+				  <!-- Search Bar -->
+				  <div class="filter-section">
+					<input 
+					  type="text" 
+					  id="gacha-search" 
+					  placeholder="🔍 Search by character or anime..." 
+					  class="search-input"
+					/>
+				  </div>
+
+				  <!-- Sort, Filters, and Clear Button Row -->
+				  <div class="filter-row">
+					<!-- Sort Dropdown -->
+					<div class="filter-group">
+					  <label for="gacha-sort" class="filter-label">Sort By</label>
+					  <select id="gacha-sort" class="filter-select">
+						<option value="rarity-desc">Rarity (High to Low)</option>
+						<option value="rarity-asc">Rarity (Low to High)</option>
+						<option value="name-asc">Name (A-Z)</option>
+						<option value="name-desc">Name (Z-A)</option>
+						<option value="anime-asc">Anime (A-Z)</option>
+						<option value="date-desc">Recently Acquired</option>
+					  </select>
+					</div>
+
+					<!-- Anime Filter -->
+					<div class="filter-group">
+					  <label for="gacha-anime-filter" class="filter-label">Anime</label>
+					  <select id="gacha-anime-filter" class="filter-select">
+						<option value="all">All Anime</option>
+						<!-- Populated dynamically -->
+					  </select>
+					</div>
+
+					<!-- Cosmetic Filter -->
+					<div class="filter-group">
+					  <label for="gacha-cosmetic-filter" class="filter-label">Cosmetics</label>
+					  <select id="gacha-cosmetic-filter" class="filter-select">
+						<option value="all">All Cards</option>
+						<option value="with-cosmetics">With Cosmetics</option>
+						<option value="without-cosmetics">Without Cosmetics</option>
+					  </select>
+					</div>
+
+					<!-- Clear Filters Button -->
+					<button id="gacha-clear-filters" class="clear-filters-btn">
+					  ✕ Clear Filters
+					</button>
+				  </div>
+
+				  <!-- Rarity Filter Checkboxes -->
+				  <div class="filter-section">
+					<label class="filter-label mb-2 block">Filter by Rarity:</label>
+					<div class="rarity-filter-group">
+					  <label class="rarity-filter-label">
+						<input type="checkbox" class="rarity-filter-checkbox" value="Prismatic" />
+						<span class="rarity-label prismatic">✨ Prismatic</span>
+					  </label>
+					  <label class="rarity-filter-label">
+						<input type="checkbox" class="rarity-filter-checkbox" value="5" />
+						<span class="rarity-label legendary">★★★★★</span>
+					  </label>
+					  <label class="rarity-filter-label">
+						<input type="checkbox" class="rarity-filter-checkbox" value="4" />
+						<span class="rarity-label epic">★★★★</span>
+					  </label>
+					  <label class="rarity-filter-label">
+						<input type="checkbox" class="rarity-filter-checkbox" value="3" />
+						<span class="rarity-label rare">★★★</span>
+					  </label>
+					  <label class="rarity-filter-label">
+						<input type="checkbox" class="rarity-filter-checkbox" value="2" />
+						<span class="rarity-label common">★★</span>
+					  </label>
+					</div>
+				  </div>
+				</div>
+
+				<!-- Collection Grid -->
+				<div id="gacha-collection-display" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 text-center"></div>
+
+				<!-- Admin Controls -->
+				<div class="mt-6 pt-4 border-t">
+				  <h3 class="text-xl font-bold theme-text-primary mb-4">Admin commands:</h3>
+				  <div class="flex flex-wrap gap-4 items-center">
+					<!-- Reset Collection -->
+					<button id="gacha-reset-button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+					  🔄 Reset Collection 
+					</button>
+				  </div>
+				</div>
+			  </div>
+			</div>
+

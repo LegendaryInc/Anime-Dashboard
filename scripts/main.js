@@ -2,6 +2,8 @@
 // --- MAIN APPLICATION SCRIPT (main.js) - AniList Only ---
 // =====================================================================
 
+// CSS is loaded via <link> tag in index.html (no bundler needed)
+
 // --- 1. Module Imports ---
 import {
   showToast,
@@ -31,23 +33,25 @@ import {
   populateAdvancedFilters
 } from './list.js';
 
-import { loadTheme, setTheme } from './themes.js';
+// ⭐ MODIFIED: Removed duplicate import
+import { renderEnhancedWatchingTab, initAiringSchedule, exportToCalendar } from './airing.js';
+import { loadTheme, setTheme, previewTheme, removeThemePreview } from './themes.js';
 import { saveDataToLocalStorage, checkForSavedData } from './storage.js';
 import { calculateStatistics, downloadEnrichedJSON } from './data.js';
 import { renderCharts } from './charts.js';
 // ⭐ MODIFIED: Added generatePersonalInsights
 import { getSimilarAnime, getGeminiRecommendations, generatePersonalInsights } from './ai.js';
 import { fetchSeasonalAnime, initCalendar } from './calendar.js';
-import {
-  rollGacha, renderGachaState, updateGachaTokens, displayGachaResult,
-  loadGachaData, loadGachaState, buyCosmeticPack, openCosmeticModal, resetGachaCollection
-} from './gacha.js';
-import {
-  renderEnhancedWatchingTab, initAiringSchedule, exportToCalendar
-} from './airing.js';
+// Gacha system removed - backed up to gacha-backup/
+// ⭐ MODIFIED: Removed duplicate import
+// import {
+//   renderEnhancedWatchingTab, initAiringSchedule, exportToCalendar
+// } from './airing.js';
 import { 
 	openAnimeDetailsModal, closeAnimeDetailsModal, initAnimeDetailsModal 
 	} from './anime-modal.js';
+import { initKeyboardShortcuts } from './keyboard.js';
+import { initLazyLoading, observeNewImages } from './lazy-loading.js';
 
 // --- 2. State Variables ---
 let GEMINI_API_KEY = window.CONFIG.GEMINI_API_KEY || '';
@@ -61,38 +65,11 @@ let lastStats = null;
 
 window.episodesWatchedTotal = 0;
 
-let isGachaInitialized = false;
 let insightsInitialized = false; // ⭐ NEW: Insights tab tracker
 
 
 // --- 3. Core Application Flow ---
-
-async function initializeGacha() {
-  if (isGachaInitialized) return;
-  try {
-    showLoading(true, 'Loading your gacha collection...');
-    await loadGachaData();
-    await loadGachaState();
-    renderGachaState();
-    isGachaInitialized = true;
-    console.log('✔️ Gacha system initialized from backend');
-  } catch (error) {
-    console.error('❌ Failed to initialize gacha:', error);
-    const gachaResultDisplay = document.getElementById('gacha-result-display');
-    if (gachaResultDisplay) {
-      gachaResultDisplay.innerHTML = `
-        <p class="text-red-500 font-semibold">
-          Failed to load gacha data: ${error.message}
-        </p>
-        <p class="text-sm text-gray-600 mt-2">
-          Please try logging out and back in.
-        </p>
-      `;
-    }
-  } finally {
-    showLoading(false);
-  }
-}
+// Gacha system removed - backed up to gacha-backup/
 
 /**
  * Fetches data from the backend /api/get-anilist-data endpoint.
@@ -114,7 +91,6 @@ async function syncWithAnilist() {
       localStorage.removeItem('animeDashboardData');
       animeData = [];
       window.animeData = []; // ⭐ Update global ref
-      isGachaInitialized = false;
 
       showLoading(false);
       if (loginScreen) loginScreen.classList.remove('hidden');
@@ -141,8 +117,8 @@ async function syncWithAnilist() {
 
     animeData = data;
     saveDataToLocalStorage(animeData);
-    await initializeGacha();
-    processAndRenderDashboard(animeData);
+    // Gacha system removed
+    await processAndRenderDashboard(animeData); // ⭐ ADDED await
 
   } catch (err) {
     console.error("Sync Error:", err);
@@ -173,7 +149,6 @@ async function logout() {
     window.animeData = []; // ⭐ Update global ref
     lastStats = null;
     seasonalAnimeData = null;
-    isGachaInitialized = false;
     window.location.href = '/';
   }
 }
@@ -181,20 +156,35 @@ async function logout() {
 /**
  * Main callback function after data is loaded.
  */
-function processAndRenderDashboard(data) {
+// ⭐ MODIFIED: Added async
+async function processAndRenderDashboard(data) {
+    console.log('🎨 processAndRenderDashboard called with', data.length, 'anime');
     const loginScreen = document.getElementById('login-screen');
     const dashboardScreen = document.getElementById('dashboard-screen');
     const welcomeScreen = document.getElementById('welcome-back-screen');
 
     if (!Array.isArray(data)) {
-        console.error("Invalid data provided:", data);
+        console.error("❌ Invalid data provided:", data);
         showError(document.getElementById('error-message'), "Failed to process data.");
         logout();
         return;
     }
 
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (welcomeScreen) welcomeScreen.classList.add('hidden');
+    console.log('📊 Hiding login and welcome screens...');
+    if (loginScreen) {
+        loginScreen.classList.add('hidden');
+        console.log('✅ Login screen hidden');
+    } else {
+        console.warn('⚠️ login-screen element not found');
+    }
+    if (welcomeScreen) {
+        welcomeScreen.classList.add('hidden');
+        console.log('✅ Welcome screen hidden');
+    } else {
+        console.warn('⚠️ welcome-back-screen element not found');
+    }
+    
+    console.log('📊 Showing dashboard screen...');
 
     // ⭐ Make data globally available
     window.animeData = data;
@@ -218,29 +208,30 @@ function processAndRenderDashboard(data) {
     // ⭐ Let list.js handle initial render
     triggerFilterUpdate();
     
-    renderEnhancedWatchingTab(data);
+    // ⭐ MODIFIED: Added await
+    await renderEnhancedWatchingTab(data);
 
-    if (isGachaInitialized) {
-        loadGachaState().then(state => {
-            updateGachaTokens(lastStats.totalEpisodes, state.totalPulls || 0);
-            renderGachaState();
-        }).catch(err => {
-            console.warn("Could not update gacha tokens during render:", err);
-            renderGachaState();
-        });
-    } else {
-        initializeGacha();
-    }
+    // Gacha system removed
 
     setActiveTab('watching');
     if (document.getElementById('gemini-response')) {
         document.getElementById('gemini-response').innerHTML = '';
     }
     showLoading(false);
-    if (dashboardScreen) dashboardScreen.classList.remove('hidden');
+    
+    console.log('📺 Removing hidden class from dashboard screen...');
+    if (dashboardScreen) {
+        dashboardScreen.classList.remove('hidden');
+        console.log('✅ Dashboard screen should now be visible');
+    } else {
+        console.error('❌ dashboard-screen element not found!');
+    }
+    
     setTimeout(() => {
         if (dashboardScreen) dashboardScreen.classList.add('loaded');
     }, 10);
+    
+    console.log('✅ Dashboard rendering complete');
 }
 
 // =====================================================================
@@ -338,9 +329,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settingsCancelButton = document.getElementById('settings-cancel');
   const similarModalClose = document.getElementById('similar-modal-close');
   // ⭐ REMOVED: const geminiButton = document.getElementById('gemini-button');
-  const gachaRollButton = document.getElementById('gacha-roll-button');
+  // Gacha buttons removed
   const cosmeticModalClose = document.getElementById('cosmetic-modal-close');
-  const gachaResetButton = document.getElementById('gacha-reset-button');
   const loginScreen = document.getElementById('login-screen');
   const welcomeScreen = document.getElementById('welcome-back-screen');
   const dashboardScreen = document.getElementById('dashboard-screen');
@@ -351,6 +341,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAiringSchedule();
   initCalendar();
   initAnimeDetailsModal();
+  initKeyboardShortcuts(); // ⭐ NEW: Initialize keyboard shortcuts
+  initLazyLoading(); // ⭐ NEW: Initialize lazy loading
   
   // ⭐ NEW: Initialize enhanced list tab
   initListTab();
@@ -382,7 +374,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       localStorage.removeItem('animeDashboardData');
       animeData = [];
       window.animeData = []; // ⭐ Update global ref
-      isGachaInitialized = false;
       if (loginScreen) loginScreen.classList.remove('hidden');
       if (welcomeScreen) welcomeScreen.classList.add('hidden');
       if (dashboardScreen) dashboardScreen.classList.add('hidden');
@@ -407,7 +398,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Attach Listeners ---
 
-  document.addEventListener('animeAdded', (e) => {
+  // ⭐ MODIFIED: Added async
+  document.addEventListener('animeAdded', async (e) => {
     const newEntry = e.detail;
     if (newEntry && newEntry.id && !animeData.find(a => a.id === newEntry.id)) {
       console.log('Adding new anime to local state:', newEntry.title);
@@ -428,27 +420,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       populateAdvancedFilters(animeData);
       triggerFilterUpdate(); // ⭐ Use list.js function
       
-      renderEnhancedWatchingTab(animeData);
+      // ⭐ MODIFIED: Added await
+      await renderEnhancedWatchingTab(animeData);
     }
   });
 
   // Main Auth/Data Buttons
   if (viewDashboardBtn) {
     viewDashboardBtn.addEventListener('click', async () => {
+      console.log('🖱️ View Dashboard button clicked');
       const storedData = localStorage.getItem('animeDashboardData');
       if (storedData) {
         try {
+            console.log('📦 Loading saved data from localStorage...');
             animeData = JSON.parse(storedData);
             window.animeData = animeData; // ⭐ Update global ref
-            document.getElementById('welcome-back-screen').classList.add('hidden');
-            await initializeGacha();
-            processAndRenderDashboard(animeData);
+            console.log(`✅ Loaded ${animeData.length} anime from localStorage`);
+            
+            if (welcomeScreen) welcomeScreen.classList.add('hidden');
+            if (loginScreen) loginScreen.classList.add('hidden');
+            
+            // Gacha system removed
+            await processAndRenderDashboard(animeData); // ⭐ ADDED await
+            console.log('✅ Dashboard rendered successfully');
         } catch (error) {
-            console.error("Failed to parse local data:", error);
+            console.error("❌ Failed to parse local data:", error);
             showToast("Failed to load saved data. Please re-sync.", "error");
             syncWithAnilist();
         }
       } else {
+        console.log('📦 No saved data found, syncing with AniList...');
         syncWithAnilist();
       }
     });
@@ -479,13 +480,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (tab === 'calendar' && !seasonalAnimeData) {
           seasonalAnimeData = await fetchSeasonalAnime();
         }
-        if (tab === 'gacha' && !isGachaInitialized) {
-          await initializeGacha();
-        }
+        // Gacha tab removed
       }
     });
   }
   if (themeSwitcher) {
+      // Click handler for theme switching
       themeSwitcher.addEventListener('click', (e) => {
           if (e.target.tagName === 'BUTTON') {
               const newTheme = e.target.dataset.theme;
@@ -497,6 +497,23 @@ document.addEventListener('DOMContentLoaded', async () => {
               }
           }
       });
+
+      // Hover handlers for theme preview
+      themeSwitcher.addEventListener('mouseover', (e) => {
+          if (e.target.tagName === 'BUTTON' && e.target.dataset.theme) {
+              const theme = e.target.dataset.theme;
+              // Only preview if not already active
+              if (!e.target.classList.contains('active')) {
+                  previewTheme(theme);
+              }
+          }
+      }, true);
+
+      themeSwitcher.addEventListener('mouseout', (e) => {
+          if (e.target.tagName === 'BUTTON') {
+              removeThemePreview();
+          }
+      }, true);
   }
   if (settingsButton) settingsButton.addEventListener('click', showSettingsModal);
   if (settingsSaveButton) {
@@ -528,58 +545,29 @@ document.addEventListener('DOMContentLoaded', async () => {
    }
    */
 
-   // Gacha Tab
-   if (gachaRollButton) {
-       gachaRollButton.addEventListener('click', async () => {
-           const button = gachaRollButton;
-           button.disabled = true;
-
-           try {
-               const result = await rollGacha();
-
-               if (result.status === 'error') {
-                   showToast(`Gacha roll failed: ${result.message}`, 'error');
-                   console.error('Roll failed:', result.message);
-                   button.disabled = window.gachaTokens < 1;
-                   return;
-               }
-
-               displayGachaResult(result);
-
-               try {
-                   await loadGachaState();
-                   renderGachaState();
-               } catch (loadError) {
-                    showToast('Failed to update gacha state after roll.', 'error');
-               }
-
-           } catch (error) {
-               console.error('❌ Gacha roll UI error:', error);
-               showToast(`An error occurred during the roll: ${error.message}`, 'error');
-           } finally {
-                button.disabled = window.gachaTokens < 1;
-           }
-       });
-   }
-
-  // Gacha Reset Button
-  if (gachaResetButton) {
-   gachaResetButton.addEventListener('click', async () => {
-     const success = await resetGachaCollection();
-     if (success) {
-       try {
-           await loadGachaState();
-           renderGachaState();
-       } catch(error){
-           showToast('Failed to reload gacha state after reset.', 'error');
-       }
-     }
-   });
- }
+   // Gacha Tab - removed (backed up to gacha-backup/)
 
    // Global Modal Closing
    if (similarModalClose) similarModalClose.addEventListener('click', () => document.getElementById('similar-modal-backdrop').classList.remove('show'));
    if (cosmeticModalClose) cosmeticModalClose.addEventListener('click', () => document.getElementById('cosmetic-modal-backdrop').classList.remove('show'));
+   
+   // Card Details Modal
+   const cardDetailsModalClose = document.getElementById('card-details-modal-close');
+   const cardDetailsModalBackdrop = document.getElementById('card-details-modal-backdrop');
+   if (cardDetailsModalClose) {
+     cardDetailsModalClose.addEventListener('click', () => {
+       if (cardDetailsModalBackdrop) {
+         cardDetailsModalBackdrop.classList.remove('show');
+       }
+     });
+   }
+   if (cardDetailsModalBackdrop) {
+     cardDetailsModalBackdrop.addEventListener('click', (e) => {
+       if (e.target === cardDetailsModalBackdrop) {
+         cardDetailsModalBackdrop.classList.remove('show');
+       }
+     });
+   }
 
    document.addEventListener('click', (e) => {
        if (e.target.matches('.modal-backdrop')) {
@@ -700,18 +688,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           button.disabled = true;
         }
         
-        // Update gacha tokens
-        if (isGachaInitialized) {
-          const currentState = await loadGachaState();
-          await updateGachaTokens(lastStats.totalEpisodes, currentState?.totalPulls || 0);
-          renderGachaState();
-        }
+        // Gacha system removed
         
         saveDataToLocalStorage(animeData);
         renderStats(lastStats);
         window.animeData = animeData; // ⭐ Update global ref
         triggerFilterUpdate(); // ⭐ Refresh list view
-        renderEnhancedWatchingTab(animeData);
+        
+        // ⭐ MODIFIED: Added await
+        await renderEnhancedWatchingTab(animeData);
         
       } catch (error) {
         console.error('Failed to update progress:', error);
@@ -788,7 +773,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 populateAdvancedFilters(animeData);
                 window.animeData = animeData; // ⭐ Update global ref
                 triggerFilterUpdate(); // ⭐ Refresh list view
-                renderEnhancedWatchingTab(animeData);
+                
+                // ⭐ MODIFIED: Added await
+                await renderEnhancedWatchingTab(animeData);
               } catch (statusError) {
                 console.error('Failed to update status:', statusError);
                 showToast(`Error marking as complete: ${statusError.message}`, 'error');
@@ -797,19 +784,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           }, 500);
         }
 
-        if (isGachaInitialized) {
-            try {
-                const currentState = await loadGachaState();
-                await updateGachaTokens(lastStats.totalEpisodes, currentState?.totalPulls || 0);
-                renderGachaState();
-            } catch (gachaError){
-                 console.warn("Failed to update gacha tokens after progress update:", gachaError);
-            }
-        }
+        // Gacha system removed
 
         saveDataToLocalStorage(animeData);
         renderStats(lastStats);
-        renderEnhancedWatchingTab(animeData);
+        
+        // ⭐ MODIFIED: Added await
+        await renderEnhancedWatchingTab(animeData);
         window.animeData = animeData; // ⭐ Update global ref
         triggerFilterUpdate(); // ⭐ Refresh list view
 
@@ -988,7 +969,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         populateAdvancedFilters(animeData);
         window.animeData = animeData; // ⭐ Update global ref
         triggerFilterUpdate(); // ⭐ Refresh list view
-        renderEnhancedWatchingTab(animeData);
+        
+        // ⭐ MODIFIED: Added await
+        await renderEnhancedWatchingTab(animeData);
         
       } catch (error) {
         console.error('Failed to update status:', error);
@@ -1029,19 +1012,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    // Cosmetic pack purchase buttons
-    if (e.target.classList.contains('buy-pack-btn')) {
-      const packId = e.target.dataset.packId;
-      const wonItem = await buyCosmeticPack(packId);
-      if (wonItem) {
-        try {
-            await loadGachaState();
-            renderGachaState();
-        } catch(loadError) {
-             showToast('Failed to update gacha state after purchase.', 'error');
-        }
-      }
-    }
+    // Cosmetic pack purchase buttons - removed (gacha system removed)
 
      // Calendar Tab: "Add to Planning" button
      if (e.target.classList.contains('add-to-planning-btn')) {

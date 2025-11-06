@@ -41,6 +41,117 @@
           "rarity": "epic"
         }
       ]
+    },
+    "epic_guarantee_pack": {
+      "name": "Epic Guarantee Pack",
+      "cost": 800,
+      "guaranteedRarity": "epic",
+      "items": [
+        {
+          "id": "border-epic-gold",
+          "name": "Border Epic Gold",
+          "type": "border",
+          "rarity": "epic"
+        },
+        {
+          "id": "border-epic-silver",
+          "name": "Border Epic Silver",
+          "type": "border",
+          "rarity": "epic"
+        },
+        {
+          "id": "theme-epic-cosmic",
+          "name": "Theme Epic Cosmic",
+          "type": "theme",
+          "rarity": "epic"
+        },
+        {
+          "id": "border-legendary-glow",
+          "name": "Border Legendary Glow",
+          "type": "border",
+          "rarity": "legendary"
+        },
+        {
+          "id": "border-neon-animated",
+          "name": "Border Neon Animated",
+          "type": "border",
+          "rarity": "rare"
+        },
+        {
+          "id": "border-sakura-solid",
+          "name": "Border Sakura Solid",
+          "type": "border",
+          "rarity": "common"
+        }
+      ]
+    },
+    "legendary_pack": {
+      "name": "Legendary Pack",
+      "cost": 1500,
+      "guaranteedRarity": "legendary",
+      "items": [
+        {
+          "id": "border-legendary-divine",
+          "name": "Border Legendary Divine",
+          "type": "border",
+          "rarity": "legendary"
+        },
+        {
+          "id": "theme-legendary-aurora",
+          "name": "Theme Legendary Aurora",
+          "type": "theme",
+          "rarity": "legendary"
+        },
+        {
+          "id": "border-prismatic-shimmer",
+          "name": "Border Prismatic Shimmer",
+          "type": "border",
+          "rarity": "prismatic"
+        },
+        {
+          "id": "border-epic-gold",
+          "name": "Border Epic Gold",
+          "type": "border",
+          "rarity": "epic"
+        },
+        {
+          "id": "border-neon-animated",
+          "name": "Border Neon Animated",
+          "type": "border",
+          "rarity": "rare"
+        }
+      ]
+    },
+    "prismatic_pack": {
+      "name": "Prismatic Pack",
+      "cost": 5000,
+      "guaranteedRarity": "prismatic",
+      "items": [
+        {
+          "id": "border-prismatic-rainbow",
+          "name": "Border Prismatic Rainbow",
+          "type": "border",
+          "rarity": "prismatic"
+        },
+        {
+          "id": "theme-prismatic-eternal",
+          "name": "Theme Prismatic Eternal",
+          "type": "theme",
+          "rarity": "prismatic"
+        },
+        {
+          "id": "border-legendary-divine",
+          "name": "Border Legendary Divine",
+          "type": "border",
+          "rarity": "legendary"
+        },
+        {
+          "id": "theme-legendary-aurora",
+          "name": "Theme Legendary Aurora",
+          "type": "theme",
+          "rarity": "legendary"
+        }
+      ]
     }
   }
 }

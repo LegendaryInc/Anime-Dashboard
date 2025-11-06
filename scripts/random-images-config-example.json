@@ -1,0 +1,18 @@
+{
+  "waifuIm": {
+    "count": 20,
+    "tags": ["waifu", "anime"],
+    "rarity": 3
+  },
+  "waifuPics": {
+    "count": 10,
+    "category": "waifu",
+    "rarity": 2
+  },
+  "nekos": {
+    "count": 15,
+    "category": "waifu",
+    "rarity": 4
+  }
+}
+

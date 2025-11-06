@@ -341,6 +341,11 @@ export function renderAnimeTable(data = [], currentSort = { column: 'title', dir
   }).join('');
 
   tbody.innerHTML = rows;
+  
+  // Initialize lazy loading for new images
+  if (typeof observeNewImages === 'function') {
+    observeNewImages(container);
+  }
 }
 
 /**
@@ -751,6 +756,11 @@ export function renderAnimeGrid(data = [], currentSort = { column: 'title', dire
   }).join('');
 
   container.innerHTML = cards;
+  
+  // Initialize lazy loading for new images
+  if (typeof observeNewImages === 'function') {
+    observeNewImages(container);
+  }
 }
 
 /**

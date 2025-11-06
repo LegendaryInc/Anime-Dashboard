@@ -1,0 +1,51 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "standard",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["prettier"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-console": "off",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "prefer-const": "warn",
+    "no-var": "error",
+    "prefer-arrow-callback": "warn",
+    "object-shorthand": "warn",
+    "quote-props": ["warn", "as-needed"],
+    "prefer-template": "warn",
+    "prefer-destructuring": ["warn", {
+      "array": false,
+      "object": true
+    }],
+    "no-trailing-spaces": "warn",
+    "comma-dangle": ["warn", "never"],
+    "prettier/prettier": "warn",
+    "semi": "off",
+    "quotes": "off",
+    "indent": "off",
+    "space-before-function-paren": "off",
+    "space-infix-ops": "off",
+    "key-spacing": "off",
+    "object-curly-spacing": "off",
+    "array-bracket-spacing": "off"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "build",
+    "*.config.js",
+    "config.js",
+    "prisma/generated"
+  ]
+}
+

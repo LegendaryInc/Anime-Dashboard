@@ -96,50 +96,150 @@ body.theme-neon .btn-secondary:hover {
    THEME SWITCHER BUTTONS
    ------------------------------------------------------------------- */
 .theme-btn {
-  padding: 6px 16px;
+  padding: 8px 18px;
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--btn-secondary-bg);
   color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Theme preview on hover */
+.theme-btn[data-theme="default"]:hover:not(.active) {
+  background: linear-gradient(135deg, #f0f2f5 0%, #ffffff 100%);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.theme-btn[data-theme="sakura"]:hover:not(.active) {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe4e6 100%);
+  border-color: #EC4899;
+  color: #EC4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
+}
+
+.theme-btn[data-theme="sky"]:hover:not(.active) {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  border-color: #0EA5E9;
+  color: #0EA5E9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+.theme-btn[data-theme="neon"]:hover:not(.active) {
+  background: linear-gradient(135deg, #1a0b2e 0%, #0f051d 100%);
+  border-color: #e879f9;
+  color: #e879f9;
+  box-shadow: 
+    0 0 0 3px rgba(232, 121, 249, 0.2),
+    0 0 15px rgba(232, 121, 249, 0.3);
+  text-shadow: 0 0 8px rgba(232, 121, 249, 0.5);
+}
+
+.theme-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+  opacity: 0;
+}
+
+.theme-btn.active::before {
+  width: 200px;
+  height: 200px;
+  opacity: 0.1;
 }
 
 .theme-btn.active {
   border-color: var(--accent);
   color: var(--accent);
+  background: var(--btn-secondary-bg);
   box-shadow: 0 0 0 2px var(--accent-shadow);
+  transform: scale(1.05);
 }
 
 .theme-btn:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.8);
-  transform: translateY(-1px);
+  background: var(--btn-secondary-hover);
+  transform: translateY(-1px) scale(1.02);
+  border-color: var(--border-hover);
+}
+
+/* Sakura theme switcher */
+body.theme-sakura .theme-btn { 
+  background: #fff1f2;
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  color: var(--text-primary);
+}
+
+body.theme-sakura .theme-btn.active {
+  background: rgba(236, 72, 153, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-shadow),
+              0 0 12px rgba(236, 72, 153, 0.2);
+}
+
+body.theme-sakura .theme-btn:hover:not(.active) {
+  background: #ffe4e6;
+  border-color: rgba(236, 72, 153, 0.3);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
+}
+
+/* Sky theme switcher */
+body.theme-sky .theme-btn { 
+  background: #e0f2fe;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  color: var(--text-primary);
+}
+
+body.theme-sky .theme-btn.active {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-shadow),
+              0 0 12px rgba(14, 165, 233, 0.2);
+}
+
+body.theme-sky .theme-btn:hover:not(.active) {
+  background: #bae6fd;
+  border-color: rgba(14, 165, 233, 0.3);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
 }
 
 /* Neon theme switcher - Subtle glow */
 body.theme-neon .theme-btn { 
   background: rgba(15, 10, 35, 0.8);
   border: 1px solid rgba(139, 92, 246, 0.3);
-  color: #e0e7ff;
+  color: var(--text-secondary);
   box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
 
 body.theme-neon .theme-btn.active {
   background: rgba(255, 0, 110, 0.2);
   border-color: rgba(255, 0, 110, 0.6);
-  color: #ffffff;
+  color: var(--text-primary);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
   box-shadow: 
     0 0 20px rgba(255, 0, 110, 0.6),
-    0 0 35px rgba(255, 0, 110, 0.3);
+    0 0 35px rgba(255, 0, 110, 0.3),
+    inset 0 0 20px rgba(255, 0, 110, 0.1);
 }
 
 body.theme-neon .theme-btn:hover:not(.active) {
   background: rgba(15, 10, 35, 0.95);
   border-color: rgba(168, 85, 247, 0.5);
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3),
+              0 0 25px rgba(168, 85, 247, 0.15);
 }
 
 /* ------------------------------------------------------------------- 
@@ -184,6 +284,28 @@ body.theme-neon .theme-btn:hover:not(.active) {
 #anime-table .similar-btn:hover {
   background: rgba(168, 85, 247, 0.25);
   transform: scale(1.05);
+}
+
+/* Sakura theme table buttons */
+body.theme-sakura #anime-table .similar-btn {
+  background: rgba(236, 72, 153, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+body.theme-sakura #anime-table .similar-btn:hover {
+  background: rgba(236, 72, 153, 0.25);
+}
+
+/* Sky theme table buttons */
+body.theme-sky #anime-table .similar-btn {
+  background: rgba(14, 165, 233, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+body.theme-sky #anime-table .similar-btn:hover {
+  background: rgba(14, 165, 233, 0.25);
 }
 
 /* Neon theme table buttons - Cyan for add episode */
@@ -232,19 +354,19 @@ body.theme-neon #anime-table .similar-btn:hover {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px var(--accent-shadow);
 }
 
 .export-calendar-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 6px 16px var(--accent-shadow);
 }
 
 body.theme-neon .export-calendar-btn {

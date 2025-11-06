@@ -6,50 +6,64 @@
 /* =================================================================== 
    1. BASE STYLES (Load first - foundation)
    =================================================================== */
-@import 'base/variables.css';      /* CSS custom properties & theme vars */
-@import 'base/reset.css';          /* Base body styles & scrollbar */
-@import 'base/typography.css';     /* Font imports & text utilities */
+@import './base/variables.css';      /* CSS custom properties & theme vars */
+@import './base/reset.css';          /* Base body styles & scrollbar */
+@import './base/typography.css';     /* Font imports & text utilities */
 
 /* =================================================================== 
    2. LAYOUT (Core structure)
    =================================================================== */
-@import 'layout/header.css';       /* Header, title, subtitle */
-@import 'layout/tabs.css';         /* Tab navigation system */
+@import './layout/header.css';       /* Header, title, subtitle */
+@import './layout/tabs.css';         /* Tab navigation system */
 
 /* =================================================================== 
    3. COMPONENTS (Reusable UI elements)
    =================================================================== */
-@import 'components/buttons.css';  /* All button variants */
-@import 'components/cards.css';    /* Card containers */
-@import 'components/forms.css';    /* Inputs, selects, search */
-@import 'components/badges.css';   /* Status & score badges */
-@import 'components/tables.css';   /* Anime list table */
-@import 'components/modals.css';   /* Modal dialogs */
-@import 'components/toasts.css';   /* Toast notifications */
+@import './components/buttons.css';  /* All button variants */
+@import './components/cards.css';    /* Card containers */
+@import './components/forms.css';    /* Inputs, selects, search */
+@import './components/badges.css';   /* Status & score badges */
+@import './components/tables.css';   /* Anime list table */
+@import './components/modals.css';   /* Modal dialogs */
+@import './components/toasts.css';   /* Toast notifications */
+@import './components/keyboard.css';   /* Keyboard shortcuts help */
+@import './components/lazy-loading.css';   /* Lazy loading styles */
+@import './components/loading.css';   /* Loading states & spinners */
 
 /* =================================================================== 
    4. FEATURES (Tab-specific content)
    =================================================================== */
-@import 'features/watching.css';   /* Watching tab cards & airing */
-@import 'features/calendar.css';   /* Calendar view & controls */
-@import 'features/gacha.css';      /* Gacha system & shop */
-@import 'features/charts.css';     /* Chart containers */
-@import 'features/grid-view.css';     /* Grid View Changes */
-@import 'features/enhanced-filters.css';     /* Enhanced Filter Features */
-@import 'features/insights.css';     /* Enhanced AI Insights */
+@import './features/watching.css';   /* Watching tab cards & airing */
+@import './features/calendar.css';   /* Calendar view & controls */
+@import './features/charts.css';     /* Chart containers */
+@import './features/grid-view.css';     /* Grid View Changes */
+@import './features/enhanced-filters.css';     /* Enhanced Filter Features */
+@import './features/insights.css';     /* Enhanced AI Insights */
 
 /* =================================================================== 
    5. THEME EFFECTS (Visual enhancements)
    =================================================================== */
-@import 'themes/animations.css';   /* Core keyframes & transitions */
-@import 'themes/sakura-effects.css'; /* Sakura theme animations */
-@import 'themes/sky-effects.css';    /* Sky theme animations */
-@import 'themes/neon-effects.css';   /* Neon cityscape & lights */
+@import './themes/animations.css';   /* Core keyframes & transitions */
+@import './themes/sakura-effects.css'; /* Sakura theme animations */
+@import './themes/sky-effects.css';    /* Sky theme animations */
+@import './themes/neon-effects.css';   /* Neon cityscape & lights */
 
 /* =================================================================== 
    6. RESPONSIVE (Load last - overrides)
    =================================================================== */
-@import 'layout/responsive.css';   /* Media queries & mobile */
+@import './layout/responsive.css';   /* Media queries & mobile */
+
+/* =================================================================== 
+   7. UTILITY CLASSES (Backup - Tailwind loaded from CDN in HTML)
+   =================================================================== */
+/* Basic utility classes as backup (Tailwind CDN is loaded in index.html) */
+.hidden {
+  display: none !important;
+}
+
+/* NOTE: Tailwind CSS is loaded from CDN in index.html because 
+   @tailwind directives require a build process. The CDN version
+   provides all Tailwind utility classes without compilation. */
 
 /* ===================================================================
    NOTES:
@@ -57,4 +71,5 @@
    - Each file should be self-contained with clear responsibilities
    - Theme-specific overrides stay in their respective files
    - Keep responsive styles together at the end
+   - Without a bundler, Tailwind won't work, so basic utilities are defined above
    =================================================================== */

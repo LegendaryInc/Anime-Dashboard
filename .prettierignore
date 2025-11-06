@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+*.config.js
+config.js
+prisma/generated/
+package-lock.json
+package.json
+*.min.js
+*.md
+

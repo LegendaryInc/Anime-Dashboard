@@ -7,57 +7,117 @@
    DEFAULT THEME (Light Mode)
    ------------------------------------------------------------------- */
 :root {
-  /* Background Gradients */
-  --bg-gradient-start: #e6e9f0;
-  --bg-gradient-end: #eef1f5;
+  /* Background Gradients - More refined, subtle gradient */
+  --bg-gradient-start: #f0f2f5;
+  --bg-gradient-end: #ffffff;
   
   /* Card Styles */
-  --card-bg: rgba(255, 255, 255, 0.7);
-  --card-border: rgba(255, 255, 255, 0.18);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-shadow: rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: rgba(0, 0, 0, 0.12);
   
   /* Text Colors */
-  --text-primary: #2D3748;
-  --text-secondary: #4A5568;
-  --text-muted: #6b7280;
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
   
   /* Accent Colors */
   --accent: #6366F1;
   --accent-hover: #4F46E5;
-  --accent-shadow: rgba(99, 102, 241, 0.2);
+  --accent-light: #818cf8;
+  --accent-shadow: rgba(99, 102, 241, 0.25);
+  --accent-glow: rgba(99, 102, 241, 0.15);
   
   /* UI Elements */
-  --btn-secondary-bg: #e2e8f0;
-  --btn-secondary-hover: #cbd5e1;
-  --border-color: #d1d5db;
-  --table-hover: rgba(99, 102, 241, 0.05);
+  --btn-secondary-bg: #f7fafc;
+  --btn-secondary-hover: #edf2f7;
+  --btn-secondary-border: #e2e8f0;
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+  --table-hover: rgba(99, 102, 241, 0.06);
+  --input-bg: #ffffff;
+  --input-border: #e2e8f0;
+  --input-focus-border: var(--accent);
+  --input-focus-shadow: var(--accent-shadow);
 }
 
 /* ------------------------------------------------------------------- 
    SAKURA THEME (Pink Cherry Blossom)
    ------------------------------------------------------------------- */
 body.theme-sakura {
-  --bg-gradient-start: #fff1f2;
+  /* Background Gradients - Soft pink gradient */
+  --bg-gradient-start: #fff5f7;
   --bg-gradient-end: #ffe4e6;
-  --accent: #EC4899;
-  --accent-hover: #db2777;
-  --accent-shadow: rgba(236, 72, 153, 0.2);
+  
+  /* Card Styles */
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(236, 72, 153, 0.15);
+  --card-shadow: rgba(236, 72, 153, 0.1);
+  --card-hover-shadow: rgba(236, 72, 153, 0.15);
+  
+  /* Text Colors */
   --text-primary: #831843;
   --text-secondary: #9f1239;
-  --table-hover: rgba(236, 72, 153, 0.05);
+  --text-muted: #be185d;
+  
+  /* Accent Colors */
+  --accent: #EC4899;
+  --accent-hover: #db2777;
+  --accent-light: #f472b6;
+  --accent-shadow: rgba(236, 72, 153, 0.25);
+  --accent-glow: rgba(236, 72, 153, 0.15);
+  
+  /* UI Elements */
+  --btn-secondary-bg: #fdf2f8;
+  --btn-secondary-hover: #fce7f3;
+  --btn-secondary-border: #f9a8d4;
+  --border-color: #fbcfe8;
+  --border-hover: #f9a8d4;
+  --table-hover: rgba(236, 72, 153, 0.08);
+  --input-bg: #fff5f7;
+  --input-border: rgba(236, 72, 153, 0.25);
+  --input-focus-border: var(--accent);
+  --input-focus-shadow: var(--accent-shadow);
 }
 
 /* ------------------------------------------------------------------- 
    SKY THEME (Blue Sky)
    ------------------------------------------------------------------- */
 body.theme-sky {
+  /* Background Gradients - Soft sky blue gradient */
   --bg-gradient-start: #e0f2fe;
   --bg-gradient-end: #f0f9ff;
-  --accent: #0EA5E9;
-  --accent-hover: #0284c7;
-  --accent-shadow: rgba(14, 165, 233, 0.2);
+  
+  /* Card Styles */
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(14, 165, 233, 0.15);
+  --card-shadow: rgba(14, 165, 233, 0.1);
+  --card-hover-shadow: rgba(14, 165, 233, 0.15);
+  
+  /* Text Colors */
   --text-primary: #075985;
   --text-secondary: #0c4a6e;
-  --table-hover: rgba(14, 165, 233, 0.05);
+  --text-muted: #0284c7;
+  
+  /* Accent Colors */
+  --accent: #0EA5E9;
+  --accent-hover: #0284c7;
+  --accent-light: #38bdf8;
+  --accent-shadow: rgba(14, 165, 233, 0.25);
+  --accent-glow: rgba(14, 165, 233, 0.15);
+  
+  /* UI Elements */
+  --btn-secondary-bg: #e0f2fe;
+  --btn-secondary-hover: #bae6fd;
+  --btn-secondary-border: #7dd3fc;
+  --border-color: #bae6fd;
+  --border-hover: #7dd3fc;
+  --table-hover: rgba(14, 165, 233, 0.08);
+  --input-bg: #f0f9ff;
+  --input-border: rgba(14, 165, 233, 0.25);
+  --input-focus-border: var(--accent);
+  --input-focus-shadow: var(--accent-shadow);
 }
 
 /* ------------------------------------------------------------------- 
@@ -66,53 +126,63 @@ body.theme-sky {
    Color palette: Deep night blues, hot magenta, electric cyan, vibrant purple
    ------------------------------------------------------------------- */
 body.theme-neon {
-  /* Deep night sky background - darker and richer */
+  /* Deep night sky background - refined gradient */
   --bg-gradient-start: #0a0618;
   --bg-gradient-end: #1a0b2e;
   
   /* Cards with urban depth and bright borders */
-  --card-bg: rgba(15, 10, 35, 0.85);
-  --card-border: rgba(255, 51, 255, 0.4);
+  --card-bg: rgba(15, 10, 35, 0.75);
+  --card-border: rgba(139, 92, 246, 0.3);
+  --card-shadow: rgba(0, 0, 0, 0.5);
+  --card-hover-shadow: rgba(168, 85, 247, 0.2);
   
   /* Bright, vivid text like illuminated signs */
   --text-primary: #ffffff;
   --text-secondary: #f0e7ff;
-  --text-muted: #d4c5f9;
+  --text-muted: #c4b5fd;
   
   /* Primary accent: Hot magenta (main neon color) */
   --accent: #ff006e;
   --accent-hover: #ff3385;
-  --accent-shadow: rgba(255, 0, 110, 0.6);
+  --accent-light: #ff66a0;
+  --accent-shadow: rgba(255, 0, 110, 0.5);
+  --accent-glow: rgba(255, 0, 110, 0.3);
   
   /* Secondary accent: Electric cyan (city lights) */
   --accent-secondary: #00ffff;
   --accent-secondary-hover: #66ffff;
-  --accent-secondary-shadow: rgba(0, 255, 255, 0.6);
+  --accent-secondary-shadow: rgba(0, 255, 255, 0.5);
   
   /* Tertiary accent: Vibrant purple (night atmosphere) */
   --accent-tertiary: #a855f7;
   --accent-tertiary-hover: #c084fc;
-  --accent-tertiary-shadow: rgba(168, 85, 247, 0.6);
+  --accent-tertiary-shadow: rgba(168, 85, 247, 0.5);
   
   /* Warning/highlight: Neon yellow (traffic lights, highlights) */
   --accent-yellow: #ffff00;
   --accent-yellow-hover: #ffff66;
   
   /* UI elements with bright neon glow */
-  --btn-secondary-bg: rgba(168, 85, 247, 0.25);
-  --btn-secondary-hover: rgba(168, 85, 247, 0.45);
-  --border-color: rgba(168, 85, 247, 0.5);
-  --table-hover: rgba(255, 0, 110, 0.2);
+  --btn-secondary-bg: rgba(139, 92, 246, 0.25);
+  --btn-secondary-hover: rgba(168, 85, 247, 0.4);
+  --btn-secondary-border: rgba(139, 92, 246, 0.4);
+  --border-color: rgba(139, 92, 246, 0.4);
+  --border-hover: rgba(168, 85, 247, 0.6);
+  --table-hover: rgba(255, 0, 110, 0.15);
+  --input-bg: rgba(15, 10, 35, 0.9);
+  --input-border: rgba(139, 92, 246, 0.4);
+  --input-focus-border: rgba(255, 0, 110, 0.8);
+  --input-focus-shadow: var(--accent-shadow);
   
   /* City atmosphere glows */
-  --city-glow-magenta: rgba(255, 51, 255, 0.8);
-  --city-glow-cyan: rgba(0, 255, 255, 0.8);
-  --city-glow-purple: rgba(168, 85, 247, 0.8);
-  --city-glow-yellow: rgba(255, 255, 0, 0.6);
+  --city-glow-magenta: rgba(255, 51, 255, 0.7);
+  --city-glow-cyan: rgba(0, 255, 255, 0.7);
+  --city-glow-purple: rgba(168, 85, 247, 0.7);
+  --city-glow-yellow: rgba(255, 255, 0, 0.5);
   
   /* Deep shadows for contrast */
-  --city-shadow-deep: rgba(0, 0, 0, 0.9);
-  --city-shadow-medium: rgba(10, 5, 30, 0.8);
+  --city-shadow-deep: rgba(0, 0, 0, 0.85);
+  --city-shadow-medium: rgba(10, 5, 30, 0.75);
 }
 
 /* ------------------------------------------------------------------- 

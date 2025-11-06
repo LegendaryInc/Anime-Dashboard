@@ -1,0 +1,715 @@
+/* ===================================================================
+   GACHA ANIMATIONS - Enhanced Card Reveals & Visual Effects
+   Animated card flips, rarity reveals, and particle effects
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   CARD REVEAL CONTAINER
+   ------------------------------------------------------------------- */
+#gacha-result-display {
+  position: relative;
+  perspective: 1000px;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------- 
+   SPINNING WHEEL ANIMATION
+   ------------------------------------------------------------------- */
+.gacha-rolling {
+  overflow: hidden;
+}
+
+.gacha-spinning-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gacha-spinner-track {
+  display: flex;
+  gap: 16px;
+  width: fit-content;
+  will-change: transform;
+  /* Smooth animation handled by JavaScript requestAnimationFrame */
+}
+
+.gacha-spinner-card {
+  flex-shrink: 0;
+  width: 200px;
+  height: 280px;
+  border-radius: 16px;
+  border: 3px solid transparent;
+  background: var(--card-bg);
+  box-shadow: 0 4px 12px var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  color: var(--text-primary);
+}
+
+.gacha-spinner-card.rarity-2 {
+  border-color: #a8a29e;
+}
+
+.gacha-spinner-card.rarity-3 {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.gacha-spinner-card.rarity-4 {
+  border-color: #a855f7;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.gacha-spinner-card.rarity-5 {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.gacha-spinner-card.rarity-prismatic {
+  border-image: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6, #f43f5e) 1;
+  box-shadow: 0 4px 20px rgba(244, 63, 94, 0.4);
+}
+
+.gacha-spinner-card.final-card {
+  border-width: 4px;
+  animation: finalCardGlow 0.5s ease-in-out;
+}
+
+@keyframes finalCardGlow {
+  0% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    box-shadow: 0 8px 24px var(--accent-glow), 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.spinner-card-image {
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-bg);
+  position: relative;
+  margin-bottom: 8px;
+  border: 1px solid var(--card-border);
+}
+
+.spinner-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spinner-card-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  opacity: 0.6;
+  border: 2px dashed var(--card-border);
+}
+
+.spinner-placeholder-stars {
+  font-size: 4rem;
+  opacity: 0.6;
+  text-shadow: 0 0 20px currentColor;
+}
+
+/* Rarity colors for placeholder stars */
+.spinner-placeholder-stars.rarity-2 {
+  color: #a8a29e;
+}
+
+.spinner-placeholder-stars.rarity-3 {
+  color: #3b82f6;
+}
+
+.spinner-placeholder-stars.rarity-4 {
+  color: #a855f7;
+}
+
+.spinner-placeholder-stars.rarity-5 {
+  color: #f59e0b;
+}
+
+.spinner-card-stars.rarity-2 {
+  color: #a8a29e;
+}
+
+.spinner-card-stars.rarity-3 {
+  color: #3b82f6;
+}
+
+.spinner-card-stars.rarity-4 {
+  color: #a855f7;
+}
+
+.spinner-card-stars.rarity-5 {
+  color: #f59e0b;
+}
+
+.spinner-card-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spinner-card-anime {
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.spinner-card-stars {
+  font-size: 1.1rem;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.gacha-spinner-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 280px;
+  background: linear-gradient(to bottom, 
+    transparent 0%, 
+    var(--accent) 20%, 
+    var(--accent) 80%, 
+    transparent 100%
+  );
+  box-shadow: 
+    0 0 20px var(--accent-glow), 
+    0 0 40px var(--accent-glow),
+    inset 0 0 20px var(--accent-glow);
+  z-index: 10;
+  pointer-events: none;
+  animation: indicatorPulse 1.5s ease-in-out infinite;
+}
+
+.gacha-spinner-indicator::before,
+.gacha-spinner-indicator::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+}
+
+.gacha-spinner-indicator::before {
+  top: -8px;
+  border-bottom: 12px solid var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+.gacha-spinner-indicator::after {
+  bottom: -8px;
+  border-top: 12px solid var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+@keyframes indicatorPulse {
+  0%, 100% {
+    opacity: 0.8;
+    box-shadow: 
+      0 0 20px var(--accent-glow), 
+      0 0 40px var(--accent-glow),
+      inset 0 0 20px var(--accent-glow);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 
+      0 0 30px var(--accent-glow), 
+      0 0 60px var(--accent-glow),
+      inset 0 0 30px var(--accent-glow);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   RARITY REVEAL ANIMATION (Pre-flip glow)
+   Shows the rarity tier before revealing the actual card
+   ------------------------------------------------------------------- */
+@keyframes rarityReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.rarity-reveal-splash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+  font-weight: bold;
+  z-index: 100;
+  animation: rarityReveal 1.5s ease-out;
+  pointer-events: none;
+}
+
+.rarity-reveal-splash.rarity-2 {
+  color: #a8a29e;
+  text-shadow: 0 0 20px rgba(168, 162, 158, 0.8);
+}
+
+.rarity-reveal-splash.rarity-3 {
+  color: #3b82f6;
+  text-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+}
+
+.rarity-reveal-splash.rarity-4 {
+  color: #a855f7;
+  text-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
+}
+
+.rarity-reveal-splash.rarity-5 {
+  color: #f59e0b;
+  text-shadow: 0 0 50px rgba(245, 158, 11, 1);
+}
+
+.rarity-reveal-splash.rarity-prismatic {
+  background: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 60px rgba(244, 63, 94, 0.8));
+}
+
+/* ------------------------------------------------------------------- 
+   CARD FLIP ANIMATION
+   3D flip reveal after rarity splash
+   ------------------------------------------------------------------- */
+@keyframes cardFlip {
+  0% {
+    transform: rotateY(0deg) scale(1);
+  }
+  50% {
+    transform: rotateY(90deg) scale(1.1);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+.card-flip-container {
+  animation: cardFlip 1s ease-in-out;
+  transform-style: preserve-3d;
+}
+
+/* ------------------------------------------------------------------- 
+   SCREEN SHAKE (For high rarity pulls)
+   ------------------------------------------------------------------- */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-5px, 5px); }
+  20%, 40%, 60%, 80% { transform: translate(5px, -5px); }
+}
+
+.screen-shake {
+  animation: screenShake 0.5s ease-in-out;
+}
+
+/* ------------------------------------------------------------------- 
+   RAINBOW FLASH (For Prismatic pulls)
+   ------------------------------------------------------------------- */
+@keyframes rainbowFlash {
+  0%, 100% { 
+    background: rgba(244, 63, 94, 0.3);
+  }
+  20% { 
+    background: rgba(234, 179, 8, 0.3);
+  }
+  40% { 
+    background: rgba(132, 204, 22, 0.3);
+  }
+  60% { 
+    background: rgba(34, 211, 238, 0.3);
+  }
+  80% { 
+    background: rgba(139, 92, 246, 0.3);
+  }
+}
+
+.rainbow-flash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: rainbowFlash 1s ease-in-out;
+}
+
+/* ------------------------------------------------------------------- 
+   RADIAL BURST (Energy wave effect)
+   ------------------------------------------------------------------- */
+@keyframes radialBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+  }
+}
+
+.radial-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 3px solid;
+  animation: radialBurst 1s ease-out;
+  pointer-events: none;
+}
+
+.radial-burst.rarity-3 { border-color: #3b82f6; }
+.radial-burst.rarity-4 { border-color: #a855f7; }
+.radial-burst.rarity-5 { border-color: #f59e0b; }
+.radial-burst.rarity-prismatic { 
+  border-image: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6) 1;
+}
+
+/* ------------------------------------------------------------------- 
+   SPARKLE PARTICLES
+   Small twinkling stars around high-rarity cards
+   ------------------------------------------------------------------- */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.sparkle-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkle 1.5s ease-in-out infinite;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ------------------------------------------------------------------- 
+   HOLOGRAPHIC CARD EFFECT
+   Foil/holographic shimmer on high rarity cards
+   ------------------------------------------------------------------- */
+@keyframes holoShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gacha-card.holographic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.3) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 200%;
+  animation: holoShift 3s linear infinite;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gacha-card.holographic:hover::before {
+  opacity: 1;
+}
+
+/* Only apply to 4-star and above */
+.rarity-4.holographic::before,
+.rarity-5.holographic::before,
+.rarity-prismatic.holographic::before {
+  display: block;
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED GLOW PULSES (More dramatic)
+   ------------------------------------------------------------------- */
+@keyframes epicGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5),
+                0 0 20px rgba(168, 85, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.8),
+                0 0 40px rgba(168, 85, 247, 0.5),
+                inset 0 0 15px rgba(168, 85, 247, 0.2);
+  }
+}
+
+@keyframes legendaryGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.6),
+                0 0 30px rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(245, 158, 11, 1),
+                0 0 60px rgba(245, 158, 11, 0.7),
+                inset 0 0 20px rgba(245, 158, 11, 0.3);
+  }
+}
+
+@keyframes prismaticGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px #f43f5e,
+                0 0 10px rgba(255, 255, 255, 0.5);
+  }
+  25% {
+    box-shadow: 0 0 30px #eab308,
+                0 0 15px rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 35px #22d3ee,
+                0 0 20px rgba(255, 255, 255, 0.9);
+  }
+  75% {
+    box-shadow: 0 0 30px #8b5cf6,
+                0 0 15px rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* Apply enhanced glows */
+.rarity-4 { animation: epicGlow 3s infinite alternate; }
+.rarity-5 { animation: legendaryGlow 2s infinite alternate; }
+.rarity-prismatic { animation: prismaticGlow 2s infinite; }
+
+/* ------------------------------------------------------------------- 
+   CONFETTI PARTICLES (For Prismatic pulls)
+   ------------------------------------------------------------------- */
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti-particle {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  z-index: 9998;
+  animation: confettiFall 3s ease-in forwards;
+}
+
+/* ------------------------------------------------------------------- 
+   CARD ENTRANCE ANIMATIONS (For collection display)
+   ------------------------------------------------------------------- */
+@keyframes cardPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.gacha-card.animate-pop-in {
+  animation: cardPopIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Stagger animation for grid */
+#gacha-collection-display .gacha-card {
+  animation: cardPopIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  animation-fill-mode: backwards;
+}
+
+#gacha-collection-display .gacha-card:nth-child(1) { animation-delay: 0.05s; }
+#gacha-collection-display .gacha-card:nth-child(2) { animation-delay: 0.1s; }
+#gacha-collection-display .gacha-card:nth-child(3) { animation-delay: 0.15s; }
+#gacha-collection-display .gacha-card:nth-child(4) { animation-delay: 0.2s; }
+#gacha-collection-display .gacha-card:nth-child(5) { animation-delay: 0.25s; }
+#gacha-collection-display .gacha-card:nth-child(6) { animation-delay: 0.3s; }
+#gacha-collection-display .gacha-card:nth-child(7) { animation-delay: 0.35s; }
+#gacha-collection-display .gacha-card:nth-child(8) { animation-delay: 0.4s; }
+
+/* ------------------------------------------------------------------- 
+   HOVER ENHANCEMENTS
+   ------------------------------------------------------------------- */
+.gacha-card {
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.gacha-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  z-index: 10;
+}
+
+/* Rarity-specific hover glows */
+.rarity-3:hover {
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+}
+
+.rarity-4:hover {
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.6);
+}
+
+.rarity-5:hover {
+  box-shadow: 0 12px 35px rgba(245, 158, 11, 0.7);
+}
+
+.rarity-prismatic:hover {
+  box-shadow: 0 15px 40px rgba(244, 63, 94, 0.8),
+              0 0 20px rgba(34, 211, 238, 0.6);
+}
+
+/* ------------------------------------------------------------------- 
+   PULSE RING (For duplicate cards)
+   ------------------------------------------------------------------- */
+@keyframes pulseRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.duplicate-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  border: 3px solid #eab308;
+  border-radius: 50%;
+  animation: pulseRing 1s ease-out;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------- 
+   LOADING SHIMMER (For cards loading in)
+   ------------------------------------------------------------------- */
+@keyframes cardShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.gacha-card.loading {
+  background: linear-gradient(
+    90deg,
+    var(--card-bg) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    var(--card-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: cardShimmer 1.5s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------- 
+   RESPONSIVE ADJUSTMENTS
+   ------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .rarity-reveal-splash {
+    font-size: 3rem;
+  }
+  
+  .radial-burst {
+    width: 150px;
+    height: 150px;
+  }
+  
+  @keyframes screenShake {
+    0%, 100% { transform: translate(0, 0); }
+    10%, 30%, 50%, 70%, 90% { transform: translate(-3px, 3px); }
+    20%, 40%, 60%, 80% { transform: translate(3px, -3px); }
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ACCESSIBILITY - Reduced Motion
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .card-flip-container,
+  .screen-shake,
+  .gacha-card,
+  .confetti-particle,
+  .sparkle-particle,
+  .radial-burst,
+  .rarity-reveal-splash,
+  .rainbow-flash-overlay {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .gacha-card:hover {
+    transform: none;
+  }
+}

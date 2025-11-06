@@ -1,0 +1,1138 @@
+/* ===================================================================
+   GACHA FEATURE - ENHANCED WITH FILTERS & SORTING
+   Character cards, rarity styles, shop interface, and filter controls
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   GACHA CARD BASE
+   ------------------------------------------------------------------- */
+.gacha-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid transparent;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Guarantee Badge */
+.guarantee-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  z-index: 10;
+  animation: pulse-badge 1.5s ease-in-out infinite;
+}
+
+.gacha-pack {
+  position: relative;
+}
+
+.gacha-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Theme variations */
+body.theme-sakura .gacha-card { 
+  background: #fff5f7; 
+}
+
+body.theme-sky .gacha-card { 
+  background: #f0f9ff; 
+}
+
+body.theme-neon .gacha-card { 
+  background: rgba(20, 15, 45, 0.8); 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6),
+              0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   CARD IMAGE - IMPROVED
+   ------------------------------------------------------------------- */
+.card-image-container {
+  height: 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  position: relative;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 🆕 Duplicate Badge */
+.duplicate-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(234, 179, 8, 0.95);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.4);
+  z-index: 10;
+}
+
+/* 🆕 New Badge (10-Pull) */
+.new-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(34, 197, 94, 0.95);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+  z-index: 10;
+  animation: pulse-badge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.6);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   CARD TEXT
+   ------------------------------------------------------------------- */
+.card-name {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-anime {
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.theme-neon .card-name,
+body.theme-neon .card-anime { 
+  color: #e2e8f0; 
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   CARD STARS (Rarity indicator)
+   ------------------------------------------------------------------- */
+.card-stars {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 4px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   RARITY STYLES
+   ------------------------------------------------------------------- */
+
+/* 1-Star (Bronze) */
+.rarity-1 { 
+  border-color: #a97142; 
+}
+
+.rarity-1 .card-stars { 
+  color: #a97142; 
+}
+
+/* 2-Star (Silver) */
+.rarity-2 { 
+  border-color: #a8a29e; 
+}
+
+.rarity-2 .card-stars { 
+  color: #a8a29e; 
+}
+
+/* 3-Star (Blue) */
+.rarity-3 { 
+  border-color: #3b82f6; 
+  animation: blue-pulse 4s infinite alternate; 
+}
+
+.rarity-3 .card-stars { 
+  color: #3b82f6; 
+}
+
+@keyframes blue-pulse {
+  from { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
+  to { box-shadow: 0 0 12px rgba(59, 130, 246, 0.8); }
+}
+
+/* 4-Star (Purple) */
+.rarity-4 { 
+  border-color: #a855f7; 
+  animation: purple-pulse 3s infinite alternate; 
+}
+
+.rarity-4 .card-stars { 
+  color: #a855f7; 
+}
+
+@keyframes purple-pulse {
+  from { box-shadow: 0 0 6px rgba(168, 85, 247, 0.5); }
+  to { box-shadow: 0 0 15px rgba(168, 85, 247, 0.9); }
+}
+
+/* 5-Star (Gold) */
+.rarity-5 { 
+  border-color: #f59e0b; 
+  animation: gold-pulse 2s infinite alternate; 
+}
+
+.rarity-5 .card-stars { 
+  color: #f59e0b; 
+}
+
+@keyframes gold-pulse {
+  from { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+  to { box-shadow: 0 0 20px rgba(245, 158, 11, 1); }
+}
+
+/* ------------------------------------------------------------------- 
+   PRISMATIC RARITY (Special/Rainbow)
+   ------------------------------------------------------------------- */
+.rarity-prismatic {
+  position: relative;
+  overflow: hidden;
+  border-width: 4px;
+  border-image: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6, #f43f5e) 1;
+  animation: prismatic-glow 2s infinite alternate;
+}
+
+.rarity-prismatic .card-stars {
+  font-size: 1.5rem;
+  background: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes prismatic-glow {
+  from { box-shadow: 0 0 15px #f43f5e, 0 0 5px #fff; }
+  to { box-shadow: 0 0 25px #22d3ee, 0 0 10px #fff; }
+}
+
+/* ------------------------------------------------------------------- 
+   🆕 COLLECTION STATS BAR
+   ------------------------------------------------------------------- */
+.gacha-stats-container {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+.gacha-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.stat-item {
+  color: var(--text-secondary);
+}
+
+.stat-separator {
+  color: var(--text-muted);
+}
+
+.stat-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stat-badge.prismatic {
+  background: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6);
+  color: white;
+}
+
+.stat-badge.legendary {
+  background: #f59e0b;
+  color: white;
+}
+
+.stat-badge.epic {
+  background: #a855f7;
+  color: white;
+}
+
+.stat-badge.rare {
+  background: #3b82f6;
+  color: white;
+}
+
+.stat-badge.common {
+  background: #a8a29e;
+  color: white;
+}
+
+.filter-info {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+body.theme-neon .gacha-stats-container {
+  background: rgba(20, 15, 45, 0.85);
+  border-color: rgba(232, 121, 249, 0.4);
+  box-shadow: 0 0 15px rgba(232, 121, 249, 0.2);
+}
+
+body.theme-neon .stat-item,
+body.theme-neon .filter-info {
+  color: #e2e8f0;
+}
+
+/* ------------------------------------------------------------------- 
+   🆕 FILTER & SORT CONTROLS
+   ------------------------------------------------------------------- */
+.gacha-filter-controls {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.filter-section {
+  margin-bottom: 16px;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.search-input,
+.filter-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid var(--card-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: white;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.search-input {
+  padding: 10px 16px;
+  font-size: 1rem;
+}
+
+.search-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.clear-filters-btn {
+  padding: 10px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.clear-filters-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Theme variations for filters */
+body.theme-neon .gacha-filter-controls {
+  background: rgba(20, 15, 45, 0.85);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 15px rgba(232, 121, 249, 0.2);
+}
+
+body.theme-neon .filter-label {
+  color: #e2e8f0;
+}
+
+body.theme-neon .search-input,
+body.theme-neon .filter-select {
+  background: rgba(30, 20, 60, 0.8);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #e2e8f0;
+}
+
+body.theme-neon .search-input:focus,
+body.theme-neon .filter-select:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   🆕 RARITY FILTER CHECKBOXES
+   ------------------------------------------------------------------- */
+.rarity-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rarity-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.rarity-filter-label:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.rarity-filter-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #6366f1;
+}
+
+.rarity-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  user-select: none;
+}
+
+.rarity-label.prismatic {
+  background: linear-gradient(45deg, #f43f5e, #eab308, #84cc16, #22d3ee, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.rarity-label.legendary { color: #f59e0b; }
+.rarity-label.epic { color: #a855f7; }
+.rarity-label.rare { color: #3b82f6; }
+.rarity-label.common { color: #a8a29e; }
+
+body.theme-neon .rarity-filter-label:hover {
+  background: rgba(168, 85, 247, 0.1);
+}
+
+/* ------------------------------------------------------------------- 
+   🆕 BUTTON LOADING STATES
+   ------------------------------------------------------------------- */
+.btn-primary.loading,
+.buy-pack-btn.loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.btn-primary.loading .spinner,
+.buy-pack-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------------- 
+   GACHA SHOP PACKS
+   ------------------------------------------------------------------- */
+.gacha-pack {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  transition: all 0.3s ease;
+}
+
+.gacha-pack:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-neon .gacha-pack {
+  background: rgba(20, 15, 45, 0.85);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 15px rgba(232, 121, 249, 0.2);
+}
+
+body.theme-neon .gacha-pack:hover {
+  box-shadow: 0 0 25px rgba(232, 121, 249, 0.4);
+}
+
+/* ------------------------------------------------------------------- 
+   COLLECTION GRID - IMPROVED
+   ------------------------------------------------------------------- */
+#gacha-collection-display {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+@media (min-width: 640px) {
+  #gacha-collection-display {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  #gacha-collection-display {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+}
+
+/* Improved card name and anime text */
+.card-name {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
+  min-height: 2.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow: visible;
+}
+
+.card-anime {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--text-muted);
+  line-height: 1.2;
+  min-height: 1.6em;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow: visible;
+}
+
+.card-stars {
+  font-size: 1.1rem;
+  text-align: center;
+  margin-top: 6px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  min-height: 1.5em;
+}
+
+/* ------------------------------------------------------------------- 
+   RESULT DISPLAY AREA - IMPROVED
+   ------------------------------------------------------------------- */
+#gacha-result-display {
+  position: relative;
+  min-height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#gacha-result-display .gacha-card {
+  max-width: 280px;
+  margin: 0 auto;
+  animation: cardPopIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+#gacha-result-display.empty-state {
+  background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 255, 255, 0.5) 100%);
+}
+
+#gacha-result-display.empty-state .text-center {
+  padding: 2rem;
+}
+
+/* ------------------------------------------------------------------- 
+   SHOP SECTION - IMPROVED
+   ------------------------------------------------------------------- */
+.gacha-pack {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.gacha-pack::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.gacha-pack:hover::before {
+  transform: scaleX(1);
+}
+
+.gacha-pack-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.gacha-pack-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.buy-pack-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px var(--accent-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.buy-pack-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--accent-shadow);
+  background: linear-gradient(135deg, var(--accent-hover), var(--accent));
+}
+
+.buy-pack-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------- 
+   RESPONSIVE DESIGN
+   ------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    min-width: 100%;
+  }
+  
+  .clear-filters-btn {
+    width: 100%;
+  }
+  
+  .gacha-stats-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .stat-separator {
+    display: none;
+  }
+  
+  .rarity-filter-group {
+    flex-direction: column;
+  }
+  
+  .rarity-filter-label {
+    width: 100%;
+  }
+}
+
+/* ===================================================================
+   COLLECTION STATISTICS DASHBOARD (Feature 19)
+   =================================================================== */
+
+.collection-dashboard {
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-toggle-btn {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid var(--card-border);
+  background: var(--card-bg);
+}
+
+.dashboard-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.dashboard-content {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  animation: slideDown 0.3s ease-out;
+}
+
+.dashboard-content.hidden {
+  display: none;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.dashboard-icon {
+  font-size: 1.5rem;
+}
+
+.dashboard-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dashboard-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Rarity Distribution */
+.rarity-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rarity-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rarity-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.rarity-name {
+  font-weight: 600;
+}
+
+.rarity-name.prismatic {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+.rarity-name.legendary {
+  color: #f59e0b;
+}
+
+.rarity-name.epic {
+  color: #a855f7;
+}
+
+.rarity-name.rare {
+  color: #3b82f6;
+}
+
+.rarity-name.common {
+  color: #6b7280;
+}
+
+.rarity-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.rarity-bar {
+  width: 100%;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rarity-bar-fill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease-out;
+  position: relative;
+}
+
+.rarity-bar-fill.prismatic {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.rarity-bar-fill.legendary {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.rarity-bar-fill.epic {
+  background: linear-gradient(90deg, #a855f7, #9333ea);
+}
+
+.rarity-bar-fill.rare {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.rarity-bar-fill.common {
+  background: linear-gradient(90deg, #6b7280, #4b5563);
+}
+
+/* Top Anime List */
+.top-anime-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.top-anime-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  transition: background 0.2s ease;
+}
+
+.top-anime-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.top-anime-rank {
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 24px;
+  font-size: 0.875rem;
+}
+
+.top-anime-name {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-anime-count {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 0.25rem 0.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+}
+
+/* Theme-specific styles */
+body.theme-sakura .dashboard-card {
+  background: rgba(255, 245, 247, 0.8);
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+body.theme-sky .dashboard-card {
+  background: rgba(240, 249, 255, 0.8);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+body.theme-neon .dashboard-card {
+  background: rgba(20, 15, 45, 0.6);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4),
+              0 0 8px rgba(168, 85, 247, 0.2);
+}
+
+body.theme-neon .dashboard-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5),
+              0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-card {
+    padding: 1rem;
+  }
+  
+  .dashboard-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ===================================================================
+   SHARD EXCHANGE & DIRECT PURCHASE (Features 6 & 7)
+   =================================================================== */
+
+/* Shop Tabs */
+.shop-tab-btn {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.shop-tab-btn.active {
+  border-bottom-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.shop-tab-content {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.shop-tab-content.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Direct Purchase Items */
+.cosmetic-direct-item {
+  transition: all 0.3s ease;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+}
+
+.cosmetic-direct-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.buy-cosmetic-btn {
+  transition: all 0.2s ease;
+}
+
+.buy-cosmetic-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.buy-cosmetic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Filter Select */
+.filter-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-select:hover {
+  border-color: var(--input-focus-border);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+/* Theme-specific styles for shop tabs */
+body.theme-sakura .shop-tab-btn.active {
+  border-bottom-color: #ec4899;
+}
+
+body.theme-sky .shop-tab-btn.active {
+  border-bottom-color: #3b82f6;
+}
+
+body.theme-neon .shop-tab-btn.active {
+  border-bottom-color: #a855f7;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}

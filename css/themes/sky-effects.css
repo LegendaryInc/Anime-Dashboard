@@ -11,7 +11,7 @@
   background: rgba(255, 255, 255, 0.6);
   border-radius: 100px;
   opacity: 0.8;
-  animation: cloud-drift linear infinite;
+  animation: cloud-drift 30s linear infinite;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   width: 200px;
   height: 60px;
@@ -84,6 +84,20 @@
   opacity: 0.7;
 }
 
+.cloud:nth-child(4) {
+  width: 200px;
+  height: 55px;
+  animation-duration: 45s;
+  opacity: 0.65;
+}
+
+.cloud:nth-child(5) {
+  width: 140px;
+  height: 40px;
+  animation-duration: 55s;
+  opacity: 0.75;
+}
+
 /* ------------------------------------------------------------------- 
    SKY THEME SPECIFIC STYLING
    ------------------------------------------------------------------- */
@@ -98,11 +112,40 @@ body.theme-sky .cloud::after {
 }
 
 /* ------------------------------------------------------------------- 
+   SKY THEME ENHANCED EFFECTS
+   Subtle sky blue glows and depth
+   ------------------------------------------------------------------- */
+body.theme-sky .card,
+body.theme-sky .stat-card,
+body.theme-sky .watch-card {
+  position: relative;
+}
+
+body.theme-sky .card:hover,
+body.theme-sky .stat-card:hover,
+body.theme-sky .watch-card:hover {
+  box-shadow: 0 12px 24px rgba(14, 165, 233, 0.2),
+              0 0 0 1px rgba(14, 165, 233, 0.3);
+}
+
+body.theme-sky .btn-primary:hover {
+  box-shadow: 0 14px 28px rgba(14, 165, 233, 0.35),
+              0 0 0 1px rgba(14, 165, 233, 0.2);
+}
+
+/* Sky theme border glow on focus */
+body.theme-sky .filter-select:focus,
+body.theme-sky #search-bar:focus {
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2),
+              0 0 12px rgba(14, 165, 233, 0.15);
+}
+
+/* ------------------------------------------------------------------- 
    MOBILE OPTIMIZATION
    Reduce number of clouds on mobile
    ------------------------------------------------------------------- */
 @media (max-width: 540px) {
-  .cloud:nth-child(n+3) { 
+  .cloud:nth-child(n+4) { 
     display: none; 
   }
 }

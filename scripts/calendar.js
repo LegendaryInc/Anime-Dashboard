@@ -5,6 +5,7 @@
 // =====================================================================
 
 import { showToast } from './toast.js';
+import { observeNewImages } from './lazy-loading.js';
 
 let currentSeasonalData = null;
 let currentFilters = {
@@ -161,6 +162,9 @@ function renderSeasonalAnime(season, year, data) {
     
     calendarContent.appendChild(card);
   });
+  
+  // Initialize lazy loading for new images
+  observeNewImages(calendarContent);
 }
 
 /**

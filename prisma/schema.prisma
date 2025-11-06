@@ -1,31 +1,28 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // Loads the connection URL from your .env file
+  url      = env("DATABASE_URL")
 }
 
-// Define the User model
 model User {
-  id            Int     @id @default(autoincrement()) // Unique ID for each user in our database
-  anilistId     Int     @unique // The user's ID from AniList, must be unique
-  accessToken   String  // The access token from AniList OAuth
-  refreshToken String? // Optional: For refreshing tokens later (we might add this)
-  createdAt     DateTime @default(now()) // Timestamp when the user record was created
-  updatedAt     DateTime @updatedAt      // Timestamp when the record was last updated
+  id           Int         @id @default(autoincrement())
+  anilistId    Int         @unique
+  accessToken  String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  refreshToken String?
 }
-model Session {
-  sid    String   @id // Session ID (primary key)
-  sess   Json     // Session data stored as JSON
-  expire DateTime // Timestamp when the session expires
 
-  @@index([expire]) // Add an index to the expire column for performance
+model Session {
+  sid    String   @id @db.VarChar(255)
+  sess   Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("user_sessions")
 }
+
+// Gacha models removed - backed up to gacha-backup/

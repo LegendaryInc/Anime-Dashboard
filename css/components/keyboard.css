@@ -1,0 +1,146 @@
+/* ===================================================================
+   KEYBOARD SHORTCUTS HELP MODAL
+   Styles for the keyboard shortcuts help modal
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   SHORTCUTS HELP MODAL
+   ------------------------------------------------------------------- */
+.shortcuts-help {
+  padding: 8px;
+}
+
+.shortcut-section {
+  margin-bottom: 24px;
+}
+
+.shortcut-section:last-child {
+  margin-bottom: 0;
+}
+
+.shortcut-section h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.shortcut-item:hover {
+  background: var(--hover-bg);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.shortcut-item kbd {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+  min-width: 80px;
+  text-align: center;
+  display: inline-block;
+}
+
+.shortcut-item span {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  flex: 1;
+  margin-left: 16px;
+}
+
+.shortcut-note {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border-left: 4px solid var(--accent);
+}
+
+.shortcut-note p {
+  margin: 8px 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.shortcut-note kbd {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------------------------- 
+   THEME VARIATIONS
+   ------------------------------------------------------------------- */
+body.theme-neon .shortcut-item {
+  background: rgba(10, 5, 30, 0.6);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+body.theme-neon .shortcut-item:hover {
+  background: rgba(20, 10, 50, 0.8);
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+body.theme-neon .shortcut-item kbd {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #c4b5fd;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.2);
+}
+
+body.theme-neon .shortcut-note {
+  background: rgba(10, 5, 30, 0.6);
+  border-left-color: #a855f7;
+}
+
+/* ------------------------------------------------------------------- 
+   MOBILE RESPONSIVENESS
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .shortcut-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .shortcut-item kbd {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .shortcut-item span {
+    margin-left: 0;
+  }
+}
+

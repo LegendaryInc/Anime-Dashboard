@@ -1,0 +1,5 @@
+# Plain URLs - one per line
+# The tool will try to extract anime/character from URL, but you may need to edit the JSON
+https://example.com/images/demon-slayer/nezuko-kamado/image1.jpg
+https://example.com/images/spy-x-family/yor-forger/image2.jpg
+https://example.com/images/one-piece/nami/image3.jpg

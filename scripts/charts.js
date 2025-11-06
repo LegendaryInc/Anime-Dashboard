@@ -4,6 +4,14 @@
 // Handles the rendering and updating of all Chart.js instances.
 // =====================================================================
 
+// Chart.js is loaded from CDN in index.html (no bundler needed)
+// Chart is available globally as window.Chart
+const Chart = window.Chart || window.Chartjs;
+
+if (!Chart) {
+  console.error('❌ Chart.js not loaded! Make sure the CDN script is in index.html');
+}
+
 /**
  * Renders all charts on the Visualizations tab
  * @param {object} stats - The calculated statistics object.

@@ -42,12 +42,13 @@ body.theme-neon .anime-card:hover {
    ------------------------------------------------------------------- */
 .stat-card {
   border-radius: 16px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 16px var(--card-shadow);
+  transition: all 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+  box-shadow: 0 12px 24px var(--card-hover-shadow);
 }
 
 .stat-card h3 { 
@@ -90,13 +91,13 @@ body.theme-neon .stat-card:hover {
   border-radius: 14px;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 16px var(--card-shadow);
   transition: all 0.2s ease;
 }
 
 .watch-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 12px 20px var(--card-hover-shadow);
 }
 
 /* Neon theme watch cards - Transparent glass with gradient accent */
@@ -295,13 +296,13 @@ body.theme-neon .calendar-genres {
   background: var(--card-bg);
   border-radius: 14px;
   padding: 14px 16px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 20px var(--card-shadow);
   transition: all 0.2s ease;
 }
 
 .rec-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+  box-shadow: 0 12px 24px var(--card-hover-shadow);
 }
 
 body.theme-neon .rec-item {

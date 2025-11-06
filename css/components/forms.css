@@ -8,8 +8,8 @@
    ------------------------------------------------------------------- */
 .filter-select,
 #search-bar {
-  background: white;
-  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 8px 12px;
   color: var(--text-primary);
@@ -22,8 +22,8 @@
 .filter-select:focus,
 #search-bar:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-shadow);
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 
 /* -------------------------------------------------------------------
@@ -136,8 +136,8 @@ body.theme-neon .calendar-filter-select option {
 body.theme-sakura .filter-select,
 body.theme-sakura #search-bar,
 body.theme-sakura .calendar-filter-select {
-  background-color: #fff5f7;
-  border-color: rgba(236, 72, 153, 0.3);
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
 }
 
 /* Ensure single background image for Sakura theme */
@@ -152,8 +152,8 @@ body.theme-sakura .calendar-filter-select {
 body.theme-sky .filter-select,
 body.theme-sky #search-bar,
 body.theme-sky .calendar-filter-select {
-  background-color: #f0f9ff;
-  border-color: rgba(14, 165, 233, 0.3);
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
 }
 
 /* Ensure single background image for Sky theme */
@@ -254,5 +254,3 @@ body.theme-neon #settings-modal-content label {
   color: transparent;
   text-shadow: 0 0 0 var(--text-primary);
 }
-
-.calendar-filter
