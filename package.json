@@ -8,7 +8,7 @@
     "dev:vite": "vite",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:vite\" --names \"express,vite\" --prefix-colors \"cyan,magenta\"",
     "prebuild": "node scripts/generate-config.js",
-    "build": "npx vite build",
+    "build": "node node_modules/.bin/vite build || npx vite build",
     "postbuild": "node scripts/generate-config.js",
     "preview": "vite preview",
     "postinstall": "node -e \"if (process.env.VERCEL !== '1') { require('child_process').execSync('npm run prisma:generate', {stdio: 'inherit'}); }\"",
