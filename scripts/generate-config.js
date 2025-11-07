@@ -24,6 +24,14 @@ const config = `window.CONFIG = {
 };`;
 
 const configPath = path.join(__dirname, '..', 'public', 'config.js');
+const publicDir = path.dirname(configPath);
+
+// Ensure public directory exists
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+  console.log('📁 Created public directory');
+}
+
 fs.writeFileSync(configPath, config);
 console.log('✅ Generated config.js with API_BASE:', API_BASE);
 
