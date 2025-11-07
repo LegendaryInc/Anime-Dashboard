@@ -4,6 +4,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Wrap everything in try-catch to catch any errors
+try {
+
 // Get API base URL from environment variable
 const API_BASE = process.env.API_BASE || process.env.VITE_API_BASE || 'http://localhost:3000';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
@@ -141,5 +144,11 @@ if (fs.existsSync(distDir)) {
   }
 } else {
   console.warn('⚠️  dist directory does not exist:', distDir);
+}
+
+} catch (error) {
+  console.error('❌ Error in generate-config.js:', error);
+  console.error('❌ Error stack:', error.stack);
+  process.exit(1);
 }
 
