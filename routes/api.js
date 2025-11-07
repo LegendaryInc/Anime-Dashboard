@@ -1321,6 +1321,94 @@ router.delete('/goals/:id', async (req, res) => {
   }
 });
 
+// Search anime on AniList
+router.get('/search-anime', async (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+
+    const accessToken = req.session.auth?.accessToken;
+    if (!accessToken || req.session.auth?.service !== 'anilist') {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const searchQuery = `
+      query ($search: String, $page: Int, $perPage: Int) {
+        Page(page: $page, perPage: $perPage) {
+          media(search: $search, type: ANIME, sort: SEARCH_MATCH) {
+            id
+            idMal
+            title {
+              romaji
+              english
+              native
+            }
+            format
+            episodes
+            status
+            coverImage {
+              extraLarge
+              large
+              medium
+            }
+            genres
+            studios(isMain: true) {
+              nodes {
+                name
+              }
+            }
+            averageScore
+          }
+        }
+      }
+    `;
+
+    const response = await axios.post(
+      'https://graphql.anilist.co',
+      {
+        query: searchQuery,
+        variables: {
+          search: query.trim(),
+          page: 1,
+          perPage: 20
+        }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const results = response.data?.data?.Page?.media || [];
+    
+    // Transform results to match our anime data format
+    const formattedResults = results.map(media => ({
+      id: media.id,
+      idMal: media.idMal,
+      title: media.title.english || media.title.romaji,
+      _romaji: media.title.romaji,
+      _english: media.title.english,
+      format: media.format,
+      episodes: media.episodes,
+      status: media.status,
+      coverImage: media.coverImage?.extraLarge || media.coverImage?.large || media.coverImage?.medium,
+      genres: media.genres || [],
+      studio: media.studios?.nodes?.[0]?.name || null,
+      averageScore: media.averageScore
+    }));
+
+    res.json(formattedResults);
+  } catch (error) {
+    console.error('Error searching anime:', error);
+    res.status(500).json({ error: 'Failed to search anime' });
+  }
+});
+
 // Catch-all for unmatched routes
 router.use((req, res) => {
   res.status(404).json({ error: 'Route not found', path: req.path, method: req.method });

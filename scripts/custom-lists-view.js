@@ -195,12 +195,26 @@ export async function viewList(listId) {
     </div>
   `;
 
+  // Add "Add Anime" button
+  html += `
+    <div class="mb-4">
+      <button id="add-anime-to-list-btn" data-list-id="${listData.id}" 
+              class="btn-primary py-2 px-4 rounded-lg font-semibold">
+        ➕ Add Anime to List
+      </button>
+    </div>
+  `;
+
   if (animeInList.length === 0) {
     html += `
       <div class="text-center py-12 anime-card rounded-lg">
         <div class="text-6xl mb-4">📭</div>
         <h3 class="text-xl font-bold theme-text-primary mb-2">This list is empty</h3>
-        <p class="theme-text-secondary">Add anime to this list to get started!</p>
+        <p class="theme-text-secondary mb-4">Add anime to this list to get started!</p>
+        <button id="add-anime-to-list-btn-empty" data-list-id="${listData.id}" 
+                class="btn-primary py-2 px-4 rounded-lg font-semibold">
+          ➕ Add Anime to List
+        </button>
       </div>
     `;
   } else {
@@ -244,6 +258,15 @@ export async function viewList(listId) {
       renderCustomLists();
     });
   }
+
+  // Add anime button handlers
+  const addBtns = document.querySelectorAll('[id^="add-anime-to-list-btn"]');
+  addBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const listId = parseInt(btn.dataset.listId);
+      showAddAnimeModal(listId);
+    });
+  });
 }
 
 /**
@@ -1080,6 +1103,467 @@ async function updateAllAddToListButtons() {
       }
     }
   });
+}
+
+/**
+ * Show modal to add anime to a list (search or browse)
+ */
+function showAddAnimeModal(listId) {
+  // Check if modal already exists
+  const existingModal = document.querySelector('.add-anime-to-list-modal');
+  if (existingModal) {
+    return;
+  }
+
+  const list = getCustomLists().find(l => l.id === listId);
+  if (!list) return;
+
+  let searchTimeout = null;
+  let currentTab = 'search'; // 'search' or 'my-list'
+  let searchResults = [];
+  let selectedAnimeIds = new Set();
+
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 add-anime-to-list-modal';
+  modal.innerHTML = `
+    <div class="anime-card rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" style="background: var(--theme-bg, #ffffff);">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold" style="color: var(--theme-text-primary, #111827);">
+          Add Anime to "${escapeHtml(list.name)}"
+        </h3>
+        <button id="close-add-anime-modal" class="text-2xl leading-none" style="color: var(--theme-text-secondary, #6b7280);">&times;</button>
+      </div>
+      
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-4 border-b" style="border-color: var(--theme-border, #e5e7eb);">
+        <button class="tab-btn py-2 px-4 font-semibold transition-colors ${currentTab === 'search' ? 'border-b-2' : ''}" 
+                data-tab="search" 
+                style="color: var(--theme-text-primary, #111827); ${currentTab === 'search' ? 'border-color: var(--theme-primary, #6366f1);' : ''}">
+          🔍 Search Any Anime
+        </button>
+        <button class="tab-btn py-2 px-4 font-semibold transition-colors ${currentTab === 'my-list' ? 'border-b-2' : ''}" 
+                data-tab="my-list"
+                style="color: var(--theme-text-primary, #111827); ${currentTab === 'my-list' ? 'border-color: var(--theme-primary, #6366f1);' : ''}">
+          📋 From My List
+        </button>
+      </div>
+
+      <!-- Search Tab -->
+      <div id="search-tab-content" class="flex-1 overflow-hidden flex flex-col ${currentTab === 'search' ? '' : 'hidden'}">
+        <div class="mb-4">
+          <input type="text" id="anime-search-input" 
+                 class="w-full px-4 py-2 border rounded-lg"
+                 style="background: var(--theme-bg, #ffffff); color: var(--theme-text-primary, #111827); border-color: var(--theme-border, #e5e7eb);"
+                 placeholder="Search for any anime on AniList... (e.g., 'Naruto', 'Attack on Titan')" />
+        </div>
+        <div id="search-results-container" class="flex-1 overflow-y-auto">
+          <div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">
+            <p>Enter a search term to find anime</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- My List Tab -->
+      <div id="my-list-tab-content" class="flex-1 overflow-hidden flex flex-col ${currentTab === 'my-list' ? '' : 'hidden'}">
+        <div class="mb-4">
+          <input type="text" id="my-list-filter-input" 
+                 class="w-full px-4 py-2 border rounded-lg"
+                 style="background: var(--theme-bg, #ffffff); color: var(--theme-text-primary, #111827); border-color: var(--theme-border, #e5e7eb);"
+                 placeholder="Filter your anime list..." />
+        </div>
+        <div id="my-list-results-container" class="flex-1 overflow-y-auto">
+          <div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">
+            <p>Loading your anime list...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected count and Add button -->
+      <div class="flex items-center justify-between mt-4 pt-4 border-t" style="border-color: var(--theme-border, #e5e7eb);">
+        <div style="color: var(--theme-text-secondary, #6b7280);">
+          <span id="selected-count">0</span> anime selected
+        </div>
+        <div class="flex gap-3">
+          <button id="cancel-add-anime" class="btn-secondary py-2 px-4 rounded-lg">
+            Cancel
+          </button>
+          <button id="add-selected-anime" class="btn-primary py-2 px-4 rounded-lg font-semibold" disabled>
+            Add Selected
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Tab switching
+  const tabButtons = modal.querySelectorAll('[data-tab]');
+  const searchTabContent = modal.querySelector('#search-tab-content');
+  const myListTabContent = modal.querySelector('#my-list-tab-content');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      currentTab = tab;
+      
+      // Update tab buttons
+      tabButtons.forEach(b => {
+        b.classList.toggle('border-b-2', b.dataset.tab === tab);
+      });
+      
+      // Show/hide content
+      searchTabContent.classList.toggle('hidden', tab !== 'search');
+      myListTabContent.classList.toggle('hidden', tab !== 'my-list');
+      
+      // Load my list if switching to that tab
+      if (tab === 'my-list') {
+        renderMyListAnime(listId);
+      }
+    });
+  });
+
+  // Search functionality
+  const searchInput = modal.querySelector('#anime-search-input');
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    
+    clearTimeout(searchTimeout);
+    
+    if (query.length < 2) {
+      modal.querySelector('#search-results-container').innerHTML = `
+        <div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">
+          <p>Enter at least 2 characters to search</p>
+        </div>
+      `;
+      return;
+    }
+
+    searchTimeout = setTimeout(async () => {
+      await performAnimeSearch(query, listId);
+    }, 500);
+  });
+
+  // My list filter
+  const filterInput = modal.querySelector('#my-list-filter-input');
+  filterInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    filterMyListAnime(query, listId);
+  });
+
+  // Add selected button
+  const addSelectedBtn = modal.querySelector('#add-selected-anime');
+  addSelectedBtn.addEventListener('click', async () => {
+    if (selectedAnimeIds.size === 0) return;
+    
+    const restoreBtn = showButtonLoading(addSelectedBtn, 'Adding...');
+    
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (const animeId of selectedAnimeIds) {
+        try {
+          const result = await addAnimeToList(listId, animeId);
+          if (result.success) {
+            successCount++;
+          }
+        } catch (error) {
+          errorCount++;
+        }
+      }
+      
+      if (modal.parentNode) {
+        document.body.removeChild(modal);
+      }
+      
+      // Refresh the list view
+      await viewList(listId);
+      
+      const { showToast } = await import('./toast.js');
+      if (successCount > 0) {
+        showToast(`Added ${successCount} anime to list!`, 'success');
+      }
+      if (errorCount > 0) {
+        showToast(`${errorCount} anime could not be added`, 'error');
+      }
+    } catch (error) {
+      handleError(error, 'adding anime to list', { showToast: true });
+    } finally {
+      restoreBtn();
+    }
+  });
+
+  // Close handlers
+  modal.querySelector('#close-add-anime-modal').addEventListener('click', () => {
+    if (modal.parentNode) {
+      document.body.removeChild(modal);
+    }
+  });
+  
+  modal.querySelector('#cancel-add-anime').addEventListener('click', () => {
+    if (modal.parentNode) {
+      document.body.removeChild(modal);
+    }
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      if (modal.parentNode) {
+        document.body.removeChild(modal);
+      }
+    }
+  });
+
+  // Perform anime search
+  async function performAnimeSearch(query, listId) {
+    const container = modal.querySelector('#search-results-container');
+    container.innerHTML = '<div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">Searching...</div>';
+    
+    try {
+      const response = await fetch(`/api/search-anime?query=${encodeURIComponent(query)}`);
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+      
+      searchResults = await response.json();
+      renderSearchResults(searchResults, listId);
+    } catch (error) {
+      handleError(error, 'searching anime', { showToast: false });
+      container.innerHTML = `
+        <div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">
+          <p>Failed to search anime. Please try again.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Render search results
+  function renderSearchResults(results, listId) {
+    const container = modal.querySelector('#search-results-container');
+    const list = getCustomLists().find(l => l.id === listId);
+    const animeInList = new Set((list.entries || []).map(e => e.animeId));
+    
+    if (results.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">
+          <p>No anime found. Try a different search term.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">';
+    
+    results.forEach(anime => {
+      const title = anime.title || anime._romaji || anime._english || 'Unknown';
+      const isInList = animeInList.has(anime.id);
+      const isSelected = selectedAnimeIds.has(anime.id);
+      
+      html += `
+        <div class="anime-card rounded-lg p-4 cursor-pointer border-2 transition-all ${isSelected ? 'border-indigo-500' : 'border-transparent'} ${isInList ? 'opacity-60' : ''}" 
+             data-anime-id="${anime.id}"
+             style="background: var(--theme-bg-secondary, #f9fafb);">
+          <div class="flex items-start gap-3">
+            ${anime.coverImage ? `
+              <img src="${anime.coverImage}" alt="${escapeHtml(title)}" 
+                   class="w-16 h-24 object-cover rounded flex-shrink-0" />
+            ` : ''}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2 mb-1">
+                <h4 class="font-semibold text-sm" style="color: var(--theme-text-primary, #111827);">
+                  ${escapeHtml(title)}
+                </h4>
+                <input type="checkbox" class="anime-select-checkbox" 
+                       data-anime-id="${anime.id}"
+                       ${isInList ? 'disabled' : ''}
+                       ${isSelected ? 'checked' : ''} />
+              </div>
+              <div class="text-xs mb-2" style="color: var(--theme-text-secondary, #6b7280);">
+                ${anime.format || 'Unknown'} • ${anime.episodes || '?'} eps
+                ${anime.averageScore ? ` • ⭐ ${anime.averageScore / 10}` : ''}
+              </div>
+              ${anime.genres && anime.genres.length > 0 ? `
+                <div class="text-xs mb-2" style="color: var(--theme-text-muted, #9ca3af);">
+                  ${anime.genres.slice(0, 3).join(', ')}
+                </div>
+              ` : ''}
+              ${isInList ? '<div class="text-xs text-green-600">✓ Already in list</div>' : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Add click handlers for selection
+    container.querySelectorAll('[data-anime-id]').forEach(card => {
+      const animeId = parseInt(card.dataset.animeId);
+      const checkbox = card.querySelector('.anime-select-checkbox');
+      
+      if (checkbox && !checkbox.disabled) {
+        card.addEventListener('click', (e) => {
+          if (e.target === checkbox) return;
+          checkbox.checked = !checkbox.checked;
+          updateSelection(animeId, checkbox.checked);
+        });
+        
+        checkbox.addEventListener('change', (e) => {
+          updateSelection(animeId, e.target.checked);
+        });
+      }
+    });
+  }
+
+  // Render my list anime
+  async function renderMyListAnime(listId) {
+    const container = modal.querySelector('#my-list-results-container');
+    
+    if (!window.animeData || window.animeData.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">
+          <p>No anime in your list. Search for anime to add!</p>
+        </div>
+      `;
+      return;
+    }
+
+    const list = getCustomLists().find(l => l.id === listId);
+    const animeInList = new Set((list.entries || []).map(e => e.animeId));
+    
+    renderMyListAnimeResults(window.animeData, animeInList, listId);
+  }
+
+  // Render my list anime results
+  function renderMyListAnimeResults(animeData, animeInList, listId) {
+    const container = modal.querySelector('#my-list-results-container');
+    const filterQuery = modal.querySelector('#my-list-filter-input')?.value.trim().toLowerCase() || '';
+    
+    let filteredAnime = animeData;
+    if (filterQuery) {
+      filteredAnime = animeData.filter(anime => {
+        const title = (anime.title || anime._romaji || anime._english || '').toLowerCase();
+        return title.includes(filterQuery);
+      });
+    }
+
+    if (filteredAnime.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8" style="color: var(--theme-text-secondary, #6b7280);">
+          <p>No anime found matching your filter.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">';
+    
+    filteredAnime.forEach(anime => {
+      const title = anime.title || anime._romaji || anime._english || 'Unknown';
+      const isInList = animeInList.has(anime.id);
+      const isSelected = selectedAnimeIds.has(anime.id);
+      
+      html += `
+        <div class="anime-card rounded-lg p-4 cursor-pointer border-2 transition-all ${isSelected ? 'border-indigo-500' : 'border-transparent'} ${isInList ? 'opacity-60' : ''}" 
+             data-anime-id="${anime.id}"
+             style="background: var(--theme-bg-secondary, #f9fafb);">
+          <div class="flex items-start gap-3">
+            ${anime.coverImage ? `
+              <img src="${anime.coverImage}" alt="${escapeHtml(title)}" 
+                   class="w-16 h-24 object-cover rounded flex-shrink-0" />
+            ` : ''}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2 mb-1">
+                <h4 class="font-semibold text-sm" style="color: var(--theme-text-primary, #111827);">
+                  ${escapeHtml(title)}
+                </h4>
+                <input type="checkbox" class="anime-select-checkbox" 
+                       data-anime-id="${anime.id}"
+                       ${isInList ? 'disabled' : ''}
+                       ${isSelected ? 'checked' : ''} />
+              </div>
+              <div class="text-xs mb-2" style="color: var(--theme-text-secondary, #6b7280);">
+                ${anime.status || 'Unknown'} • ${anime.score ? `⭐ ${anime.score}` : 'No score'}
+              </div>
+              ${anime.genres && anime.genres.length > 0 ? `
+                <div class="text-xs mb-2" style="color: var(--theme-text-muted, #9ca3af);">
+                  ${anime.genres.slice(0, 3).join(', ')}
+                </div>
+              ` : ''}
+              ${isInList ? '<div class="text-xs text-green-600">✓ Already in list</div>' : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Add click handlers for selection
+    container.querySelectorAll('[data-anime-id]').forEach(card => {
+      const animeId = parseInt(card.dataset.animeId);
+      const checkbox = card.querySelector('.anime-select-checkbox');
+      
+      if (checkbox && !checkbox.disabled) {
+        card.addEventListener('click', (e) => {
+          if (e.target === checkbox) return;
+          checkbox.checked = !checkbox.checked;
+          updateSelection(animeId, checkbox.checked);
+        });
+        
+        checkbox.addEventListener('change', (e) => {
+          updateSelection(animeId, e.target.checked);
+        });
+      }
+    });
+  }
+
+  // Filter my list anime
+  function filterMyListAnime(query, listId) {
+    if (!window.animeData) return;
+    const list = getCustomLists().find(l => l.id === listId);
+    const animeInList = new Set((list.entries || []).map(e => e.animeId));
+    renderMyListAnimeResults(window.animeData, animeInList, listId);
+  }
+
+  // Update selection
+  function updateSelection(animeId, isSelected) {
+    if (isSelected) {
+      selectedAnimeIds.add(animeId);
+    } else {
+      selectedAnimeIds.delete(animeId);
+    }
+    
+    const countEl = modal.querySelector('#selected-count');
+    const addBtn = modal.querySelector('#add-selected-anime');
+    
+    if (countEl) {
+      countEl.textContent = selectedAnimeIds.size;
+    }
+    
+    if (addBtn) {
+      addBtn.disabled = selectedAnimeIds.size === 0;
+    }
+    
+    // Update card borders
+    modal.querySelectorAll(`[data-anime-id="${animeId}"]`).forEach(card => {
+      if (isSelected) {
+        card.classList.add('border-indigo-500');
+        card.classList.remove('border-transparent');
+      } else {
+        card.classList.remove('border-indigo-500');
+        card.classList.add('border-transparent');
+      }
+    });
+  }
+
+  // Initial load of my list if on that tab
+  if (currentTab === 'my-list') {
+    renderMyListAnime(listId);
+  }
 }
 
 // escapeHtml is now imported from utils.js
