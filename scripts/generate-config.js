@@ -13,6 +13,12 @@ const EPISODES_PER_PAGE = process.env.EPISODES_PER_PAGE || 25;
 const CHART_GENRE_LIMIT = process.env.CHART_GENRE_LIMIT || 10;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
+// Log environment variables for debugging
+console.log('🔧 Environment variables:');
+console.log('  API_BASE:', API_BASE);
+console.log('  VITE_API_BASE:', process.env.VITE_API_BASE || 'not set');
+console.log('  GEMINI_API_KEY:', GEMINI_API_KEY ? '***set***' : 'not set');
+
 const config = `window.CONFIG = {
   DASHBOARD_TITLE: "${DASHBOARD_TITLE}",
   DASHBOARD_SUBTITLE: "${DASHBOARD_SUBTITLE}",
@@ -55,13 +61,39 @@ if (fs.existsSync(distDir)) {
   // Also inject config into dist/index.html for Vercel
   if (fs.existsSync(distIndexHtmlPath)) {
     let distHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
-    // Replace <script src="config.js"></script> with inline config
-    distHtml = distHtml.replace(
-      /<script src="config\.js"><\/script>/,
-      `<script>${config}</script>`
-    );
+    
+    // Try multiple patterns to find and replace the script tag
+    const patterns = [
+      /<script\s+src=["']config\.js["']><\/script>/i,
+      /<script\s+src=["']\/config\.js["']><\/script>/i,
+      /<script\s+src=["']\.\/config\.js["']><\/script>/i,
+      /<script\s+src=["']config\.js["']\s*><\/script>/i,
+    ];
+    
+    let replaced = false;
+    for (const pattern of patterns) {
+      if (pattern.test(distHtml)) {
+        distHtml = distHtml.replace(pattern, `<script>${config}</script>`);
+        replaced = true;
+        console.log('✅ Replaced config.js script tag in dist/index.html');
+        break;
+      }
+    }
+    
+    if (!replaced) {
+      // If no script tag found, inject before closing </head> tag
+      if (distHtml.includes('</head>')) {
+        distHtml = distHtml.replace('</head>', `<script>${config}</script>\n</head>`);
+        console.log('✅ Injected config before </head> in dist/index.html');
+      } else {
+        console.warn('⚠️  Could not find </head> tag in dist/index.html');
+      }
+    }
+    
     fs.writeFileSync(distIndexHtmlPath, distHtml);
-    console.log('✅ Injected config into dist/index.html');
+    console.log('✅ Updated dist/index.html with embedded config');
+  } else {
+    console.warn('⚠️  dist/index.html not found, skipping injection');
   }
 }
 
