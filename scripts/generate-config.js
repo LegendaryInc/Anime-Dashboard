@@ -56,17 +56,21 @@ if (!fs.existsSync(distDir)) {
 fs.writeFileSync(publicPath, config);
 console.log('✅ Generated config.js in public/ with API_BASE:', API_BASE);
 
-// Also write to dist (for Vercel production)
+// Also write to dist (for Vercel production) - only if dist exists
+// Note: During prebuild, dist/index.html doesn't exist yet (Vite hasn't built it)
+// During postbuild, dist/index.html will exist and we'll inject the config
 console.log('🔍 Checking if dist directory exists:', distDir);
 if (fs.existsSync(distDir)) {
   console.log('✅ dist directory exists');
   fs.writeFileSync(distPath, config);
   console.log('✅ Generated config.js in dist/ with API_BASE:', API_BASE);
   
-  // Also inject config into dist/index.html for Vercel
+  // Only try to inject config if index.html exists (postbuild phase)
+  // During prebuild, index.html doesn't exist yet, so we skip injection
   console.log('🔍 Checking for dist/index.html at:', distIndexHtmlPath);
-  console.log('🔍 File exists?', fs.existsSync(distIndexHtmlPath));
-  if (fs.existsSync(distIndexHtmlPath)) {
+  const indexHtmlExists = fs.existsSync(distIndexHtmlPath);
+  console.log('🔍 File exists?', indexHtmlExists);
+  if (indexHtmlExists) {
     console.log('✅ Found dist/index.html, attempting to inject config...');
     let distHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
     
