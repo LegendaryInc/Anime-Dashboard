@@ -26,6 +26,8 @@ const config = `window.CONFIG = {
 // Write to both public (for Vite to copy) and dist (for Vercel)
 const publicPath = path.join(__dirname, '..', 'public', 'config.js');
 const distPath = path.join(__dirname, '..', 'dist', 'config.js');
+const indexHtmlPath = path.join(__dirname, '..', 'index.html');
+const distIndexHtmlPath = path.join(__dirname, '..', 'dist', 'index.html');
 
 // Ensure directories exist
 const publicDir = path.dirname(publicPath);
@@ -49,5 +51,17 @@ console.log('✅ Generated config.js in public/ with API_BASE:', API_BASE);
 if (fs.existsSync(distDir)) {
   fs.writeFileSync(distPath, config);
   console.log('✅ Generated config.js in dist/ with API_BASE:', API_BASE);
+  
+  // Also inject config into dist/index.html for Vercel
+  if (fs.existsSync(distIndexHtmlPath)) {
+    let distHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
+    // Replace <script src="config.js"></script> with inline config
+    distHtml = distHtml.replace(
+      /<script src="config\.js"><\/script>/,
+      `<script>${config}</script>`
+    );
+    fs.writeFileSync(distIndexHtmlPath, distHtml);
+    console.log('✅ Injected config into dist/index.html');
+  }
 }
 
