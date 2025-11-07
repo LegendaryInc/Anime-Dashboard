@@ -6,11 +6,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/config.js",
-      "destination": "/config.js"
-    },
-    {
-      "source": "/((?!assets|config\\.js|.*\\.(js|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
