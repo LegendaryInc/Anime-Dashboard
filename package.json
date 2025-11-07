@@ -9,6 +9,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:vite\" --names \"express,vite\" --prefix-colors \"cyan,magenta\"",
     "prebuild": "node scripts/generate-config.js",
     "build": "vite build",
+    "postbuild": "node scripts/generate-config.js",
     "preview": "vite preview",
     "postinstall": "npm run prisma:generate",
     "start": "node scripts/init-db.js && node server.js",

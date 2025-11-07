@@ -69,6 +69,19 @@ import { initContextMenu } from './context-menu.js';
 import { initTooltips } from './tooltips.js';
 
 // --- 2. State Variables ---
+// Initialize CONFIG if not loaded yet (fallback for production)
+if (!window.CONFIG) {
+  window.CONFIG = {
+    DASHBOARD_TITLE: "My Anime Dashboard",
+    DASHBOARD_SUBTITLE: "Visualize your anime watching journey.",
+    GEMINI_API_KEY: "",
+    EPISODES_PER_PAGE: 25,
+    CHART_GENRE_LIMIT: 10,
+    GEMINI_MODEL: "gemini-2.5-flash",
+    API_BASE: "http://localhost:3000"
+  };
+}
+
 let GEMINI_API_KEY = window.CONFIG.GEMINI_API_KEY || '';
 let ITEMS_PER_PAGE = window.CONFIG.EPISODES_PER_PAGE || 25;
 

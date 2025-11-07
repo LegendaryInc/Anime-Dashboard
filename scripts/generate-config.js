@@ -23,15 +23,31 @@ const config = `window.CONFIG = {
   API_BASE: "${API_BASE}"
 };`;
 
-const configPath = path.join(__dirname, '..', 'public', 'config.js');
-const publicDir = path.dirname(configPath);
+// Write to both public (for Vite to copy) and dist (for Vercel)
+const publicPath = path.join(__dirname, '..', 'public', 'config.js');
+const distPath = path.join(__dirname, '..', 'dist', 'config.js');
 
-// Ensure public directory exists
+// Ensure directories exist
+const publicDir = path.dirname(publicPath);
+const distDir = path.dirname(distPath);
+
 if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
   console.log('📁 Created public directory');
 }
 
-fs.writeFileSync(configPath, config);
-console.log('✅ Generated config.js with API_BASE:', API_BASE);
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir, { recursive: true });
+  console.log('📁 Created dist directory');
+}
+
+// Write to public (for Vite dev and build)
+fs.writeFileSync(publicPath, config);
+console.log('✅ Generated config.js in public/ with API_BASE:', API_BASE);
+
+// Also write to dist (for Vercel production)
+if (fs.existsSync(distDir)) {
+  fs.writeFileSync(distPath, config);
+  console.log('✅ Generated config.js in dist/ with API_BASE:', API_BASE);
+}
 
