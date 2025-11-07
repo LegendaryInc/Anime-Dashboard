@@ -30,12 +30,20 @@ const getApiBase = () => {
 };
 
 /**
- * Helper function to make API calls with proper configuration
+ * Helper function to make API calls with proper configuration and automatic retry
+ * Handles Render cold starts automatically with exponential backoff
  * @param {string} path - API path (e.g., '/api/get-anilist-data')
  * @param {object} options - Fetch options
+ * @param {object} retryOptions - Retry options: { maxRetries, baseDelay, maxDelay }
  * @returns {Promise<Response>}
  */
-export function apiFetch(path, options = {}) {
+export async function apiFetch(path, options = {}, retryOptions = {}) {
+  const {
+    maxRetries = 3,
+    baseDelay = 2000, // Start with 2s delay for cold starts
+    maxDelay = 30000 // Max 30s delay
+  } = retryOptions;
+
   const apiBase = getApiBase();
   
   // Build URL
@@ -60,7 +68,46 @@ export function apiFetch(path, options = {}) {
     }
   };
   
-  return fetch(url, fetchOptions);
+  // Retry logic for network errors (handles Render cold starts)
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, fetchOptions);
+      
+      // If we get a 502/503/504 (gateway errors, often from cold starts), retry
+      if (response.status >= 502 && response.status <= 504 && attempt < maxRetries) {
+        const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+        console.log(`🔄 Retrying API call (attempt ${attempt + 1}/${maxRetries}) after ${delay}ms due to ${response.status}`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      lastError = error;
+      
+      // Check if it's a network error (cold start, connection refused, etc.)
+      const isNetworkError = 
+        error instanceof TypeError && 
+        (error.message.includes('fetch') || 
+         error.message.includes('network') || 
+         error.message.includes('Failed to fetch'));
+      
+      // Retry network errors
+      if (isNetworkError && attempt < maxRetries) {
+        const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+        console.log(`🔄 Retrying API call (attempt ${attempt + 1}/${maxRetries}) after ${delay}ms due to network error:`, error.message);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      // If not retryable or out of retries, throw
+      throw error;
+    }
+  }
+  
+  // Should never reach here, but just in case
+  throw lastError || new Error('API call failed after retries');
 }
 
 // Export API base for direct use
