@@ -62,30 +62,31 @@ if (fs.existsSync(distDir)) {
   if (fs.existsSync(distIndexHtmlPath)) {
     let distHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
     
-    // Try multiple patterns to find and replace the script tag
-    // Handle various formats: <script src="config.js"></script>, <script src='/config.js'></script>, etc.
-    const patterns = [
-      /<script[^>]*\s+src=["']config\.js["'][^>]*><\/script>/gi,
-      /<script[^>]*\s+src=["']\/config\.js["'][^>]*><\/script>/gi,
-      /<script[^>]*\s+src=["']\.\/config\.js["'][^>]*><\/script>/gi,
-      /<script[^>]*\s+src=["']\/?config\.js["'][^>]*><\/script>/gi,
-    ];
-    
-    let replaced = false;
-    for (const pattern of patterns) {
-      if (pattern.test(distHtml)) {
-        distHtml = distHtml.replace(pattern, `<script>${config}</script>`);
-        replaced = true;
-        console.log('✅ Replaced config.js script tag in dist/index.html');
-        break;
+    // Check if config is already injected (avoid double injection)
+    if (distHtml.includes('window.CONFIG')) {
+      console.log('✅ Config already present in dist/index.html, skipping injection');
+    } else {
+      // Try multiple patterns to find and replace the script tag
+      // Handle various formats: <script src="config.js"></script>, <script src='/config.js'></script>, etc.
+      const patterns = [
+        /<script[^>]*\s+src=["']config\.js["'][^>]*><\/script>/gi,
+        /<script[^>]*\s+src=["']\/config\.js["'][^>]*><\/script>/gi,
+        /<script[^>]*\s+src=["']\.\/config\.js["'][^>]*><\/script>/gi,
+        /<script[^>]*\s+src=["']\/?config\.js["'][^>]*><\/script>/gi,
+      ];
+      
+      let replaced = false;
+      for (let i = 0; i < patterns.length; i++) {
+        const pattern = patterns[i];
+        if (pattern.test(distHtml)) {
+          distHtml = distHtml.replace(pattern, `<script>${config}</script>`);
+          replaced = true;
+          console.log(`✅ Replaced config.js script tag in dist/index.html (pattern ${i + 1})`);
+          break;
+        }
       }
-    }
-    
-    if (!replaced) {
-      // Check if config is already injected (avoid double injection)
-      if (distHtml.includes('window.CONFIG')) {
-        console.log('✅ Config already present in dist/index.html');
-      } else {
+      
+      if (!replaced) {
         // If no script tag found, inject before closing </head> tag
         if (distHtml.includes('</head>')) {
           distHtml = distHtml.replace('</head>', `<script>${config}</script>\n</head>`);
@@ -97,13 +98,29 @@ if (fs.existsSync(distDir)) {
             console.log('✅ Injected config at start of <head> in dist/index.html');
           } else {
             console.warn('⚠️  Could not find <head> tag in dist/index.html');
+            // Last last resort: inject at the very beginning
+            distHtml = `<script>${config}</script>\n${distHtml}`;
+            console.log('✅ Injected config at the very beginning of dist/index.html');
           }
         }
       }
+      
+      fs.writeFileSync(distIndexHtmlPath, distHtml);
+      console.log('✅ Updated dist/index.html with embedded config');
+      
+      // Verify the injection worked
+      const verifyHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
+      if (verifyHtml.includes('window.CONFIG')) {
+        console.log('✅ Verified: window.CONFIG is present in dist/index.html');
+        if (verifyHtml.includes(`API_BASE: "${API_BASE}"`)) {
+          console.log(`✅ Verified: API_BASE is set to "${API_BASE}"`);
+        } else {
+          console.warn(`⚠️  Warning: API_BASE might not be set correctly in dist/index.html`);
+        }
+      } else {
+        console.error('❌ Error: window.CONFIG was not found in dist/index.html after injection!');
+      }
     }
-    
-    fs.writeFileSync(distIndexHtmlPath, distHtml);
-    console.log('✅ Updated dist/index.html with embedded config');
   } else {
     console.warn('⚠️  dist/index.html not found, skipping injection');
   }
