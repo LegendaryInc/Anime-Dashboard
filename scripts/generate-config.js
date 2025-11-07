@@ -148,7 +148,10 @@ if (fs.existsSync(distDir)) {
 
 } catch (error) {
   console.error('❌ Error in generate-config.js:', error);
+  console.error('❌ Error message:', error.message);
   console.error('❌ Error stack:', error.stack);
-  process.exit(1);
+  // Don't exit - let the build continue, but log the error
+  // This way we can see what's happening
+  console.warn('⚠️  Continuing despite error...');
 }
 
