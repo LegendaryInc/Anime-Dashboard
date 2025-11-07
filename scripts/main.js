@@ -48,8 +48,6 @@ import { calculateStatistics, downloadEnrichedJSON } from './data.js';
 // Charts module will be lazy loaded when Visualizations tab is opened
 // ⭐ MODIFIED: Added generatePersonalInsights
 import { getSimilarAnime, getGeminiRecommendations, generatePersonalInsights } from './ai.js';
-// ⭐ Import API helper for cross-domain requests (works in both dev and production)
-import { apiFetch } from './api-config.js';
 // Calendar module will be lazy loaded when Calendar tab is opened
 // History module will be lazy loaded when History tab is opened
 // Achievements modules will be lazy loaded when Achievements tab is opened
@@ -113,7 +111,7 @@ async function syncWithAnilist() {
   if (errorMessageElement) showError(errorMessageElement, null);
 
   try {
-    const response = await apiFetch('/api/get-anilist-data');
+    const response = await fetch('/api/get-anilist-data');
 
     if (response.status === 401) {
       localStorage.removeItem('animeDashboardData');
@@ -182,7 +180,7 @@ async function syncWithAnilist() {
  */
 async function logout() {
   try {
-    await apiFetch('/auth/logout');
+    await fetch('/auth/logout');
   } catch (error) {
     console.error("Failed to communicate with logout endpoint:", error);
   } finally {
@@ -414,7 +412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ⭐ UPDATED: Auth Flow - Check server status first
   // =====================================================================
   try {
-    const statusResponse = await apiFetch('/auth/status');
+    const statusResponse = await fetch('/auth/status');
     if (!statusResponse.ok) throw new Error('Auth status check failed');
     const authStatus = await statusResponse.json();
 

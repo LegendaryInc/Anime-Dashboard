@@ -53,30 +53,7 @@ app.set('trust proxy', 1);
 // --- Config ---
 const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change-me';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
-
-// =====================================================================
-// CORS Configuration (for separate frontend/backend)
-// =====================================================================
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  // Allow requests from frontend
-  if (origin === FRONTEND_URL || origin === 'http://localhost:3001' || origin?.includes('vercel.app') || origin?.includes('netlify.app') || origin?.includes('pages.dev')) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
+// CORS not needed for local development (same origin)
 
 // --- Session Middleware ---
 app.use(session({
