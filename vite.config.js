@@ -2,11 +2,13 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { fileURLToPath } from 'url'
 import legacy from '@vitejs/plugin-legacy'
+import { injectConfig } from './vite-plugin-inject-config.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 export default defineConfig({
   plugins: [
+    injectConfig(), // Inject config during build
     legacy({
       targets: ['defaults', 'not IE 11']
     })

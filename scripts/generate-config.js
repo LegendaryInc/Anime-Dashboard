@@ -63,11 +63,12 @@ if (fs.existsSync(distDir)) {
     let distHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
     
     // Try multiple patterns to find and replace the script tag
+    // Handle various formats: <script src="config.js"></script>, <script src='/config.js'></script>, etc.
     const patterns = [
-      /<script\s+src=["']config\.js["']><\/script>/i,
-      /<script\s+src=["']\/config\.js["']><\/script>/i,
-      /<script\s+src=["']\.\/config\.js["']><\/script>/i,
-      /<script\s+src=["']config\.js["']\s*><\/script>/i,
+      /<script[^>]*\s+src=["']config\.js["'][^>]*><\/script>/gi,
+      /<script[^>]*\s+src=["']\/config\.js["'][^>]*><\/script>/gi,
+      /<script[^>]*\s+src=["']\.\/config\.js["'][^>]*><\/script>/gi,
+      /<script[^>]*\s+src=["']\/?config\.js["'][^>]*><\/script>/gi,
     ];
     
     let replaced = false;
@@ -81,12 +82,23 @@ if (fs.existsSync(distDir)) {
     }
     
     if (!replaced) {
-      // If no script tag found, inject before closing </head> tag
-      if (distHtml.includes('</head>')) {
-        distHtml = distHtml.replace('</head>', `<script>${config}</script>\n</head>`);
-        console.log('✅ Injected config before </head> in dist/index.html');
+      // Check if config is already injected (avoid double injection)
+      if (distHtml.includes('window.CONFIG')) {
+        console.log('✅ Config already present in dist/index.html');
       } else {
-        console.warn('⚠️  Could not find </head> tag in dist/index.html');
+        // If no script tag found, inject before closing </head> tag
+        if (distHtml.includes('</head>')) {
+          distHtml = distHtml.replace('</head>', `<script>${config}</script>\n</head>`);
+          console.log('✅ Injected config before </head> in dist/index.html');
+        } else {
+          // Last resort: inject at the beginning of <head>
+          if (distHtml.includes('<head>')) {
+            distHtml = distHtml.replace('<head>', `<head>\n<script>${config}</script>`);
+            console.log('✅ Injected config at start of <head> in dist/index.html');
+          } else {
+            console.warn('⚠️  Could not find <head> tag in dist/index.html');
+          }
+        }
       }
     }
     
