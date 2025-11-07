@@ -54,12 +54,15 @@ fs.writeFileSync(publicPath, config);
 console.log('✅ Generated config.js in public/ with API_BASE:', API_BASE);
 
 // Also write to dist (for Vercel production)
+console.log('🔍 Checking if dist directory exists:', distDir);
 if (fs.existsSync(distDir)) {
+  console.log('✅ dist directory exists');
   fs.writeFileSync(distPath, config);
   console.log('✅ Generated config.js in dist/ with API_BASE:', API_BASE);
   
   // Also inject config into dist/index.html for Vercel
   console.log('🔍 Checking for dist/index.html at:', distIndexHtmlPath);
+  console.log('🔍 File exists?', fs.existsSync(distIndexHtmlPath));
   if (fs.existsSync(distIndexHtmlPath)) {
     console.log('✅ Found dist/index.html, attempting to inject config...');
     let distHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
@@ -133,6 +136,10 @@ if (fs.existsSync(distDir)) {
     }
   } else {
     console.warn('⚠️  dist/index.html not found, skipping injection');
+    console.warn('⚠️  dist/index.html path:', distIndexHtmlPath);
+    console.warn('⚠️  dist directory contents:', fs.existsSync(distDir) ? fs.readdirSync(distDir).join(', ') : 'distDir does not exist');
   }
+} else {
+  console.warn('⚠️  dist directory does not exist:', distDir);
 }
 
