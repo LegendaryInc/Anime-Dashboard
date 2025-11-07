@@ -59,13 +59,23 @@ if (fs.existsSync(distDir)) {
   console.log('✅ Generated config.js in dist/ with API_BASE:', API_BASE);
   
   // Also inject config into dist/index.html for Vercel
+  console.log('🔍 Checking for dist/index.html at:', distIndexHtmlPath);
   if (fs.existsSync(distIndexHtmlPath)) {
+    console.log('✅ Found dist/index.html, attempting to inject config...');
     let distHtml = fs.readFileSync(distIndexHtmlPath, 'utf8');
     
     // Check if config is already injected (avoid double injection)
+    console.log('🔍 Checking if config is already present in dist/index.html...');
     if (distHtml.includes('window.CONFIG')) {
       console.log('✅ Config already present in dist/index.html, skipping injection');
+      // But verify API_BASE is correct
+      if (distHtml.includes(`API_BASE: "${API_BASE}"`)) {
+        console.log(`✅ Verified: API_BASE is correctly set to "${API_BASE}"`);
+      } else {
+        console.warn(`⚠️  Warning: API_BASE might not be set correctly. Expected: "${API_BASE}"`);
+      }
     } else {
+      console.log('🔍 Config not found, attempting to inject...');
       // Try multiple patterns to find and replace the script tag
       // Handle various formats: <script src="config.js"></script>, <script src='/config.js'></script>, etc.
       const patterns = [
