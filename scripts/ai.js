@@ -2,17 +2,14 @@
 // ai.js – Enhanced Google Gemini + Personal Insights (v3.0)
 // =====================================================================
 
+import { escapeHtml } from './utils.js';
+
 const DEFAULT_MODEL = (window.CONFIG && window.CONFIG.GEMINI_MODEL) || "gemini-2.5-flash";
 const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"];
 const API_ROOT = "https://generativelanguage.googleapis.com/v1beta";
 
 // --- Utilities ---
-function escapeHtml(str = "") {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
+// escapeHtml is now imported from utils.js
 
 function num(val, fallback = 0) {
   const n = Number(val);
@@ -324,19 +321,26 @@ export async function getGeminiRecommendations(stats, apiKey, category = 'person
       attachRecommendationListeners();
     }
   } catch (err) {
-    console.error("[Gemini] Recommendation error:", err);
+    const { handleError, isRetryableError } = await import('./error-handler.js');
+    const errorInfo = handleError(err, 'generating recommendations', {
+      showToast: true
+    });
+    
     if (loadingContainer) loadingContainer.classList.add('hidden');
     if (contentContainer) {
+      const canRetry = isRetryableError(err);
       contentContainer.innerHTML = `
         <div class="insights-error">
           <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
           <p class="error-title">Unable to generate recommendations</p>
-          <p class="error-message">${escapeHtml(err.message)}</p>
-          <button class="btn-primary retry-btn" onclick="window.refreshInsights()">
-            Try Again
-          </button>
+          <p class="error-message">${escapeHtml(errorInfo.message)}</p>
+          ${canRetry ? `
+            <button class="btn-primary retry-btn" onclick="window.refreshInsights()">
+              Try Again
+            </button>
+          ` : ''}
         </div>
       `;
     }

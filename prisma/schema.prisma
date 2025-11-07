@@ -8,12 +8,15 @@ datasource db {
 }
 
 model User {
-  id           Int         @id @default(autoincrement())
-  anilistId    Int         @unique
+  id           Int               @id @default(autoincrement())
+  anilistId    Int               @unique
   accessToken  String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
   refreshToken String?
+  customLists  CustomList[]
+  watchQueue   WatchQueueEntry[]
+  goals        PersonalGoal[]
 }
 
 model Session {
@@ -23,6 +26,64 @@ model Session {
 
   @@index([expire], map: "IDX_session_expire")
   @@map("user_sessions")
+}
+
+model CustomList {
+  id          Int               @id @default(autoincrement())
+  userId      Int
+  name        String
+  description String?
+  isPublic    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries     CustomListEntry[]
+
+  @@index([userId])
+  @@index([isPublic])
+}
+
+model CustomListEntry {
+  id      Int        @id @default(autoincrement())
+  listId  Int
+  animeId Int // AniList anime ID
+  order   Int        @default(0) // Position in list
+  addedAt DateTime   @default(now())
+  list    CustomList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, animeId]) // Prevent duplicate entries
+  @@index([listId])
+  @@index([animeId])
+}
+
+model WatchQueueEntry {
+  id      Int      @id @default(autoincrement())
+  userId  Int
+  animeId Int // AniList anime ID
+  order   Int      @default(0) // Position in queue (lower = higher priority)
+  addedAt DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, animeId]) // Prevent duplicate entries
+  @@index([userId])
+  @@index([animeId])
+  @@index([userId, order])
+}
+
+model PersonalGoal {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String // 'watch_time' or 'completion'
+  target    Float // Target value (days for watch_time, count for completion)
+  period    String // 'yearly' or 'monthly'
+  year      Int? // For yearly goals
+  month     Int? // For monthly goals (1-12)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, period, year, month])
 }
 
 // Gacha models removed - backed up to gacha-backup/

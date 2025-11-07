@@ -24,7 +24,9 @@ const SHORTCUTS = {
   '3': { action: 'switch-tab', param: 'list', description: 'Switch to Full List tab' },
   '4': { action: 'switch-tab', param: 'insights', description: 'Switch to Insights tab' },
   '5': { action: 'switch-tab', param: 'calendar', description: 'Switch to Calendar tab' },
-  '6': { action: 'switch-tab', param: 'gacha', description: 'Switch to Gacha tab' },
+  '6': { action: 'switch-tab', param: 'history', description: 'Switch to History tab' },
+  '7': { action: 'switch-tab', param: 'achievements', description: 'Switch to Achievements tab' },
+  '8': { action: 'switch-tab', param: 'custom-lists', description: 'Switch to My Lists tab' },
   
   // View Controls
   'g': { action: 'toggle-view', description: 'Toggle grid/table view' },
@@ -202,7 +204,9 @@ function switchTab(tabName) {
     list: 'Full List',
     insights: 'Insights',
     calendar: 'Calendar',
-    gacha: 'Gacha'
+    history: 'History',
+    achievements: 'Achievements',
+    'custom-lists': 'My Lists'
   };
   
   const displayName = tabNames[tabName] || tabName.charAt(0).toUpperCase() + tabName.slice(1);
@@ -347,7 +351,15 @@ function showShortcutsHelp() {
               </div>
               <div class="shortcut-item">
                 <kbd>6</kbd>
-                <span>Gacha tab</span>
+                <span>History tab</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>7</kbd>
+                <span>Achievements tab</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>8</kbd>
+                <span>My Lists tab</span>
               </div>
             </div>
           </div>
@@ -380,6 +392,28 @@ function showShortcutsHelp() {
               <div class="shortcut-item">
                 <kbd>Ctrl+Shift+H</kbd>
                 <span>Show this help</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="shortcut-section">
+            <h3>🖱️ Context Menu</h3>
+            <div class="shortcut-list">
+              <div class="shortcut-item">
+                <kbd>Right-Click</kbd>
+                <span>Open context menu on anime</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>Enter</kbd>
+                <span>Open details (when menu is open)</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>↑</kbd> / <kbd>↓</kbd>
+                <span>Navigate menu items</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>Esc</kbd>
+                <span>Close context menu</span>
               </div>
             </div>
           </div>

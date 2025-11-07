@@ -1,0 +1,271 @@
+{
+  "achievements": [
+    {
+      "id": "first_anime",
+      "name": "First Steps",
+      "description": "Add your first anime to your list",
+      "icon": "🎬",
+      "rarity": "common",
+      "category": "milestone",
+      "condition": {
+        "type": "total_anime",
+        "value": 1
+      }
+    },
+    {
+      "id": "anime_10",
+      "name": "Getting Started",
+      "description": "Complete 10 anime",
+      "icon": "📚",
+      "rarity": "common",
+      "category": "milestone",
+      "condition": {
+        "type": "total_completed",
+        "value": 10
+      }
+    },
+    {
+      "id": "anime_25",
+      "name": "Anime Enthusiast",
+      "description": "Complete 25 anime",
+      "icon": "🎭",
+      "rarity": "uncommon",
+      "category": "milestone",
+      "condition": {
+        "type": "total_completed",
+        "value": 25
+      }
+    },
+    {
+      "id": "anime_50",
+      "name": "Dedicated Watcher",
+      "description": "Complete 50 anime",
+      "icon": "🎪",
+      "rarity": "uncommon",
+      "category": "milestone",
+      "condition": {
+        "type": "total_completed",
+        "value": 50
+      }
+    },
+    {
+      "id": "anime_100",
+      "name": "Century Club",
+      "description": "Complete 100 anime",
+      "icon": "🏆",
+      "rarity": "rare",
+      "category": "milestone",
+      "condition": {
+        "type": "total_completed",
+        "value": 100
+      }
+    },
+    {
+      "id": "anime_250",
+      "name": "Anime Master",
+      "description": "Complete 250 anime",
+      "icon": "👑",
+      "rarity": "epic",
+      "category": "milestone",
+      "condition": {
+        "type": "total_completed",
+        "value": 250
+      }
+    },
+    {
+      "id": "anime_500",
+      "name": "Anime Legend",
+      "description": "Complete 500 anime",
+      "icon": "🌟",
+      "rarity": "legendary",
+      "category": "milestone",
+      "condition": {
+        "type": "total_completed",
+        "value": 500
+      }
+    },
+    {
+      "id": "episodes_100",
+      "name": "Episode Explorer",
+      "description": "Watch 100 episodes",
+      "icon": "📺",
+      "rarity": "common",
+      "category": "milestone",
+      "condition": {
+        "type": "total_episodes",
+        "value": 100
+      }
+    },
+    {
+      "id": "episodes_500",
+      "name": "Episode Veteran",
+      "description": "Watch 500 episodes",
+      "icon": "📡",
+      "rarity": "uncommon",
+      "category": "milestone",
+      "condition": {
+        "type": "total_episodes",
+        "value": 500
+      }
+    },
+    {
+      "id": "episodes_1000",
+      "name": "Episode Master",
+      "description": "Watch 1,000 episodes",
+      "icon": "📻",
+      "rarity": "rare",
+      "category": "milestone",
+      "condition": {
+        "type": "total_episodes",
+        "value": 1000
+      }
+    },
+    {
+      "id": "episodes_2500",
+      "name": "Episode Legend",
+      "description": "Watch 2,500 episodes",
+      "icon": "🎬",
+      "rarity": "epic",
+      "category": "milestone",
+      "condition": {
+        "type": "total_episodes",
+        "value": 2500
+      }
+    },
+    {
+      "id": "episodes_5000",
+      "name": "Episode God",
+      "description": "Watch 5,000 episodes",
+      "icon": "⚡",
+      "rarity": "legendary",
+      "category": "milestone",
+      "condition": {
+        "type": "total_episodes",
+        "value": 5000
+      }
+    },
+    {
+      "id": "genre_master_5",
+      "name": "Genre Explorer",
+      "description": "Complete 5 anime in a single genre",
+      "icon": "🎨",
+      "rarity": "common",
+      "category": "genre",
+      "condition": {
+        "type": "genre_completed",
+        "value": 5
+      }
+    },
+    {
+      "id": "genre_master_10",
+      "name": "Genre Master",
+      "description": "Complete 10 anime in a single genre",
+      "icon": "🎯",
+      "rarity": "uncommon",
+      "category": "genre",
+      "condition": {
+        "type": "genre_completed",
+        "value": 10
+      }
+    },
+    {
+      "id": "genre_master_20",
+      "name": "Genre Expert",
+      "description": "Complete 20 anime in a single genre",
+      "icon": "🏅",
+      "rarity": "rare",
+      "category": "genre",
+      "condition": {
+        "type": "genre_completed",
+        "value": 20
+      }
+    },
+    {
+      "id": "perfect_score",
+      "name": "Perfectionist",
+      "description": "Give 10 anime a perfect 10/10 score",
+      "icon": "💯",
+      "rarity": "rare",
+      "category": "score",
+      "condition": {
+        "type": "perfect_scores",
+        "value": 10
+      }
+    },
+    {
+      "id": "high_scorer",
+      "name": "High Standards",
+      "description": "Have an average score of 8.0 or higher (min 20 anime)",
+      "icon": "⭐",
+      "rarity": "uncommon",
+      "category": "score",
+      "condition": {
+        "type": "average_score",
+        "value": 8.0,
+        "min_anime": 20
+      }
+    },
+    {
+      "id": "diverse_watcher",
+      "name": "Diverse Tastes",
+      "description": "Watch anime from 10 different genres",
+      "icon": "🌈",
+      "rarity": "uncommon",
+      "category": "diversity",
+      "condition": {
+        "type": "unique_genres",
+        "value": 10
+      }
+    },
+    {
+      "id": "studio_fan",
+      "name": "Studio Loyalist",
+      "description": "Complete 5 anime from the same studio",
+      "icon": "🎬",
+      "rarity": "common",
+      "category": "studio",
+      "condition": {
+        "type": "studio_completed",
+        "value": 5
+      }
+    },
+    {
+      "id": "long_runner",
+      "name": "Long Runner",
+      "description": "Complete an anime with 100+ episodes",
+      "icon": "🏃",
+      "rarity": "uncommon",
+      "category": "milestone",
+      "condition": {
+        "type": "long_anime",
+        "value": 100
+      }
+    },
+    {
+      "id": "movie_buff",
+      "name": "Movie Buff",
+      "description": "Complete 10 movies",
+      "icon": "🎞️",
+      "rarity": "uncommon",
+      "category": "format",
+      "condition": {
+        "type": "format_completed",
+        "format": "MOVIE",
+        "value": 10
+      }
+    },
+    {
+      "id": "seasonal_watcher",
+      "name": "Seasonal Watcher",
+      "description": "Watch 10 currently airing anime",
+      "icon": "📅",
+      "rarity": "uncommon",
+      "category": "seasonal",
+      "condition": {
+        "type": "current_anime",
+        "value": 10
+      }
+    }
+  ]
+}
+

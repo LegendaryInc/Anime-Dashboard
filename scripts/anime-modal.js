@@ -4,31 +4,201 @@
 import { showToast } from './toast.js';
 import { saveDataToLocalStorage } from './storage.js';
 import { getStatusBadgeClass } from './ui.js';
+import { handleError } from './error-handler.js';
+import { showButtonLoading, showLoadingOverlay } from './loading.js';
+import { trapFocus, releaseFocus, saveFocus, restoreFocus, updateModalAria, escapeHtml } from './utils.js';
+
+// Lazy import for custom lists (to avoid circular dependencies)
+let renderAddToListButton = null;
+async function getAddToListButton(animeId) {
+  if (!renderAddToListButton) {
+    const module = await import('./custom-lists-view.js');
+    renderAddToListButton = module.renderAddToListButton;
+  }
+  if (renderAddToListButton) {
+    return renderAddToListButton(animeId);
+  }
+  return ''; // Return empty if not available
+}
+
+/**
+ * Populate "Add to List" button in modal
+ */
+async function populateModalAddToListButton(animeId) {
+  const container = document.getElementById('anime-details-add-to-list-container');
+  if (!container || !animeId) return;
+  
+  // Load custom lists first
+  try {
+    const { loadCustomLists } = await import('./custom-lists.js');
+    await loadCustomLists();
+  } catch (error) {
+    // Silent fail for custom lists - not critical
+    console.warn('Could not load custom lists:', error);
+  }
+  
+  // Populate the button
+  const buttonHtml = await getAddToListButton(animeId);
+  if (buttonHtml) {
+    container.innerHTML = buttonHtml;
+  }
+}
 
 /**
  * Open enhanced anime details modal
  * Fetches full data from AniList if needed
  */
 export async function openAnimeDetailsModal(anime) {
+  console.log('openAnimeDetailsModal called with:', anime?.title);
   const backdrop = document.getElementById('anime-details-modal-backdrop');
-  if (!backdrop) return;
+  if (!backdrop) {
+    console.error('Modal backdrop not found!');
+    return;
+  }
+  console.log('Backdrop found, showing modal...');
+  
+  // Save current focus for restoration
+  saveFocus();
 
-  // Show modal immediately
+  // Scroll to top of viewport immediately to ensure modal appears in view
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  
+  // Prevent body scroll when modal is open (but allow modal content to scroll)
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+
+  // Show modal immediately - force display first, then add class
+  backdrop.style.display = 'flex';
+  backdrop.style.opacity = '1';
+  backdrop.style.pointerEvents = 'auto';
+  backdrop.style.visibility = 'visible';
+  backdrop.style.zIndex = '100000'; // Higher than everything else
+  backdrop.style.background = 'rgba(0, 0, 0, 0.5)'; // Force background color
+  backdrop.style.position = 'fixed'; // Force position
+  backdrop.style.top = '0';
+  backdrop.style.left = '0';
+  backdrop.style.right = '0';
+  backdrop.style.bottom = '0';
+  backdrop.style.width = '100vw';
+  backdrop.style.height = '100vh';
   backdrop.classList.add('show');
+  
+  // Also ensure modal content is visible
+  const modalContent = document.getElementById('anime-details-modal-content');
+  if (modalContent) {
+    modalContent.style.display = 'block';
+    modalContent.style.visibility = 'visible';
+    modalContent.style.position = 'relative'; // Ensure it's positioned
+    modalContent.style.opacity = '1'; // Force opacity
+    modalContent.classList.remove('hidden');
+    
+    // Log content dimensions
+    console.log('Modal content width:', modalContent.offsetWidth);
+    console.log('Modal content height:', modalContent.offsetHeight);
+    console.log('Modal content computed display:', window.getComputedStyle(modalContent).display);
+    console.log('Modal content computed opacity:', window.getComputedStyle(modalContent).opacity);
+  }
+  
+  // Force a reflow to ensure styles are applied
+  void backdrop.offsetHeight;
+  
+  // Check if backdrop is in a hidden parent
+  let parent = backdrop.parentElement;
+  let parentHidden = false;
+  while (parent && parent !== document.body) {
+    const parentDisplay = window.getComputedStyle(parent).display;
+    const parentVisibility = window.getComputedStyle(parent).visibility;
+    if (parentDisplay === 'none' || parentVisibility === 'hidden' || parent.classList.contains('hidden')) {
+      console.warn('Modal backdrop parent is hidden:', parent.id || parent.className, {
+        display: parentDisplay,
+        visibility: parentVisibility,
+        hasHiddenClass: parent.classList.contains('hidden')
+      });
+      parentHidden = true;
+      // Move backdrop to body if parent is hidden
+      if (parent.classList.contains('hidden') || parentDisplay === 'none') {
+        console.log('Moving modal backdrop to body...');
+        document.body.appendChild(backdrop);
+        break;
+      }
+    }
+    parent = parent.parentElement;
+  }
+  
+  // Re-apply styles after moving to body
+  if (parentHidden) {
+    backdrop.style.display = 'flex';
+    backdrop.style.opacity = '1';
+    backdrop.style.pointerEvents = 'auto';
+    backdrop.style.visibility = 'visible';
+    backdrop.style.zIndex = '100000';
+    backdrop.style.background = 'rgba(0, 0, 0, 0.5)';
+    backdrop.style.position = 'fixed';
+    backdrop.style.top = '0';
+    backdrop.style.left = '0';
+    backdrop.style.right = '0';
+    backdrop.style.bottom = '0';
+    backdrop.style.width = '100vw';
+    backdrop.style.height = '100vh';
+  }
+  
+  console.log('Modal backdrop classes:', backdrop.className);
+  console.log('Modal backdrop computed display:', window.getComputedStyle(backdrop).display);
+  console.log('Modal backdrop computed opacity:', window.getComputedStyle(backdrop).opacity);
+  console.log('Modal backdrop computed z-index:', window.getComputedStyle(backdrop).zIndex);
+  console.log('Modal backdrop computed visibility:', window.getComputedStyle(backdrop).visibility);
+  console.log('Modal backdrop computed position:', window.getComputedStyle(backdrop).position);
+  console.log('Modal backdrop computed top:', window.getComputedStyle(backdrop).top);
+  console.log('Modal backdrop computed left:', window.getComputedStyle(backdrop).left);
+  console.log('Modal backdrop computed width:', window.getComputedStyle(backdrop).width);
+  console.log('Modal backdrop computed height:', window.getComputedStyle(backdrop).height);
+  console.log('Modal backdrop computed background:', window.getComputedStyle(backdrop).background);
+  console.log('Modal backdrop offsetWidth:', backdrop.offsetWidth);
+  console.log('Modal backdrop offsetHeight:', backdrop.offsetHeight);
+  console.log('Modal backdrop getBoundingClientRect:', backdrop.getBoundingClientRect());
+  
+  if (modalContent) {
+    console.log('Modal content computed display:', window.getComputedStyle(modalContent).display);
+    console.log('Modal content computed visibility:', window.getComputedStyle(modalContent).visibility);
+    console.log('Modal content computed opacity:', window.getComputedStyle(modalContent).opacity);
+    console.log('Modal content getBoundingClientRect:', modalContent.getBoundingClientRect());
+  }
+  
+  // Update ARIA attributes (set aria-hidden to false when showing)
+  // Do this AFTER setting display to ensure the modal is visible
+  requestAnimationFrame(() => {
+    updateModalAria(backdrop, true);
+  });
+  
+  // Trap focus within modal
+  trapFocus(backdrop);
+  
+  // Reset modal content scroll position
+  if (modalContent) {
+    modalContent.scrollTop = 0;
+  }
   
   // Populate basic info first (what we already have)
   document.getElementById('anime-details-title').textContent = anime.title || 'Loading...';
   document.getElementById('anime-details-cover-img').src = anime.coverImage || '';
   
   // Show loading state for synopsis
-  document.getElementById('anime-details-synopsis').textContent = 'Loading...';
+  const synopsisEl = document.getElementById('anime-details-synopsis');
+  if (synopsisEl) synopsisEl.textContent = 'Loading...';
   
   // Check if we need to fetch full data
   const needsFullData = !anime.description || !anime.studios || anime.studios.length === 0;
   
   let fullAnime = anime;
+  let hideLoading = null;
   
   if (needsFullData && anime.id) {
+    // Show loading overlay on modal content
+    const modalContent = document.getElementById('anime-details-modal-content');
+    if (modalContent) {
+      hideLoading = showLoadingOverlay(modalContent, 'Loading anime details...');
+    }
+    
     try {
       // Fetch full anime data from AniList
       const query = `
@@ -48,6 +218,18 @@ export async function openAnimeDetailsModal(anime) {
             source
             trailer { id site }
             startDate { year month day }
+            siteUrl
+            staff {
+              edges {
+                role
+                node {
+                  id
+                  name {
+                    full
+                  }
+                }
+              }
+            }
           }
         }
       `;
@@ -65,6 +247,12 @@ export async function openAnimeDetailsModal(anime) {
       const media = data?.data?.Media;
       
       if (media) {
+        // Process staff data
+        const staffData = media.staff?.edges?.map(edge => ({
+          role: edge.role,
+          name: edge.node?.name?.full || 'Unknown'
+        })) || [];
+        
         // Merge fetched data with existing anime object
         fullAnime = {
           ...anime,
@@ -73,7 +261,9 @@ export async function openAnimeDetailsModal(anime) {
           source: media.source,
           averageScore: media.averageScore,
           trailer: media.trailer,
-          startDate: media.startDate
+          startDate: media.startDate,
+          siteUrl: media.siteUrl,
+          staff: staffData
         };
         
         // Update the local data cache
@@ -86,8 +276,12 @@ export async function openAnimeDetailsModal(anime) {
         }
       }
     } catch (error) {
-      console.error('Failed to fetch full anime data:', error);
+      handleError(error, 'loading anime details', {
+        showToast: true
+      });
       // Continue with partial data
+    } finally {
+      if (hideLoading) hideLoading();
     }
   }
   
@@ -105,17 +299,22 @@ export async function openAnimeDetailsModal(anime) {
  */
 function populateModalWithData(anime) {
   // Title and cover
-  document.getElementById('anime-details-title').textContent = anime.title || 'Unknown';
-  document.getElementById('anime-details-cover-img').src = anime.coverImage || '';
+  const titleEl = document.getElementById('anime-details-title');
+  if (titleEl) titleEl.textContent = anime.title || 'Unknown';
+  const coverImg = document.getElementById('anime-details-cover-img');
+  if (coverImg) coverImg.src = anime.coverImage || '';
   
   // Meta badges
   const year = anime.seasonYear || anime.startDate?.year || '—';
   const format = anime.format || '—';
   const episodesCount = anime.totalEpisodes ? `${anime.totalEpisodes} Episodes` : '—';
   
-  document.getElementById('anime-details-year').textContent = year;
-  document.getElementById('anime-details-format').textContent = format;
-  document.getElementById('anime-details-episodes-count').textContent = episodesCount;
+  const yearEl = document.getElementById('anime-details-year');
+  if (yearEl) yearEl.textContent = year;
+  const formatEl = document.getElementById('anime-details-format');
+  if (formatEl) formatEl.textContent = format;
+  const episodesCountEl = document.getElementById('anime-details-episodes-count');
+  if (episodesCountEl) episodesCountEl.textContent = episodesCount;
   
   // Quick stats
   const scoreDisplay = document.querySelector('#anime-details-modal-content .score-display span');
@@ -132,7 +331,8 @@ function populateModalWithData(anime) {
   // Progress
   const watched = anime.episodesWatched || 0;
   const total = anime.totalEpisodes || '?';
-  document.getElementById('anime-details-progress').textContent = `${watched}/${total}`;
+  const progressEl = document.getElementById('anime-details-progress');
+  if (progressEl) progressEl.textContent = `${watched}/${total}`;
   
   const addEpisodeBtn = document.getElementById('anime-details-add-episode');
   if (addEpisodeBtn) {
@@ -164,7 +364,8 @@ function populateModalWithData(anime) {
   
   // Synopsis
   const synopsis = anime.description?.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '') || 'No synopsis available.';
-  document.getElementById('anime-details-synopsis').textContent = synopsis;
+  const synopsisEl = document.getElementById('anime-details-synopsis');
+  if (synopsisEl) synopsisEl.textContent = synopsis;
   
   // Information grid
   const studios = anime.studios?.length > 0 ? anime.studios.join(', ') : '—';
@@ -187,19 +388,112 @@ function populateModalWithData(anime) {
   
   const avgScore = anime.averageScore ? `${anime.averageScore}%` : '—';
   
-  document.getElementById('anime-details-studios').textContent = studios;
-  document.getElementById('anime-details-source').textContent = source;
-  document.getElementById('anime-details-season').textContent = seasonText;
-  document.getElementById('anime-details-avg-score').textContent = avgScore;
+  const studiosEl = document.getElementById('anime-details-studios');
+  if (studiosEl) studiosEl.textContent = studios;
+  const sourceEl = document.getElementById('anime-details-source');
+  if (sourceEl) sourceEl.textContent = source;
+  const seasonEl = document.getElementById('anime-details-season');
+  if (seasonEl) seasonEl.textContent = seasonText;
+  const avgScoreEl = document.getElementById('anime-details-avg-score');
+  if (avgScoreEl) avgScoreEl.textContent = avgScore;
+  
+  // Staff
+  const staffSection = document.getElementById('anime-details-staff-section');
+  const staffContainer = document.getElementById('anime-details-staff');
+  if (staffContainer && anime.staff && anime.staff.length > 0) {
+    if (staffSection) staffSection.style.display = 'block';
+    
+    // Group staff by role
+    const staffByRole = {};
+    anime.staff.forEach(member => {
+      const role = member.role || 'Other';
+      if (!staffByRole[role]) staffByRole[role] = [];
+      staffByRole[role].push(member.name);
+    });
+    
+    // Render staff (show top roles: Director, Writer, Music, etc.)
+    const priorityRoles = ['Director', 'Writer', 'Music', 'Character Design', 'Animation Director'];
+    const otherRoles = Object.keys(staffByRole).filter(r => !priorityRoles.includes(r));
+    const allRoles = [...priorityRoles.filter(r => staffByRole[r]), ...otherRoles];
+    
+    if (allRoles.length > 0) {
+      staffContainer.innerHTML = allRoles.slice(0, 6).map(role => {
+        const names = staffByRole[role].slice(0, 3).join(', ');
+        const more = staffByRole[role].length > 3 ? ` +${staffByRole[role].length - 3} more` : '';
+        return `
+          <div class="staff-item">
+            <span class="staff-role">${role}:</span>
+            <span class="staff-name">${names}${more}</span>
+          </div>
+        `;
+      }).join('');
+    } else {
+      staffContainer.innerHTML = '<span class="theme-text-muted">No staff information available</span>';
+    }
+  } else {
+    if (staffSection) staffSection.style.display = 'none';
+    if (staffContainer && (!anime.staff || anime.staff.length === 0)) {
+      staffContainer.innerHTML = '<span class="theme-text-muted">No staff information available</span>';
+    }
+  }
+  
+  // External Links
+  const linksSection = document.getElementById('anime-details-links-section');
+  const linksContainer = document.getElementById('anime-details-links');
+  if (linksSection && linksContainer) {
+    const links = [];
+    
+    // AniList link
+    if (anime.id) {
+      links.push({
+        label: 'AniList',
+        url: `https://anilist.co/anime/${anime.id}`,
+        icon: '🔗'
+      });
+    }
+    
+    // Official site
+    if (anime.siteUrl) {
+      links.push({
+        label: 'Official Site',
+        url: anime.siteUrl,
+        icon: '🌐'
+      });
+    }
+    
+    // MAL link (search)
+    if (anime.id) {
+      const searchTitle = encodeURIComponent(anime.title || '');
+      links.push({
+        label: 'MyAnimeList',
+        url: `https://myanimelist.net/search/all?q=${searchTitle}&cat=all`,
+        icon: '📋'
+      });
+    }
+    
+    if (links.length > 0) {
+      linksSection.style.display = 'block';
+      linksContainer.innerHTML = links.map(link => `
+        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="external-link-btn">
+          <span class="link-icon">${link.icon}</span>
+          <span class="link-label">${link.label}</span>
+        </a>
+      `).join('');
+    } else {
+      linksSection.style.display = 'none';
+    }
+  }
   
   // Genres
   const genresContainer = document.getElementById('anime-details-genres');
-  if (anime.genres && anime.genres.length > 0) {
-    genresContainer.innerHTML = anime.genres.map(g => 
-      `<span class="genre-tag-modal">${g}</span>`
-    ).join('');
-  } else {
-    genresContainer.innerHTML = '<span class="theme-text-muted">No genres available</span>';
+  if (genresContainer) {
+    if (anime.genres && anime.genres.length > 0) {
+      genresContainer.innerHTML = anime.genres.map(g => 
+        `<span class="genre-tag-modal">${g}</span>`
+      ).join('');
+    } else {
+      genresContainer.innerHTML = '<span class="theme-text-muted">No genres available</span>';
+    }
   }
   
   // Trailer
@@ -240,6 +534,15 @@ function populateModalWithData(anime) {
   if (saveNotesBtn) {
     saveNotesBtn.dataset.animeId = anime.id;
     saveNotesBtn.dataset.animeTitle = anime.title;
+  }
+  
+  // Add to List button
+  populateModalAddToListButton(anime.id);
+  
+  // Store anime ID for toast notifications
+  const modalContainer = document.getElementById('anime-details-add-to-list-container');
+  if (modalContainer) {
+    modalContainer.dataset.animeId = anime.id;
   }
   
   // Watch Dates
@@ -289,11 +592,41 @@ export function closeAnimeDetailsModal() {
   const trailerIframe = document.getElementById('anime-details-trailer');
   const showTrailerBtn = document.getElementById('anime-details-show-trailer');
   
-  if (backdrop) backdrop.classList.remove('show');
+  if (backdrop) {
+    backdrop.classList.remove('show');
+    
+    // Remove inline styles that force display
+    backdrop.style.display = '';
+    backdrop.style.opacity = '';
+    backdrop.style.pointerEvents = '';
+    backdrop.style.visibility = '';
+    backdrop.style.zIndex = '';
+    backdrop.style.background = '';
+    backdrop.style.position = '';
+    backdrop.style.top = '';
+    backdrop.style.left = '';
+    backdrop.style.right = '';
+    backdrop.style.bottom = '';
+    backdrop.style.width = '';
+    backdrop.style.height = '';
+    
+    // Update ARIA attributes (set aria-hidden to true when closing)
+    updateModalAria(backdrop, false);
+    
+    // Release focus trap
+    releaseFocus(backdrop);
+  }
+  
+  // Restore body scroll
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
   
   if (trailerIframe) trailerIframe.src = '';
   if (trailerContainer) trailerContainer.classList.add('hidden');
   if (showTrailerBtn) showTrailerBtn.style.display = 'block';
+  
+  // Restore focus to previous element
+  restoreFocus();
 }
 
 /**
@@ -414,20 +747,22 @@ async function loadRelatedAndRecommendations(animeId) {
     `).join('');
     
   } catch (error) {
-    console.error('Failed to load related anime and recommendations:', error);
-    container.innerHTML = '<p class="theme-text-muted">Failed to load content.</p>';
+    const errorInfo = handleError(error, 'loading related anime', {
+      showToast: false // Don't show toast for background loading
+    });
+    
+    container.innerHTML = `
+      <div class="text-center py-8">
+        <p class="theme-text-muted mb-4">${errorInfo.message}</p>
+        <button class="btn-primary retry-btn" onclick="window.location.reload()">
+          Retry
+        </button>
+      </div>
+    `;
   }
 }
 
-/**
- * Escape HTML helper
- */
-function escapeHtml(str) {
-  if (str == null) return '';
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+// escapeHtml is now imported from utils.js
 
 /**
  * Save watch dates to AniList
@@ -472,7 +807,9 @@ export async function saveAnimeDates(animeId, startedAt, completedAt, animeTitle
     return { success: true, entry: result.entry };
     
   } catch (error) {
-    console.error('Failed to save dates:', error);
+    handleError(error, 'saving dates', {
+      showToast: true
+    });
     throw error;
   }
 }
@@ -515,7 +852,9 @@ export async function saveAnimeNotes(animeId, notes, animeTitle) {
     return { success: true };
     
   } catch (error) {
-    console.error('Failed to save notes:', error);
+    handleError(error, 'saving notes', {
+      showToast: true
+    });
     throw error;
   }
 }
@@ -535,9 +874,25 @@ export function initAnimeDetailsModal() {
     closeBtn.addEventListener('click', closeAnimeDetailsModal);
   }
   
+  // Make clicking anywhere outside modal content close it
+  const modalContent = document.getElementById('anime-details-modal-content');
+  
+  // Add click handler to backdrop - this will catch all clicks outside modal content
   if (backdrop) {
     backdrop.addEventListener('click', (e) => {
-      if (e.target === backdrop) closeAnimeDetailsModal();
+      // Close if clicking directly on backdrop (not on modal content or its children)
+      if (e.target === backdrop || e.target.id === 'anime-details-modal-backdrop') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAnimeDetailsModal();
+      }
+    }, { once: false }); // Allow multiple clicks
+  }
+  
+  // Prevent clicks inside modal content from closing
+  if (modalContent) {
+    modalContent.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent clicks inside modal from bubbling to backdrop
     });
   }
   
@@ -563,23 +918,23 @@ export function initAnimeDetailsModal() {
       const animeTitle = btn.dataset.animeTitle;
       const notes = textarea.value;
       
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
+      const restoreButton = showButtonLoading(btn, 'Saving...');
       
       try {
         await saveAnimeNotes(animeId, notes, animeTitle);
         showToast(`Notes saved for '${animeTitle}'!`, 'success');
+        restoreButton();
         btn.textContent = 'Saved ✓';
         
         setTimeout(() => {
           btn.textContent = 'Save Notes';
-          btn.disabled = false;
         }, 2000);
         
       } catch (error) {
-        showToast(`Failed to save notes: ${error.message}`, 'error');
-        btn.textContent = 'Save Notes';
-        btn.disabled = false;
+        restoreButton();
+        handleError(error, 'saving notes', {
+          showToast: true
+        });
       }
     });
   }
@@ -595,23 +950,23 @@ export function initAnimeDetailsModal() {
       const startedAt = startedDateInput?.value || '';
       const completedAt = completedDateInput?.value || '';
       
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
+      const restoreButton = showButtonLoading(btn, 'Saving...');
       
       try {
         await saveAnimeDates(animeId, startedAt, completedAt, animeTitle);
         showToast(`Watch dates saved for '${animeTitle}'!`, 'success');
+        restoreButton();
         btn.textContent = 'Saved ✓';
         
         setTimeout(() => {
           btn.textContent = 'Save Dates';
-          btn.disabled = false;
         }, 2000);
         
       } catch (error) {
-        showToast(`Failed to save dates: ${error.message}`, 'error');
-        btn.textContent = 'Save Dates';
-        btn.disabled = false;
+        restoreButton();
+        handleError(error, 'saving dates', {
+          showToast: true
+        });
       }
     });
   }
@@ -707,7 +1062,8 @@ window.openRelatedAnime = async function(animeId) {
       }
     }
   } catch (error) {
-    console.error('Failed to open related anime:', error);
-    showToast('Failed to load anime details', 'error');
+    handleError(error, 'opening related anime', {
+      showToast: true
+    });
   }
 };

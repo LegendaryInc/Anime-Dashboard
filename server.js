@@ -50,23 +50,33 @@ if (process.env.DATABASE_URL) {
 const app = express();
 app.set('trust proxy', 1);
 
-// --- VERY EARLY Request Logging (before everything) ---
-app.use((req, res, next) => {
-  // Log ALL requests to see if Express is receiving anything
-  console.log(`🚨 [VERY EARLY] ${req.method} ${req.path}`);
-  console.error(`🚨 [VERY EARLY] ${req.method} ${req.path}`);
-  if (req.path.startsWith('/api')) {
-    console.log(`   📡 API Request: ${req.method} ${req.path}`);
-    console.error(`   📡 API Request: ${req.method} ${req.path}`);
-    console.log(`   URL: ${req.url}, Original: ${req.originalUrl}, Base: ${req.baseUrl}`);
-    console.error(`   URL: ${req.url}, Original: ${req.originalUrl}, Base: ${req.baseUrl}`);
-  }
-  next();
-});
-
 // --- Config ---
 const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change-me';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+
+// =====================================================================
+// CORS Configuration (for separate frontend/backend)
+// =====================================================================
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Allow requests from frontend
+  if (origin === FRONTEND_URL || origin === 'http://localhost:3001' || origin?.includes('vercel.app') || origin?.includes('netlify.app') || origin?.includes('pages.dev')) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
 // --- Session Middleware ---
 app.use(session({
@@ -86,57 +96,24 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Log all API requests for debugging (VERY EARLY - before everything)
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    console.log(`📡 [EARLY REQUEST] ${req.method} ${req.path}`, {
-      url: req.url,
-      originalUrl: req.originalUrl,
-      baseUrl: req.baseUrl,
-      headers: req.headers['content-type']
-    });
-  }
-  next();
-});
-
 // =====================================================================
 // Auth Middleware
 // =====================================================================
 const requireAuth = async (req, res, next) => {
-  // Use both console.log and console.error to ensure logs appear
-  console.error('🔐 [requireAuth] ===== AUTH CHECK STARTING =====');
-  console.error('🔐 [requireAuth] Path:', req.path);
-  console.error('🔐 [requireAuth] Session exists:', !!req.session);
-  console.error('🔐 [requireAuth] Auth service:', req.session?.auth?.service);
-  console.error('🔐 [requireAuth] Internal user ID:', req.session?.internalUserId);
-  console.log('🔐 [requireAuth] ===== AUTH CHECK STARTING =====');
-  console.log('🔐 [requireAuth] Path:', req.path);
-  console.log('🔐 [requireAuth] Session exists:', !!req.session);
-  console.log('🔐 [requireAuth] Auth service:', req.session?.auth?.service);
-  console.log('🔐 [requireAuth] Internal user ID:', req.session?.internalUserId);
-  
   if (req.session?.auth?.service !== 'anilist') {
-    console.error('❌ [requireAuth] ERROR: Not authenticated with AniList');
-    console.log('❌ [requireAuth] ERROR: Not authenticated with AniList');
     return res.status(401).json({ error: 'Not authenticated with AniList' });
   }
 
   await maybeRefreshToken(req.session);
 
   if (!req.session?.auth?.service || req.session.auth.service !== 'anilist') {
-    console.error('❌ [requireAuth] ERROR: Session expired');
-    console.log('❌ [requireAuth] ERROR: Session expired');
     return res.status(401).json({ error: 'Session expired, please log in again' });
   }
 
   if (!req.session.internalUserId) {
-    console.error('❌ [requireAuth] ERROR: Missing internal user ID');
-    console.log('❌ [requireAuth] ERROR: Missing internal user ID');
     return res.status(401).json({ error: 'User session is missing internal ID.' });
   }
 
-  console.error('✅ [requireAuth] Auth check passed, calling next()');
-  console.log('✅ [requireAuth] Auth check passed, calling next()');
   next();
 };
 
@@ -161,65 +138,10 @@ app.use('/auth', authRoutes);
 
 // Gacha routes removed - backed up to gacha-backup/
 
-// Direct routes removed - using router routes instead
-
-// Main data API routes (requires auth)
-// Note: requireAuth middleware runs BEFORE routes are matched
-// IMPORTANT: When using app.use('/api', ...), Express strips '/api' from req.path before passing to router
-// So router.post('/anilist/update-notes', ...) matches '/api/anilist/update-notes' requests
-app.use('/api', (req, res, next) => {
-  console.error(`🚨 [API Middleware] ${req.method} ${req.path} - BEFORE requireAuth`);
-  console.log(`🚨 [API Middleware] ${req.method} ${req.path} - BEFORE requireAuth`);
-  console.error(`   req.path: ${req.path}, req.baseUrl: ${req.baseUrl}, req.originalUrl: ${req.originalUrl}`);
-  console.error(`   Router will see: ${req.path} (Express strips /api prefix)`);
-  next();
-}, requireAuth, apiRoutes);
-
-// Test endpoints to verify routes are working
-// MUST be after app.use('/api') to override the auth middleware
-app.post('/api/test-route', (req, res) => {
-  console.log('✅ Test route hit!', req.method, req.path);
-  res.json({ success: true, message: 'Test route is working', path: req.path });
-});
-
-// Simple test endpoints - NO AUTH to test if routes work at all
-app.post('/api/test-simple', (req, res) => {
-  console.log('✅ [TEST SIMPLE] Route hit!', req.method, req.path);
-  res.json({ success: true, message: 'Simple test works!' });
-});
-
-app.post('/api/anilist/test-no-auth', (req, res) => {
-  console.log('✅ [TEST NO AUTH] Route hit!', req.method, req.path);
-  res.json({ success: true, message: 'No-auth test works!' });
-});
-
-// Simple test endpoint that matches the exact path pattern
-app.post('/api/anilist/update-notes-test', requireAuth, (req, res) => {
-  console.log('✅ [TEST] update-notes-test route hit!', req.method, req.path);
-  console.log('✅ [TEST] Request body:', req.body);
-  res.json({ success: true, message: 'Test endpoint works!', path: req.path, body: req.body });
-});
-
-// Debug: Log router routes (development only)
-if (process.env.NODE_ENV !== 'production') {
-  console.log('🔍 Router routes (apiRoutes):');
-  let routeCount = 0;
-  apiRoutes.stack.forEach((r, index) => {
-    if (r.route) {
-      const methods = Object.keys(r.route.methods).join(', ').toUpperCase();
-      console.log(`   [${index}] ${methods} /api${r.route.path}`);
-      routeCount++;
-    } else if (r.name === 'router') {
-      console.log(`   [${index}] [Nested Router: ${r.regexp.source}]`);
-    } else {
-      console.log(`   [${index}] Middleware: ${r.name || 'unnamed'}`);
-    }
-  });
-  console.log(`   Total router routes: ${routeCount}`);
-}
-
 // =====================================================================
-// STREAMING LINKS API (requires auth)
+// STREAMING LINKS API (requires auth) - MUST be before /api router
+// These routes need to be defined BEFORE app.use('/api', ...) so they
+// match before the router middleware strips the /api prefix
 // =====================================================================
 
 /**
@@ -297,6 +219,10 @@ app.post('/api/streaming/free', requireAuth, async (req, res) => {
   }
 });
 
+// Main data API routes (requires auth) - MUST be after streaming routes
+// This router will handle all other /api/* routes that don't match above
+app.use('/api', requireAuth, apiRoutes);
+
 // Cache stats endpoint (updated)
 app.get('/api/cache-stats', (req, res) => {
   try {
@@ -350,9 +276,10 @@ if (hasProductionBuild) {
 } else {
   // Development: Serve source files directly
   app.use('/scripts', express.static(path.join(__dirname, 'scripts'), staticOptions));
-  app.use('/css', express.static(path.join(__dirname, 'css'), staticOptions));
-  app.use('/images', express.static(path.join(__dirname, 'images'), staticOptions));
-  app.use('/cosmetics', express.static(path.join(__dirname, 'cosmetics'), staticOptions));
+app.use('/css', express.static(path.join(__dirname, 'css'), staticOptions));
+app.use('/images', express.static(path.join(__dirname, 'images'), staticOptions));
+app.use('/cosmetics', express.static(path.join(__dirname, 'cosmetics'), staticOptions));
+app.use('/data', express.static(path.join(__dirname, 'data'), staticOptions));
   console.log('🔧 Serving development files from source');
 }
 
@@ -462,32 +389,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Base URL: ${process.env.BASE_URL || 'http://localhost:3000'}`);
   console.log(`📺 Streaming links API ready (Jikan + free sites)`);
-  
-  // Debug: Log ALL registered routes after server starts
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('\n🔍 ===== ALL REGISTERED ROUTES =====');
-    
-    // Log all app-level routes
-    console.log('\n📋 App-level routes:');
-    let appRouteCount = 0;
-    if (app._router && app._router.stack) {
-      app._router.stack.forEach((middleware, index) => {
-        if (middleware.route) {
-          const methods = Object.keys(middleware.route.methods).join(', ').toUpperCase();
-          console.log(`   [${index}] ${methods} ${middleware.route.path}`);
-          appRouteCount++;
-        } else if (middleware.name === 'router') {
-          console.log(`   [${index}] Router mounted at: ${middleware.regexp?.source || 'N/A'}`);
-        } else {
-          const name = middleware.name || 'unnamed';
-          const regexp = middleware.regexp?.source || 'N/A';
-          console.log(`   [${index}] ${name} (regexp: ${regexp})`);
-        }
-      });
-    } else {
-      console.log('   ⚠️ app._router not available');
-    }
-    console.log(`   Total app-level routes: ${appRouteCount}`);
-    console.log('🔍 ===== END ROUTE REGISTRATION =====\n');
-  }
 });

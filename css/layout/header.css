@@ -17,8 +17,8 @@ header {
    ------------------------------------------------------------------- */
 header h1 {
   color: var(--text-primary);
-  font-weight: 900;
-  font-size: 2.5rem;
+  font-weight: var(--font-weight-black);
+  font-size: 2.5rem; /* Larger than 3xl, keeping for header prominence */
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: color 0.3s ease, text-shadow 0.3s ease;
   line-height: 1.2;
@@ -31,9 +31,9 @@ header h1 {
 header p {
   color: var(--text-secondary);
   transition: color 0.3s ease;
-  font-size: 1rem;
-  margin-top: 8px;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  margin-top: var(--gap-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 /* ------------------------------------------------------------------- 
@@ -123,45 +123,75 @@ body.theme-sky header p {
 #theme-switcher {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 32px;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-bottom: var(--spacing-3xl);
   flex-wrap: wrap;
 }
 
 /* ------------------------------------------------------------------- 
-   SETTINGS BUTTON (Gear Icon)
+   HEADER ACTIONS (Settings, etc.)
    ------------------------------------------------------------------- */
-#settings-button {
-  position: absolute;
-  right: 0;
-  top: 0;
-  transition: all 0.3s ease;
-  padding: 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  z-index: 10;
 }
 
-#settings-button:hover {
+.header-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: var(--btn-padding-md);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-action-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-action-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.header-action-btn:hover svg {
   transform: rotate(90deg);
-  background: rgba(255, 255, 255, 0.15);
 }
 
-body.theme-neon #settings-button {
-  background: rgba(15, 10, 35, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+body.theme-neon .header-action-btn {
+  background: rgba(15, 10, 35, 0.8);
+  border-color: rgba(139, 92, 246, 0.4);
   color: #e0e7ff;
   box-shadow: 
-    0 0 15px rgba(139, 92, 246, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(139, 92, 246, 0.2);
 }
 
-body.theme-neon #settings-button:hover {
-  border-color: rgba(168, 85, 247, 0.5);
+body.theme-neon .header-action-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(168, 85, 247, 0.6);
   box-shadow: 
-    0 0 25px rgba(168, 85, 247, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.settings-btn-text {
+  font-size: var(--font-size-sm);
 }
 
 /* ------------------------------------------------------------------- 
@@ -173,11 +203,11 @@ body.theme-neon #settings-button:hover {
   }
   
   header h1 {
-    font-size: 2rem;
+    font-size: var(--font-size-2xl);
   }
   
   header p {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
   
   #theme-switcher {
@@ -188,15 +218,18 @@ body.theme-neon #settings-button:hover {
 
 @media (max-width: 480px) {
   header h1 {
-    font-size: 1.75rem;
+    font-size: var(--font-size-xl);
   }
   
   header p {
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
   }
   
-  #settings-button {
-    padding: 6px;
-    font-size: 1.2rem;
+  .settings-btn-text {
+    display: none;
+  }
+  
+  .header-action-btn {
+    padding: 8px 12px;
   }
 }

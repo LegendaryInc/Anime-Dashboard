@@ -1,0 +1,100 @@
+/* ===================================================================
+   SETTINGS MODAL
+   Modern tabbed settings interface
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   Settings Tabs
+   ------------------------------------------------------------------- */
+.settings-tab {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.settings-tab:hover {
+  color: var(--text-primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.settings-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+body.theme-neon .settings-tab.active {
+  color: #c4b5fd;
+  border-bottom-color: #c4b5fd;
+  text-shadow: 0 0 8px rgba(196, 181, 253, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
+   Settings Tab Content
+   ------------------------------------------------------------------- */
+.settings-tab-content {
+  min-height: 300px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.settings-tab-content.hidden {
+  display: none;
+}
+
+/* ------------------------------------------------------------------- 
+   Settings Form Elements
+   ------------------------------------------------------------------- */
+.settings-tab-content input[type="text"],
+.settings-tab-content input[type="number"],
+.settings-tab-content input[type="password"],
+.settings-tab-content select {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.settings-tab-content input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.settings-tab-content kbd {
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------- 
+   Settings Info Box
+   ------------------------------------------------------------------- */
+.settings-tab-content .bg-blue-50 {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+body.theme-neon .settings-tab-content .bg-blue-50 {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+/* ------------------------------------------------------------------- 
+   Mobile Responsiveness
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .settings-tab {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .settings-tab-content {
+    max-height: 50vh;
+  }
+}
+

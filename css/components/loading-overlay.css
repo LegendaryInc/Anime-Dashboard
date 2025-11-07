@@ -1,0 +1,76 @@
+/* ===================================================================
+   LOADING OVERLAY
+   Loading overlay for async operations
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   Loading Overlay
+   ------------------------------------------------------------------- */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+}
+
+.loading-overlay.loading-overlay-show {
+  opacity: 1;
+}
+
+.loading-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  min-width: 200px;
+}
+
+.loading-overlay-message {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+body.theme-neon .loading-overlay-content {
+  background: rgba(10, 5, 30, 0.95);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+body.theme-neon .loading-overlay-message {
+  color: #e0e7ff;
+  text-shadow: 0 0 8px rgba(224, 231, 255, 0.3);
+}
+
+/* ------------------------------------------------------------------- 
+   Mobile responsiveness
+   ------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .loading-overlay-content {
+    padding: 20px;
+    min-width: 160px;
+  }
+  
+  .loading-overlay-message {
+    font-size: 0.85rem;
+  }
+}
+

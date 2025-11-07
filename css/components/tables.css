@@ -21,11 +21,12 @@
 /* ------------------------------------------------------------------- 
    FIXED COLUMN WIDTHS - Prevents crushing
    ------------------------------------------------------------------- */
-#anime-table colgroup col:nth-child(1) { width: 32%; } /* Title */
-#anime-table colgroup col:nth-child(2) { width: 13%; } /* Score */
-#anime-table colgroup col:nth-child(3) { width: 20%; } /* Progress */
-#anime-table colgroup col:nth-child(4) { width: 22%; } /* Genres */
-#anime-table colgroup col:nth-child(5) { width: 13%; } /* Actions */
+#anime-table colgroup col:nth-child(1) { width: 3%; } /* Checkbox */
+#anime-table colgroup col:nth-child(2) { width: 30%; } /* Title */
+#anime-table colgroup col:nth-child(3) { width: 12%; } /* Score */
+#anime-table colgroup col:nth-child(4) { width: 18%; } /* Progress */
+#anime-table colgroup col:nth-child(5) { width: 20%; } /* Genres */
+#anime-table colgroup col:nth-child(6) { width: 17%; } /* Actions */
 
 /* ------------------------------------------------------------------- 
    TABLE HEADERS
@@ -34,6 +35,30 @@
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+/* ------------------------------------------------------------------- 
+   TABLE ROWS - KEYBOARD NAVIGATION (Accessibility)
+   ------------------------------------------------------------------- */
+.table-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: var(--card-hover, rgba(99, 102, 241, 0.05));
+}
+
+.table-row:focus {
+  outline: 2px solid var(--btn-primary-bg);
+  outline-offset: -2px;
+  background-color: var(--card-hover, rgba(99, 102, 241, 0.1));
+}
+
+.table-row:focus-visible {
+  outline: 2px solid var(--btn-primary-bg);
+  outline-offset: -2px;
+  background-color: var(--card-hover, rgba(99, 102, 241, 0.1));
 }
 
 #anime-table th {
@@ -55,8 +80,13 @@
   text-align: center;
 }
 
+/* Center align checkbox header */
+#anime-table th:nth-child(1) {
+  text-align: center;
+}
+
 /* Right align actions header */
-#anime-table th:nth-child(5) {
+#anime-table th:nth-child(6) {
   text-align: right;
 }
 
@@ -121,11 +151,12 @@ body.theme-neon .sortable-header.sort-desc::after {
   border-bottom: 1px solid rgba(209, 213, 219, 0.2);
   transition: all 0.2s ease;
   position: relative;
+  z-index: 1;
 }
 
 #anime-table tbody tr:hover {
   background: var(--table-hover);
-  z-index: 10;
+  z-index: 2;
 }
 
 body.theme-neon #anime-table tbody tr {
@@ -170,14 +201,18 @@ body.theme-neon #anime-table td {
 }
 
 /* Title column */
-#anime-table td:nth-child(1) {
+#anime-table td:nth-child(2) {
   font-weight: 600;
   overflow: visible; /* Changed from hidden */
 }
 
-body.theme-neon #anime-table td:nth-child(1) {
+body.theme-neon #anime-table td:nth-child(2) {
   color: #ffffff;
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+body.theme-neon #anime-table td:nth-child(5) {
+  color: #c4b5fd;
 }
 
 .main-title {
@@ -206,13 +241,51 @@ body.theme-neon #anime-table td:nth-child(2) {
 }
 
 /* Genres column */
-#anime-table td:nth-child(4) {
+#anime-table td:nth-child(5) {
   font-size: 0.8rem;
   color: var(--text-muted);
   overflow: visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
+}
+
+/* Ensure genres container has proper stacking - must be higher than row z-index */
+#anime-table td:nth-child(5) .genres-container {
+  position: relative;
+  z-index: 10;
+}
+
+/* When hovering over genres, ensure tooltip appears above all rows */
+#anime-table tbody tr:hover td:nth-child(5) .genres-container {
+  z-index: 10000;
+}
+
+/* Ensure the tooltip itself has the highest z-index */
+#anime-table td:nth-child(5) .genres-container .genres-tooltip {
+  z-index: 10001;
+}
+
+/* When hovering over genres container, raise the entire row's z-index */
+#anime-table tbody tr:has(.genres-container:hover) {
+  z-index: 10000;
+}
+
+#anime-table tbody tr:has(.genres-container:hover) td:nth-child(5) .genres-container {
+  z-index: 10001;
+}
+
+/* Checkbox column */
+#anime-table td:nth-child(1) {
+  overflow: visible;
+  text-align: center;
+}
+
+/* Actions column - allow dropdown overflow */
+#anime-table td:nth-child(6) {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 body.theme-neon #anime-table td:nth-child(4) {
@@ -231,7 +304,7 @@ body.theme-neon #anime-table td:nth-child(4) {
   visibility: hidden;
   opacity: 0;
   position: absolute;
-  z-index: 1000;
+  z-index: 10000;
   top: -8px;
   left: 0;
   transform: translateY(-100%);

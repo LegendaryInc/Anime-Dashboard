@@ -29,6 +29,10 @@
 @import './components/keyboard.css';   /* Keyboard shortcuts help */
 @import './components/lazy-loading.css';   /* Lazy loading styles */
 @import './components/loading.css';   /* Loading states & spinners */
+@import './components/context-menu.css';   /* Context menu (quick actions) */
+@import './components/tooltips.css';   /* Tooltip system */
+@import './components/loading-overlay.css';   /* Loading overlay */
+@import './components/settings.css';   /* Settings modal */
 
 /* =================================================================== 
    4. FEATURES (Tab-specific content)
@@ -39,6 +43,12 @@
 @import './features/grid-view.css';     /* Grid View Changes */
 @import './features/enhanced-filters.css';     /* Enhanced Filter Features */
 @import './features/insights.css';     /* Enhanced AI Insights */
+@import './features/timeline.css';     /* Watch History Timeline */
+@import './features/achievements.css'; /* Achievements System */
+@import './features/export.css'; /* Export Menu */
+@import './features/custom-lists.css'; /* Custom Lists System */
+@import './features/bulk-operations.css'; /* Bulk Operations */
+@import './features/ui-transitions.css'; /* UI Transitions & Animations */
 
 /* =================================================================== 
    5. THEME EFFECTS (Visual enhancements)

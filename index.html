@@ -13,17 +13,21 @@
   
   <link rel="stylesheet" href="/css/main.css" />
 
-  <!-- Chart.js from CDN (needed without bundler) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <!-- Chart.js and jsPDF will be lazy loaded when needed -->
+  <!-- Chart.js: Loaded when Visualizations tab is opened -->
+  <!-- jsPDF: Loaded when PDF export is triggered -->
   
   <script src="config.js"></script>
 </head>
 <body>
+  <!-- Skip to main content link for screen readers -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
   <!-- Background animations container -->
-  <div id="background-animations"></div>
+  <div id="background-animations" aria-hidden="true"></div>
 
   <!-- Neon theme city buildings -->
-  <div class="city-buildings">
+  <div class="city-buildings" aria-hidden="true">
     <div class="building" style="width: 60px; height: 150px;"></div>
     <div class="building" style="width: 80px; height: 200px;"></div>
     <div class="building" style="width: 50px; height: 120px;"></div>
@@ -34,27 +38,35 @@
   </div>
 
   <div class="container mx-auto p-4 md:p-8">
-    <header class="text-center mb-8 relative">
-      <button id="settings-button" class="absolute right-0 top-0 text-xl p-2 rounded-lg hover:bg-gray-100 transition">⚙️</button>
+    <header class="text-center mb-8 relative" role="banner">
+      <div class="header-actions absolute right-0 top-0 flex gap-2">
+        <button id="settings-button" class="header-action-btn" aria-label="Open settings" data-tooltip="Open settings">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="settings-btn-text">Settings</span>
+        </button>
+      </div>
       <h1 class="text-4xl md:text-5xl font-bold">My Anime Dashboard</h1>
       <p class="mt-2 header-subtitle">Visualize your anime watching journey.</p>
     </header>
 
-    <div id="theme-switcher" class="flex justify-center gap-2 mb-6">
-      <button data-theme="default" class="theme-btn">Default</button>
-      <button data-theme="sakura" class="theme-btn">Sakura 🌸</button>
-      <button data-theme="sky" class="theme-btn">Sky ☀️</button>
-      <button data-theme="neon" class="theme-btn">Neon 🌃</button>
-    </div>
+    <nav id="theme-switcher" class="flex justify-center gap-2 mb-6" aria-label="Theme selection">
+      <button data-theme="default" class="theme-btn" aria-label="Default theme" aria-pressed="false">Default</button>
+      <button data-theme="sakura" class="theme-btn" aria-label="Sakura theme" aria-pressed="false">Sakura 🌸</button>
+      <button data-theme="sky" class="theme-btn" aria-label="Sky theme" aria-pressed="false">Sky ☀️</button>
+      <button data-theme="neon" class="theme-btn" aria-label="Neon theme" aria-pressed="false">Neon 🌃</button>
+    </nav>
 
-    <main>
+    <main id="main-content" role="main">
       <!-- Welcome Back Screen -->
       <div id="welcome-back-screen" class="hidden max-w-2xl mx-auto anime-card rounded-2xl p-8 shadow-lg text-center">
         <h2 class="text-2xl font-bold mb-2 theme-text-primary">Welcome Back!</h2>
         <p class="mb-6 theme-text-secondary">Your data is loaded from your last session. Re-sync to get the latest updates from AniList.</p>
         <div class="flex justify-center gap-4">
-          <button id="view-dashboard-btn" class="btn-primary font-bold py-2 px-6 rounded-lg">View Dashboard</button>
-          <button id="resync-btn" class="btn-secondary font-bold py-2 px-6 rounded-lg">🔄 Re-sync with AniList</button>
+          <button id="view-dashboard-btn" class="btn-primary font-bold py-2 px-6 rounded-lg" aria-label="View your dashboard with cached data" data-tooltip="View your dashboard with cached data">View Dashboard</button>
+          <button id="resync-btn" class="btn-secondary font-bold py-2 px-6 rounded-lg" aria-label="Sync your latest data from AniList" data-tooltip="Sync your latest data from AniList">🔄 Re-sync with AniList</button>
         </div>
       </div>
 
@@ -62,7 +74,7 @@
       <div id="login-screen">
         <div class="max-w-2xl mx-auto anime-card rounded-2xl p-8 shadow-lg text-center">
           <div id="login-box">
-             <div class="login-icon"> 
+             <div class="login-icon" aria-hidden="true"> 
                <svg class="mx-auto h-12 w-12" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                </svg>
@@ -70,7 +82,7 @@
             <h2 class="mt-4 text-2xl font-bold theme-text-primary">Connect Your Account</h2>
             <p class="mt-2 theme-text-secondary">Login with your AniList account to automatically sync your watch history and generate your personalized dashboard.</p>
 
-            <a href="/auth/anilist" class="mt-6 inline-block btn-primary font-bold py-3 px-8 rounded-lg text-lg shadow-md hover:shadow-lg transition-all">
+            <a href="/auth/anilist" class="mt-6 inline-block btn-primary font-bold py-3 px-8 rounded-lg text-lg shadow-md hover:shadow-lg transition-all" aria-label="Login with AniList account">
               Login with AniList
             </a>
 
@@ -87,15 +99,18 @@
             </div>
           </div>
 
-          <div id="loading-spinner" class="hidden text-center mt-4">
-            <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <div id="loading-spinner" class="hidden text-center mt-4" role="status" aria-live="polite" aria-label="Loading">
+            <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <p id="loading-text" class="mt-2 theme-text-secondary">Syncing with AniList...</p>
           </div>
 
-          <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mt-4" role="alert"></div>
+          <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mt-4" role="alert" aria-live="assertive" aria-atomic="true"></div>
+          
+          <!-- ARIA live region for status updates -->
+          <div id="status-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         </div>
       </div>
 
@@ -122,14 +137,50 @@
             </div>
 
             <div class="mt-2">
-              <button id="logout-button" class="w-full btn-primary font-bold py-2 px-6 rounded-lg shadow-md hover:shadow-lg">
+              <button id="dashboard-resync-btn" class="w-full btn-secondary font-bold py-2 px-6 rounded-lg shadow-md hover:shadow-lg mb-2 flex items-center justify-center gap-2" aria-label="Resync your data from AniList" data-tooltip="Resync your data from AniList">
+                <span>🔄</span>
+                <span>Resync with AniList</span>
+              </button>
+              <button id="logout-button" class="w-full btn-primary font-bold py-2 px-6 rounded-lg shadow-md hover:shadow-lg" aria-label="Log out of your AniList account" data-tooltip="Log out of your AniList account">
                 Logout / Switch Account
               </button>
             </div>
-            <div class="mt-2">
-              <button id="download-json-btn" class="w-full btn-secondary font-bold py-2 px-6 rounded-lg">
-                Download List (JSON)
+            <div class="mt-2 relative">
+              <button id="export-btn" class="w-full btn-secondary font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2" aria-label="Export your anime data in various formats" aria-expanded="false" aria-haspopup="true" data-tooltip="Export your anime data in various formats">
+                <span>📥 Export List</span>
+                <span class="text-xs" aria-hidden="true">▼</span>
               </button>
+              <div id="export-menu" class="export-menu hidden absolute top-full left-0 right-0 mt-1 anime-card rounded-lg shadow-lg border border-gray-200 z-50" role="menu" aria-labelledby="export-btn">
+                <button class="export-option w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg flex items-center gap-3" data-format="json" role="menuitem" aria-label="Export as JSON format">
+                  <span class="text-xl" aria-hidden="true">📄</span>
+                  <div class="flex-1">
+                    <div class="font-semibold text-sm">JSON</div>
+                    <div class="text-xs text-gray-500">Full data with all fields</div>
+                  </div>
+                </button>
+                <button class="export-option w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg flex items-center gap-3" data-format="csv" role="menuitem" aria-label="Export as CSV format">
+                  <span class="text-xl" aria-hidden="true">📊</span>
+                  <div class="flex-1">
+                    <div class="font-semibold text-sm">CSV</div>
+                    <div class="text-xs text-gray-500">Spreadsheet format</div>
+                  </div>
+                </button>
+                <button class="export-option w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-lg flex items-center gap-3" data-format="mal-xml" role="menuitem" aria-label="Export as MyAnimeList XML format">
+                  <span class="text-xl" aria-hidden="true">📋</span>
+                  <div class="flex-1">
+                    <div class="font-semibold text-sm">MAL XML</div>
+                    <div class="text-xs text-gray-500">MyAnimeList import format</div>
+                  </div>
+                </button>
+                <div class="border-t border-gray-200 dark:border-gray-700 my-1" role="separator" aria-hidden="true"></div>
+                <button class="export-option w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 last:rounded-b-lg flex items-center gap-3" data-format="chart-pdf" role="menuitem" aria-label="Export charts as PDF">
+                  <span class="text-xl" aria-hidden="true">📈</span>
+                  <div class="flex-1">
+                    <div class="font-semibold text-sm">Charts (PDF)</div>
+                    <div class="text-xs text-gray-500">Export all charts and statistics as PDF</div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -138,79 +189,122 @@
             <!-- Tab Navigation -->
             <div class="mb-4">
               <div class="border-b border-gray-200 tab-container">
-                <nav id="tab-nav" class="-mb-px flex gap-6" aria-label="Tabs">
-                  <button data-tab="watching" class="tab-btn active-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Watching</button>
-                  <button data-tab="charts" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Visualizations</button>
-                  <button data-tab="list" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Full List</button>
-                  <button data-tab="insights" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Insights ✨</button>
-                  <button data-tab="calendar" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Calendar 📅</button>
+                <nav id="tab-nav" class="-mb-px flex gap-6" role="tablist" aria-label="Main navigation tabs">
+                  <button data-tab="watching" class="tab-btn active-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="true" aria-controls="watching-tab" id="tab-watching">Watching</button>
+                  <button data-tab="charts" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="charts-tab" id="tab-charts" tabindex="-1">Visualizations</button>
+                  <button data-tab="list" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="list-tab" id="tab-list" tabindex="-1">Full List</button>
+                  <button data-tab="insights" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="insights-tab" id="tab-insights" tabindex="-1">Insights ✨</button>
+                  <button data-tab="calendar" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="calendar-tab" id="tab-calendar" tabindex="-1">Calendar 📅</button>
+                  <button data-tab="history" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="history-tab" id="tab-history" tabindex="-1">History 📜</button>
+                  <button data-tab="achievements" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="achievements-tab" id="tab-achievements" tabindex="-1">Achievements 🏆</button>
+                  <button data-tab="custom-lists" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="custom-lists-tab" id="tab-custom-lists" tabindex="-1">My Lists 📋</button>
+                  <button data-tab="goals" class="tab-btn inactive-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" role="tab" aria-selected="false" aria-controls="goals-tab" id="tab-goals" tabindex="-1">Goals 🎯</button>
                 </nav>
               </div>
             </div>
 
             <!-- Watching Tab -->
-            <div id="watching-tab" class="tab-content">
+            <div id="watching-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-watching">
               <div id="watching-content"></div>
             </div>
 
 			
-			<div id="charts-tab" class="tab-content hidden">
-			  <!-- Stat Cards Row -->
+			<div id="charts-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-charts">
+			  <!-- Overview Stat Cards -->
 			  <div id="charts-stat-cards" class="stat-cards-row">
 				<!-- Populated by JavaScript -->
 			  </div>
 
-			  <!-- Charts Grid - 2 columns on large screens -->
-			  <div class="charts-grid">
-				<!-- Row 1: Genre Distribution & Score Distribution -->
-				<div class="chart-container">
-				  <h3 class="chart-title">Genre Distribution</h3>
-				  <div class="chart-wrapper">
-					<canvas id="genre-chart"></canvas>
+			  <!-- Section 1: Core Patterns -->
+			  <div class="mt-8">
+				<h2 class="text-xl font-bold theme-text-primary mb-6">Core Patterns</h2>
+				<div class="charts-grid">
+				  <div class="chart-container">
+					<h3 class="chart-title">Score Distribution</h3>
+					<div class="chart-wrapper">
+					  <canvas id="score-chart"></canvas>
+					</div>
 				  </div>
-				  <p id="genre-chart-fallback" class="text-center p-8 hidden theme-text-muted">No genre data to display.</p>
-				</div>
 
-				<div class="chart-container">
-				  <h3 class="chart-title">Score Distribution</h3>
-				  <div class="chart-wrapper">
-					<canvas id="score-chart"></canvas>
+				  <div class="chart-container">
+					<h3 class="chart-title">Status Distribution</h3>
+					<div class="chart-wrapper">
+					  <canvas id="status-chart"></canvas>
+					</div>
 				  </div>
-				</div>
 
-				<!-- Row 2: Top Studios & Format Distribution -->
-				<div class="chart-container">
-				  <h3 class="chart-title">Top 10 Studios</h3>
-				  <div class="chart-wrapper">
-					<canvas id="studio-chart"></canvas>
+				  <div class="chart-container">
+					<h3 class="chart-title">Watch Time by Year</h3>
+					<div class="chart-wrapper">
+					  <canvas id="watch-time-year-chart"></canvas>
+					</div>
 				  </div>
-				</div>
 
-				<div class="chart-container">
-				  <h3 class="chart-title">Format Distribution</h3>
-				  <div class="chart-wrapper">
-					<canvas id="format-chart"></canvas>
-				  </div>
-				</div>
-
-				<!-- Row 3: Status Distribution & Average Score by Genre -->
-				<div class="chart-container">
-				  <h3 class="chart-title">Status Distribution</h3>
-				  <div class="chart-wrapper">
-					<canvas id="status-chart"></canvas>
+				  <div class="chart-container">
+					<h3 class="chart-title">Score Trends Over Time</h3>
+					<div class="chart-wrapper">
+					  <canvas id="score-trends-chart"></canvas>
+					</div>
 				  </div>
 				</div>
+			  </div>
 
-				<div class="chart-container">
-				  <h3 class="chart-title">Average Score by Genre</h3>
-				  <div class="chart-wrapper">
-					<canvas id="genre-score-chart"></canvas>
+			  <!-- Section 2: Genre Insights -->
+			  <div class="mt-8">
+				<h2 class="text-xl font-bold theme-text-primary mb-6">Genre Insights</h2>
+				<div class="charts-grid">
+				  <div class="chart-container">
+					<h3 class="chart-title">Watch Time by Genre</h3>
+					<div class="chart-wrapper">
+					  <canvas id="watch-time-genre-chart"></canvas>
+					</div>
+				  </div>
+
+				  <div class="chart-container">
+					<h3 class="chart-title">Average Score by Genre</h3>
+					<div class="chart-wrapper">
+					  <canvas id="genre-score-chart"></canvas>
+					</div>
+				  </div>
+
+				  <div class="chart-container">
+					<h3 class="chart-title">Completion Rate by Genre</h3>
+					<div class="chart-wrapper">
+					  <canvas id="completion-rate-genre-chart"></canvas>
+					</div>
+				  </div>
+
+				  <div class="chart-container" style="grid-column: 1 / -1;">
+					<h3 class="chart-title">Genre Evolution Over Time</h3>
+					<div class="chart-wrapper">
+					  <canvas id="genre-evolution-chart"></canvas>
+					</div>
+				  </div>
+				</div>
+			  </div>
+
+			  <!-- Section 3: Studio Insights -->
+			  <div class="mt-8">
+				<h2 class="text-xl font-bold theme-text-primary mb-6">Studio Insights</h2>
+				<div class="charts-grid">
+				  <div class="chart-container">
+					<h3 class="chart-title">Top 10 Studios</h3>
+					<div class="chart-wrapper">
+					  <canvas id="studio-chart"></canvas>
+					</div>
+				  </div>
+
+				  <div class="chart-container">
+					<h3 class="chart-title">Anime Completed Per Year</h3>
+					<div class="chart-wrapper">
+					  <canvas id="completed-per-year-chart"></canvas>
+					</div>
 				  </div>
 				</div>
 			  </div>
 			</div>
 <!-- List Tab Section - Replace your existing list-tab div content -->
-<div id="list-tab" class="tab-content hidden">
+<div id="list-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-list">
   <div class="filter-controls-container">
     <!-- Search Bar & View Toggle Row -->
     <div class="filter-row">
@@ -220,22 +314,23 @@
           id="search-bar" 
           placeholder="🔍 Search anime by title or genre..." 
           class="search-input"
+          aria-label="Search anime by title or genre"
         />
       </div>
       
       <div class="view-controls">
         <div class="view-toggle">
-          <button class="view-toggle-btn active" data-view="table">
+          <button class="view-toggle-btn active" data-view="table" aria-label="Switch to table view" aria-pressed="true">
             📋 Table
           </button>
-          <button class="view-toggle-btn" data-view="grid">
+          <button class="view-toggle-btn" data-view="grid" aria-label="Switch to grid view" aria-pressed="false">
             🎴 Grid
           </button>
         </div>
       </div>
       
       <!-- Clear All button moved here -->
-      <button id="clear-filters-btn" class="clear-filters-btn">
+      <button id="clear-filters-btn" class="clear-filters-btn" aria-label="Clear all filters">
         ✕ Clear All Filters
       </button>
     </div>
@@ -336,21 +431,25 @@
           <div class="filter-group">
             <label class="filter-label">
               Year Range
-              <span id="year-range-display" class="range-display">Any - Any</span>
+              <span id="year-range-display" class="range-display" aria-live="polite">Any - Any</span>
             </label>
             <div class="range-inputs">
+              <label for="year-min" class="sr-only">Minimum year</label>
               <input 
                 type="number" 
                 id="year-min" 
                 class="range-input" 
                 placeholder="Min year"
+                aria-label="Minimum year"
               />
-              <span class="range-separator">to</span>
+              <span class="range-separator" aria-hidden="true">to</span>
+              <label for="year-max" class="sr-only">Maximum year</label>
               <input 
                 type="number" 
                 id="year-max" 
                 class="range-input" 
                 placeholder="Max year"
+                aria-label="Maximum year"
               />
             </div>
           </div>
@@ -429,9 +528,35 @@
   <div class="anime-card rounded-xl p-4 shadow-md">
     <!-- Table View -->
     <div class="overflow-y-auto" style="max-height: 500px;">
+      <!-- Bulk Actions Toolbar (Hidden by default) -->
+      <div id="bulk-actions-toolbar" class="hidden mb-4 p-4 rounded-lg border-2 border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <span id="bulk-selection-count" class="font-semibold text-indigo-700 dark:text-indigo-300">0 selected</span>
+            <div class="flex gap-2">
+              <button id="bulk-update-status" class="btn-secondary text-sm py-1.5 px-3 rounded-lg" data-tooltip="Update status for selected anime">
+                Update Status
+              </button>
+              <button id="bulk-update-score" class="btn-secondary text-sm py-1.5 px-3 rounded-lg" data-tooltip="Update score for selected anime">
+                Update Score
+              </button>
+              <button id="bulk-add-to-list" class="btn-secondary text-sm py-1.5 px-3 rounded-lg" data-tooltip="Add selected anime to a custom list">
+                Add to List
+              </button>
+            </div>
+          </div>
+          <button id="bulk-clear-selection" class="text-sm text-indigo-700 dark:text-indigo-300 hover:underline">
+            Clear Selection
+          </button>
+        </div>
+      </div>
+
       <table id="anime-table" class="w-full text-left"> 
         <thead id="anime-table-head">
           <tr class="border-b-2 border-gray-200">
+            <th class="p-3 w-12">
+              <input type="checkbox" id="select-all-checkbox" class="bulk-select-checkbox" title="Select all">
+            </th>
             <th class="p-3 sortable-header" data-sort="title">Title</th>
             <th class="p-3 sortable-header" data-sort="score">Score</th>
             <th class="p-3 sortable-header" data-sort="episodesWatched">Progress</th>
@@ -449,7 +574,7 @@
 </div>
 
 		<!-- Enhanced Insights Tab-->
-		<div id="insights-tab" class="tab-content hidden">
+		<div id="insights-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-insights">
 		  <!-- Personal Stats Section -->
 		  <div id="insights-personal-stats" class="anime-card rounded-xl p-6 shadow-md mb-6">
 			<!-- Populated by generatePersonalInsights() -->
@@ -520,10 +645,13 @@
 		</div>
 
             <!-- Calendar Tab -->
-            <div id="calendar-tab" class="tab-content hidden">
+            <div id="calendar-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-calendar">
               <div class="anime-card rounded-xl p-6 shadow-md">
                 <div class="flex justify-between items-center mb-4 border-b pb-4">
-                  <h3 id="calendar-header" class="font-bold text-2xl theme-text-primary">Loading...</h3>
+                  <div>
+                    <h3 id="calendar-header" class="font-bold text-2xl theme-text-primary">Loading...</h3>
+                    <div id="calendar-stats" class="mt-2"></div>
+                  </div>
                   <span id="calendar-result-count" class="text-sm theme-text-secondary">0 anime</span>
                 </div>
                 <div class="calendar-controls"></div>
@@ -538,68 +666,376 @@
               </div>
             </div>
 
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-history">
+              <div class="anime-card rounded-xl p-6 shadow-md mb-6">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="font-bold text-2xl theme-text-primary">Watch History</h3>
+                  <div class="flex gap-4">
+                    <button id="export-json-btn" class="btn-secondary font-bold py-2 px-4 rounded-lg text-sm">
+                      📥 Export JSON
+                    </button>
+                    <button id="export-csv-btn" class="btn-secondary font-bold py-2 px-4 rounded-lg text-sm">
+                      📥 Export CSV
+                    </button>
+                  </div>
+                </div>
+                
+                <p class="text-sm theme-text-secondary mb-6">
+                  View summaries of your watch history by month and year. Note: Dates may not be accurate if you batch update your AniList.
+                </p>
+
+                <!-- Summary Header -->
+                <div class="mb-4">
+                  <h3 class="font-bold text-xl theme-text-primary">Watch History</h3>
+                </div>
+
+                <!-- Watch History View -->
+                <div id="monthly-view" class="history-view-content">
+                  <div class="mb-4 relative">
+                    <div class="inline-block relative" style="z-index: 10;">
+                      <label for="monthly-year-select" class="filter-label mr-2">Year:</label>
+                      <select id="monthly-year-select" class="filter-select" style="position: relative; z-index: 10;">
+                        <!-- Populated by JS -->
+                      </select>
+                    </div>
+                    <div class="inline-block relative ml-4" style="z-index: 1;">
+                      <label for="monthly-month-select" class="filter-label mr-2">Month:</label>
+                      <select id="monthly-month-select" class="filter-select" style="position: relative; z-index: 1;">
+                      <option value="1">January</option>
+                      <option value="2">February</option>
+                      <option value="3">March</option>
+                      <option value="4">April</option>
+                      <option value="5">May</option>
+                      <option value="6">June</option>
+                      <option value="7">July</option>
+                      <option value="8">August</option>
+                      <option value="9">September</option>
+                      <option value="10">October</option>
+                      <option value="11">November</option>
+                      <option value="12">December</option>
+                    </select>
+                  </div>
+                  <div id="monthly-summary-content" class="monthly-summary-content">
+                    <!-- Monthly summary will be rendered here -->
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Achievements Tab -->
+            <div id="achievements-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-achievements">
+              <div class="anime-card rounded-xl p-6 shadow-md mb-6">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="font-bold text-2xl theme-text-primary">Achievements</h3>
+                  <div class="text-sm theme-text-secondary">
+                    <span id="achievements-progress">0/0</span> unlocked
+                  </div>
+                </div>
+                
+                <p class="text-sm theme-text-secondary mb-6">
+                  Unlock achievements by reaching milestones in your anime watching journey!
+                </p>
+
+                <!-- Achievement Categories -->
+                <div class="border-b border-gray-200 mb-4">
+                  <nav class="flex gap-4">
+                    <button data-achievement-filter="all" class="achievement-filter-btn active py-2 px-4 border-b-2 font-medium text-sm">All</button>
+                    <button data-achievement-filter="milestone" class="achievement-filter-btn py-2 px-4 border-b-2 font-medium text-sm">Milestones</button>
+                    <button data-achievement-filter="genre" class="achievement-filter-btn py-2 px-4 border-b-2 font-medium text-sm">Genres</button>
+                    <button data-achievement-filter="score" class="achievement-filter-btn py-2 px-4 border-b-2 font-medium text-sm">Scores</button>
+                    <button data-achievement-filter="unlocked" class="achievement-filter-btn py-2 px-4 border-b-2 font-medium text-sm">Unlocked</button>
+                  </nav>
+                </div>
+
+                <!-- Achievements Grid -->
+                <div id="achievements-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <!-- Achievements will be rendered here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Lists Tab -->
+            <div id="custom-lists-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-custom-lists">
+              <div class="anime-card rounded-xl p-6 shadow-md mb-6">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="font-bold text-2xl theme-text-primary">My Custom Lists</h3>
+                  <button id="create-list-btn" class="btn-primary font-bold py-2 px-6 rounded-lg" data-tooltip="Create a new custom list to organize your anime">
+                    + Create List
+                  </button>
+                </div>
+                
+                <p class="text-sm theme-text-secondary mb-6">
+                  Organize your anime into custom lists. Create lists for favorites, rewatch later, seasonal anime, and more!
+                </p>
+
+                <!-- Custom Lists Container -->
+                <div id="custom-lists-container">
+                  <!-- Lists will be rendered here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Goals Tab -->
+            <div id="goals-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-goals">
+              <div class="anime-card rounded-xl p-6 shadow-md mb-6">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="font-bold text-2xl theme-text-primary">Personal Goals</h3>
+                  <button id="create-goal-btn" class="btn-primary font-bold py-2 px-6 rounded-lg" data-tooltip="Create a new personal goal">
+                    + Create Goal
+                  </button>
+                </div>
+                
+                <p class="text-sm theme-text-secondary mb-6">
+                  Set and track your personal goals! Set watch time goals or completion goals for the year or month.
+                </p>
+
+                <!-- Goals Container -->
+                <div id="goals-container">
+                  <p class="text-center theme-text-muted py-8">No goals yet. Create your first goal to get started!</p>
+                </div>
+              </div>
+            </div>
+
 			<!-- Gacha Tab - removed (backed up to gacha-backup/gacha-tab.html) -->
 
   <!-- Similar Anime Modal -->
-  <div id="similar-modal-backdrop" class="modal-backdrop">
+  <div id="similar-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="similar-modal-title" aria-hidden="true">
     <div id="similar-modal-content" class="modal-content anime-card rounded-xl p-6">
       <h3 class="text-xl font-bold mb-4 theme-text-primary" id="similar-modal-title">Finding similar anime...</h3>
       <div id="similar-modal-body"></div>
       <div class="text-right mt-6">
-        <button id="similar-modal-close" class="btn-secondary font-bold py-2 px-4 rounded-lg">Close</button>
+        <button id="similar-modal-close" class="btn-secondary font-bold py-2 px-4 rounded-lg" aria-label="Close similar anime modal">Close</button>
       </div>
     </div>
   </div>
 
   <!-- Cosmetic Selection Modal -->
-  <div id="cosmetic-modal-backdrop" class="modal-backdrop">
+  <div id="cosmetic-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cosmetic-modal-title" aria-hidden="true">
     <div id="cosmetic-modal-content" class="modal-content anime-card rounded-xl p-6">
-      <h3 class="text-xl font-bold mb-4 border-b pb-2 theme-text-primary">Apply a Border</h3>
+      <h3 class="text-xl font-bold mb-4 border-b pb-2 theme-text-primary" id="cosmetic-modal-title">Apply a Border</h3>
       <p class="mb-4 theme-text-secondary">Select a border to apply to this card. Select "Default" to remove a border.</p>
-      <div id="cosmetic-selection-container" class="grid grid-cols-3 gap-4"></div>
+      <div id="cosmetic-selection-container" class="grid grid-cols-3 gap-4" role="radiogroup" aria-labelledby="cosmetic-modal-title"></div>
       <div class="text-right mt-6">
-        <button id="cosmetic-modal-close" class="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
+        <button id="cosmetic-modal-close" class="btn-secondary font-bold py-2 px-4 rounded-lg" aria-label="Cancel border selection">Cancel</button>
       </div>
     </div>
   </div>
 
   <!-- Settings Modal -->
-  <div id="settings-modal-backdrop" class="modal-backdrop settings-modal-backdrop">
-    <div id="settings-modal-content" class="modal-content anime-card rounded-xl p-6">
-      <h3 class="text-xl font-bold mb-4 border-b pb-2 theme-text-primary">Dashboard Configuration</h3>
+  <div id="settings-modal-backdrop" class="modal-backdrop settings-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" aria-hidden="true">
+    <div id="settings-modal-content" class="modal-content anime-card rounded-xl p-6 max-w-4xl w-full">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold theme-text-primary" id="settings-modal-title">Settings</h3>
+        <button id="settings-modal-close" class="text-2xl theme-text-muted hover:theme-text-primary transition" aria-label="Close settings modal" data-tooltip="Close settings">&times;</button>
+      </div>
 
-      <div class="space-y-4 text-left text-sm"> 
-        <div>
-          <label for="config-title" class="block font-semibold mb-1 theme-text-primary">Dashboard Title</label>
-          <input type="text" id="config-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400"/>
-        </div>
-        <div>
-          <label for="config-subtitle" class="block font-semibold mb-1 theme-text-primary">Dashboard Subtitle</label>
-          <input type="text" id="config-subtitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400"/>
-        </div>
+      <!-- Settings Tabs -->
+      <div class="flex border-b border-gray-300 dark:border-gray-700 mb-6">
+        <button class="settings-tab active" data-tab="general">General</button>
+        <button class="settings-tab" data-tab="display">Display</button>
+        <button class="settings-tab" data-tab="notifications">Notifications</button>
+        <button class="settings-tab" data-tab="ai">AI Features</button>
+        <button class="settings-tab" data-tab="about">About</button>
+      </div>
 
-        <div class="border-t pt-4">
-          <label for="config-api-key" class="block font-semibold mb-1 theme-text-primary">Gemini API Key</label>
-          <input type="password" id="config-api-key" placeholder="Enter your key for AI features" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-400 focus:border-red-400"/>
-          <p id="settings-key-error" class="text-red-500 text-xs mt-1 hidden">Key is required for AI features.</p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 border-t pt-4">
+      <!-- General Settings -->
+      <div id="settings-tab-general" class="settings-tab-content active">
+        <div class="space-y-6">
           <div>
-            <label for="config-items-per-page" class="block font-semibold mb-1 theme-text-primary">Items Per List Page</label>
-            <input type="number" id="config-items-per-page" min="5" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+            <label for="config-title" class="block font-semibold mb-2 theme-text-primary">Dashboard Title</label>
+            <input type="text" id="config-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400" placeholder="My Anime Dashboard"/>
+            <p class="text-xs theme-text-muted mt-1">Customize the title shown at the top of your dashboard</p>
           </div>
+          
           <div>
-            <label for="config-genre-limit" class="block font-semibold mb-1 theme-text-primary">Chart Genre Limit</label>
-            <input type="number" id="config-genre-limit" min="5" max="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+            <label for="config-subtitle" class="block font-semibold mb-2 theme-text-primary">Dashboard Subtitle</label>
+            <input type="text" id="config-subtitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400" placeholder="Visualize your anime watching journey."/>
+            <p class="text-xs theme-text-muted mt-1">Optional subtitle text</p>
           </div>
-          <!-- Gacha config removed -->
+
+          <div class="border-t pt-4">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="settings-auto-sync" class="w-5 h-5 rounded"/>
+              <div>
+                <span class="block font-semibold theme-text-primary">Auto-sync on Load</span>
+                <span class="text-xs theme-text-muted">Automatically sync with AniList when the dashboard loads</span>
+              </div>
+            </label>
+          </div>
+
+          <div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="settings-save-data" class="w-5 h-5 rounded" checked/>
+              <div>
+                <span class="block font-semibold theme-text-primary">Save Data Locally</span>
+                <span class="text-xs theme-text-muted">Store your anime data in browser storage for faster loading</span>
+              </div>
+            </label>
+          </div>
         </div>
       </div>
 
-      <div class="text-right mt-6 flex justify-end gap-3">
-        <button id="settings-save" class="btn-primary font-bold py-2 px-4 rounded-lg">Save & Generate config.js</button>
-        <button id="settings-cancel" class="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
+      <!-- Display Settings -->
+      <div id="settings-tab-display" class="settings-tab-content hidden">
+        <div class="space-y-6">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="config-items-per-page" class="block font-semibold mb-2 theme-text-primary">Items Per Page</label>
+              <input type="number" id="config-items-per-page" min="10" max="100" step="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+              <p class="text-xs theme-text-muted mt-1">Number of anime shown per page in lists</p>
+            </div>
+            <div>
+              <label for="config-genre-limit" class="block font-semibold mb-2 theme-text-primary">Chart Genre Limit</label>
+              <input type="number" id="config-genre-limit" min="5" max="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+              <p class="text-xs theme-text-muted mt-1">Maximum genres shown in charts</p>
+            </div>
+          </div>
+
+          <div>
+            <label for="settings-default-view" class="block font-semibold mb-2 theme-text-primary">Default List View</label>
+            <select id="settings-default-view" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+              <option value="table">Table View</option>
+              <option value="grid">Grid View</option>
+            </select>
+            <p class="text-xs theme-text-muted mt-1">Default view when opening the Full List tab</p>
+          </div>
+
+          <div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="settings-show-cover-images" class="w-5 h-5 rounded" checked/>
+              <div>
+                <span class="block font-semibold theme-text-primary">Show Cover Images</span>
+                <span class="text-xs theme-text-muted">Display anime cover images in grid and card views</span>
+              </div>
+            </label>
+          </div>
+
+          <div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="settings-compact-mode" class="w-5 h-5 rounded"/>
+              <div>
+                <span class="block font-semibold theme-text-primary">Compact Mode</span>
+                <span class="text-xs theme-text-muted">Reduce spacing for a more compact layout</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications Settings -->
+      <div id="settings-tab-notifications" class="settings-tab-content hidden">
+        <div class="space-y-6">
+          <div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="settings-enable-notifications" class="w-5 h-5 rounded"/>
+              <div>
+                <span class="block font-semibold theme-text-primary">Enable Episode Notifications</span>
+                <span class="text-xs theme-text-muted">Get notified when new episodes of your watching anime air</span>
+              </div>
+            </label>
+          </div>
+
+          <div id="notification-options" class="ml-8 space-y-4 hidden">
+            <div>
+              <label for="settings-notification-time" class="block font-semibold mb-2 theme-text-primary">Notification Time</label>
+              <select id="settings-notification-time" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <option value="0">When episode airs</option>
+                <option value="5">5 minutes before</option>
+                <option value="15">15 minutes before</option>
+                <option value="30">30 minutes before</option>
+                <option value="60">1 hour before</option>
+                <option value="1440">1 day before</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" id="settings-sound-notifications" class="w-5 h-5 rounded"/>
+                <div>
+                  <span class="block font-semibold theme-text-primary">Sound Notifications</span>
+                  <span class="text-xs theme-text-muted">Play a sound when notifications appear</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Features Settings -->
+      <div id="settings-tab-ai" class="settings-tab-content hidden">
+        <div class="space-y-6">
+          <div>
+            <label for="config-api-key" class="block font-semibold mb-2 theme-text-primary">Gemini API Key</label>
+            <div class="flex gap-2">
+              <input type="password" id="config-api-key" placeholder="Enter your Gemini API key" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-400 focus:border-indigo-400"/>
+              <button id="toggle-api-key-visibility" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100" data-tooltip="Show/Hide API key">👁️</button>
+            </div>
+            <p class="text-xs theme-text-muted mt-1">Required for AI-powered recommendations and insights. Get your key from <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-indigo-600 hover:underline">Google AI Studio</a></p>
+            <p id="settings-key-error" class="text-red-500 text-xs mt-1 hidden">Key is required for AI features.</p>
+          </div>
+
+          <div>
+            <label for="settings-gemini-model" class="block font-semibold mb-2 theme-text-primary">AI Model</label>
+            <select id="settings-gemini-model" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast, Recommended)</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro (More Accurate)</option>
+            </select>
+            <p class="text-xs theme-text-muted mt-1">Choose the AI model for recommendations</p>
+          </div>
+
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <p class="text-sm theme-text-primary"><strong>AI Features:</strong></p>
+            <ul class="text-xs theme-text-secondary mt-2 space-y-1 list-disc list-inside">
+              <li>Personalized anime recommendations</li>
+              <li>Similar anime suggestions</li>
+              <li>AI-generated insights about your watching habits</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- About Settings -->
+      <div id="settings-tab-about" class="settings-tab-content hidden">
+        <div class="space-y-6">
+          <div>
+            <h4 class="font-semibold text-lg theme-text-primary mb-2">Anime Dashboard</h4>
+            <p class="text-sm theme-text-secondary">A comprehensive dashboard for tracking and visualizing your anime watching journey.</p>
+          </div>
+
+          <div>
+            <h4 class="font-semibold mb-2 theme-text-primary">Keyboard Shortcuts</h4>
+            <div class="text-sm theme-text-secondary space-y-1">
+              <div class="flex justify-between"><span>Open Settings</span><kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">,</kbd></div>
+              <div class="flex justify-between"><span>Show Shortcuts</span><kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">?</kbd></div>
+              <div class="flex justify-between"><span>Refresh Data</span><kbd class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">R</kbd></div>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-semibold mb-2 theme-text-primary">Data & Privacy</h4>
+            <p class="text-sm theme-text-secondary mb-2">Your anime data is stored locally in your browser. No data is sent to external servers except:</p>
+            <ul class="text-xs theme-text-muted space-y-1 list-disc list-inside">
+              <li>AniList API for syncing your anime list</li>
+              <li>Google Gemini API (if enabled) for AI features</li>
+            </ul>
+          </div>
+
+          <div class="flex gap-2">
+            <button id="settings-export-data" class="btn-secondary text-sm py-2 px-4 rounded-lg">Export Settings</button>
+            <button id="settings-reset" class="btn-secondary text-sm py-2 px-4 rounded-lg">Reset to Defaults</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
+        <button id="settings-export-config" class="btn-secondary text-sm py-2 px-4 rounded-lg">Export config.js</button>
+        <div class="flex gap-3">
+          <button id="settings-cancel" class="btn-secondary font-bold py-2 px-4 rounded-lg">Cancel</button>
+          <button id="settings-save" class="btn-primary font-bold py-2 px-4 rounded-lg">Save Settings</button>
+        </div>
       </div>
     </div>
   </div>
@@ -668,7 +1104,13 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
+  <!-- Toast notification container -->
+  <div class="toast-container"></div>
+
+  <!-- Anime Details Modal -->
   <div id="anime-details-modal-backdrop" class="modal-backdrop">
     <div id="anime-details-modal-content" class="anime-details-modal-content anime-card">
       <button id="anime-details-modal-close" class="modal-close-btn" title="Close">✕</button>
@@ -740,6 +1182,11 @@
                 </div>
               </div>
             </div>
+            
+            <div class="stat-item">
+              <span class="stat-label">Lists</span>
+              <div id="anime-details-add-to-list-container" class="add-to-list-placeholder"></div>
+            </div>
           </div>
           
           <div class="anime-details-tabs">
@@ -782,9 +1229,22 @@
                 <div id="anime-details-genres" class="genre-tags-container"></div>
               </div>
               
+              <div class="detail-section" id="anime-details-staff-section">
+                <h3 class="section-title">Staff</h3>
+                <div id="anime-details-staff" class="staff-container"></div>
+              </div>
+              
+              <div class="detail-section" id="anime-details-links-section">
+                <h3 class="section-title">External Links</h3>
+                <div id="anime-details-links" class="links-container"></div>
+              </div>
+              
               <div class="detail-section" id="anime-details-trailer-section">
                 <h3 class="section-title">Trailer</h3>
                 <button id="anime-details-show-trailer" class="btn-secondary">▶️ Watch Trailer</button>
+                <div id="anime-details-trailer-container" class="trailer-container hidden">
+                  <iframe id="anime-details-trailer" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
+                </div>
               </div>
             </div>
             
@@ -837,9 +1297,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Toast notification container -->
-  <div class="toast-container"></div>
 
   <script type="module" src="/scripts/main.js"></script>
 </body>

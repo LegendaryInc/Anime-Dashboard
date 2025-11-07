@@ -7,22 +7,30 @@
    MODAL BACKDROP
    ------------------------------------------------------------------- */
 .modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
   background: rgba(0, 0, 0, 0.5);
-  display: flex;
+  display: none;
   justify-content: center;
-  align-items: center;
-  z-index: 50;
+  align-items: flex-start;
+  z-index: 9999;
   opacity: 0;
   transition: opacity 0.3s ease, background 0.3s ease;
   pointer-events: none;
+  margin: 0 !important;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .modal-backdrop.show {
+  display: flex !important;
   opacity: 1;
   pointer-events: auto;
 }
@@ -121,20 +129,39 @@ body.theme-neon .modal-content {
    ENHANCED ANIME DETAILS MODAL
    =================================================================== */
 
+#anime-details-modal-backdrop {
+  z-index: 100000 !important; /* Higher than everything else */
+}
+
 #anime-details-modal-backdrop.show {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: flex-start;
+  opacity: 1;
+  pointer-events: auto;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  padding-top: 5vh;
+  padding-bottom: 5vh;
+  padding-left: 100px;
+  padding-right: 2.5vw;
+  z-index: 100000 !important; /* Higher than everything else */
 }
 
 .anime-details-modal-content {
   position: relative;
-  max-width: 1200px;
+  max-width: min(1200px, calc(95vw - 100px));
   width: 95%;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   border-radius: 16px;
   padding: 0;
+  margin: 0;
+  align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .modal-close-btn {
@@ -148,7 +175,7 @@ body.theme-neon .modal-content {
   backdrop-filter: blur(10px);
   border: none;
   color: white;
-  font-size: 1.5rem;
+  font-size: var(--font-size-2xl);
   cursor: pointer;
   z-index: 10;
   transition: all 0.2s ease;
@@ -162,8 +189,8 @@ body.theme-neon .modal-content {
 .anime-details-container {
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 24px;
-  padding: 24px;
+  gap: var(--spacing-2xl);
+  padding: var(--spacing-2xl);
 }
 
 /* Cover Section */
@@ -193,29 +220,29 @@ body.theme-neon .modal-content {
 .anime-details-info {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--spacing-xl);
 }
 
 .anime-details-header h2 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--gap-sm);
   line-height: 1.3;
 }
 
 .anime-details-meta {
   display: flex;
-  gap: 8px;
+  gap: var(--gap-sm);
   flex-wrap: wrap;
 }
 
 .meta-badge {
-  padding: 4px 12px;
+  padding: var(--spacing-xs) var(--gap-md);
   background: rgba(99, 102, 241, 0.1);
   border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--accent);
 }
 
@@ -229,10 +256,10 @@ body.theme-neon .meta-badge {
 .anime-details-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  padding: 16px;
+  gap: var(--gap-lg);
+  padding: var(--card-padding-md);
   background: rgba(0, 0, 0, 0.03);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 }
 
 body.theme-neon .anime-details-stats {
@@ -243,12 +270,12 @@ body.theme-neon .anime-details-stats {
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--gap-xs);
 }
 
 .stat-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
@@ -257,20 +284,20 @@ body.theme-neon .anime-details-stats {
 .progress-display {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1.1rem;
-  font-weight: 700;
+  gap: var(--gap-sm);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
 }
 
 .add-episode-btn-small {
-  padding: 4px 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   background: var(--accent);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -283,17 +310,17 @@ body.theme-neon .anime-details-stats {
 /* Tabs */
 .anime-details-tabs {
   display: flex;
-  gap: 8px;
+  gap: var(--gap-sm);
   border-bottom: 2px solid var(--border-color);
 }
 
 .anime-details-tab {
-  padding: 10px 20px;
+  padding: var(--spacing-md) var(--spacing-xl);
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -332,45 +359,121 @@ body.theme-neon .anime-details-stats {
 
 /* Detail Sections */
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-2xl);
 }
 
 .section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 12px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--gap-md);
   color: var(--text-primary);
+}
+
+/* Staff Section */
+.staff-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.staff-item {
+  display: flex;
+  gap: var(--gap-sm);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.staff-role {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.staff-name {
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Links Section */
+.links-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
+}
+
+.external-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.external-link-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.link-icon {
+  font-size: var(--font-size-base);
+}
+
+.link-label {
+  font-size: var(--font-size-sm);
+}
+
+body.theme-neon .external-link-btn {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #c4b5fd;
+}
+
+body.theme-neon .external-link-btn:hover {
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.3);
 }
 
 .synopsis-text {
   line-height: 1.7;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
 }
 
 /* Info Grid */
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: var(--gap-md);
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-xs);
 }
 
 .info-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .info-value {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
 }
 
@@ -378,16 +481,16 @@ body.theme-neon .anime-details-stats {
 .genre-tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--gap-sm);
 }
 
 .genre-tag-modal {
-  padding: 6px 14px;
+  padding: var(--gap-xs) var(--spacing-md);
   background: rgba(99, 102, 241, 0.1);
   border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--accent);
 }
 
@@ -403,21 +506,21 @@ body.theme-neon .genre-tag-modal {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--gap-md);
 }
 
 .notes-info {
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   font-style: italic;
 }
 
 .notes-textarea {
   width: 100%;
   min-height: 250px;
-  padding: 16px;
+  padding: var(--card-padding-md);
   border: 2px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
   line-height: 1.6;
   resize: vertical;
   background: var(--card-bg);
@@ -447,39 +550,39 @@ body.theme-neon .notes-textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
+  margin-top: var(--gap-md);
 }
 
 /* Watch Dates */
 .watch-dates-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
+  gap: var(--gap-lg);
+  margin-top: var(--gap-lg);
 }
 
 .date-input-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--gap-md);
   position: relative;
 }
 
 .date-label {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   min-width: 120px;
 }
 
 .date-input {
   flex: 1;
-  padding: 10px 12px;
+  padding: var(--spacing-md) var(--gap-md);
   border: 2px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--card-bg);
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   font-family: inherit;
   transition: all 0.2s ease;
 }
@@ -491,13 +594,13 @@ body.theme-neon .notes-textarea:focus {
 }
 
 .date-clear-btn {
-  padding: 6px 10px;
+  padding: var(--gap-xs) var(--spacing-md);
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 32px;
@@ -516,7 +619,7 @@ body.theme-neon .notes-textarea:focus {
 .date-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 8px;
+  margin-top: var(--gap-sm);
 }
 
 body.theme-neon .date-input {
@@ -548,7 +651,7 @@ body.theme-sky .date-input:focus {
 }
 
 .notes-count {
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
 /* ====================================================================
@@ -611,8 +714,8 @@ body.theme-sky .date-input:focus {
 
 /* Title styling - adjusted for smaller cards */
 #anime-details-related-content .related-anime-title {
-  font-weight: 600 !important;
-  font-size: 0.75rem !important;
+  font-weight: var(--font-weight-semibold) !important;
+  font-size: var(--font-size-xs) !important;
   line-height: 1.2 !important;
   color: var(--text-primary) !important;
   display: -webkit-box !important;
@@ -629,7 +732,7 @@ body.theme-sky .date-input:focus {
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 4px !important;
-  font-size: 0.65rem !important;
+  font-size: var(--font-size-xs) !important;
   align-items: center !important;
 }
 
@@ -639,9 +742,9 @@ body.theme-sky .date-input:focus {
   color: #a5b4fc !important;
   padding: 2px 6px !important;
   border-radius: 3px !important;
-  font-weight: 600 !important;
+  font-weight: var(--font-weight-semibold) !important;
   text-transform: capitalize !important;
-  font-size: 0.625rem !important;
+  font-size: var(--font-size-xs) !important;
   display: inline-block !important;
   border: 1px solid rgba(99, 102, 241, 0.3) !important;
   white-space: nowrap !important;
@@ -650,8 +753,8 @@ body.theme-sky .date-input:focus {
 /* Score styling - smaller */
 #anime-details-related-content .related-anime-score {
   color: #fbbf24 !important;
-  font-weight: 600 !important;
-  font-size: 0.65rem !important;
+  font-weight: var(--font-weight-semibold) !important;
+  font-size: var(--font-size-xs) !important;
   white-space: nowrap !important;
 }
 
@@ -705,7 +808,7 @@ body.theme-neon #anime-details-related-content .related-anime-card:hover {
 @media (max-width: 768px) {
   .anime-details-container {
     grid-template-columns: 1fr;
-    padding: 16px;
+    padding: var(--card-padding-md);
   }
   
   .anime-details-cover {
@@ -722,7 +825,7 @@ body.theme-neon #anime-details-related-content .related-anime-card:hover {
   }
   
   .anime-details-header h2 {
-    font-size: 1.4rem;
+    font-size: var(--font-size-xl);
   }
   
   #anime-details-related-content.related-anime-grid {
@@ -738,7 +841,83 @@ body.theme-neon #anime-details-related-content .related-anime-card:hover {
   }
   
   #anime-details-related-content .related-anime-title {
-    font-size: 0.7rem !important;
+    font-size: var(--font-size-xs) !important;
     height: 1.6rem !important;
   }
+}
+
+/* ------------------------------------------------------------------- 
+   SETTINGS MODAL - Ensure proper centering (similar to anime details modal)
+   ------------------------------------------------------------------- */
+#settings-modal-backdrop.modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: none !important;
+  justify-content: unset !important; /* Override general modal-backdrop flexbox */
+  align-items: unset !important; /* Override general modal-backdrop flexbox */
+  z-index: 100000 !important; /* Higher than everything else */
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+#settings-modal-backdrop.modal-backdrop.show {
+  display: block !important;
+  justify-content: unset !important; /* Override general modal-backdrop flexbox */
+  align-items: unset !important; /* Override general modal-backdrop flexbox */
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 100000 !important; /* Higher than everything else */
+}
+
+#settings-modal-content {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-width: 896px !important; /* max-w-4xl equivalent */
+  width: 90% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  transition: none !important; /* Disable transform transition to prevent shifting */
+}
+
+/* Override general modal-content styles for settings - consolidate all rules */
+#settings-modal-backdrop .modal-content,
+#settings-modal-backdrop.modal-backdrop.show .modal-content {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-width: 896px !important;
+  width: 90% !important;
+  transition: none !important;
+  margin: 0 !important;
+}
+
+/* Override Tailwind classes on settings modal content */
+#settings-modal-content.max-w-4xl {
+  max-width: 896px !important;
+}
+
+#settings-modal-content.w-full {
+  width: 90% !important;
 }

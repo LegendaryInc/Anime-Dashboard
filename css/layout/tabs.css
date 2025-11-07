@@ -111,22 +111,11 @@ body.theme-neon .active-tab::after {
    TAB CONTENT PANELS
    ------------------------------------------------------------------- */
 .tab-content {
-  animation: fadeIn 0.3s ease-in-out;
+  /* Animation moved to animations-batch5.css to avoid conflicts */
 }
 
 .tab-content.hidden {
   display: none;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ------------------------------------------------------------------- 

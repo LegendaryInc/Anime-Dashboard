@@ -37,8 +37,24 @@ function parseDurationToMinutes(durationStr, episodesWatched) {
   return totalMinutes > 0 ? totalMinutes : episodesWatched * 24;
 }
 
+// Cache for statistics to avoid recalculating when data hasn't changed
+let statsCache = {
+  dataHash: null,
+  stats: null
+};
+
+/**
+ * Generate a simple hash of the data array for cache comparison
+ */
+function hashData(data) {
+  if (!Array.isArray(data) || data.length === 0) return 'empty';
+  // Use length and first/last IDs as a quick hash
+  return `${data.length}-${data[0]?.id || 0}-${data[data.length - 1]?.id || 0}`;
+}
+
 /**
  * Calculates all dashboard statistics from the raw anime data.
+ * Uses caching to avoid unnecessary recalculations.
  * @param {Array} data - The user's full animeData array.
  * @returns {object} A statistics object.
  */
@@ -64,6 +80,12 @@ export function calculateStatistics(data) {
       highestRatedGenre: null,
       averageEpisodesPerAnime: 0
     };
+  }
+
+  // Check cache first
+  const dataHash = hashData(data);
+  if (statsCache.dataHash === dataHash && statsCache.stats) {
+    return statsCache.stats;
   }
 
   // Filter for anime that are actually "watched"
@@ -184,7 +206,166 @@ export function calculateStatistics(data) {
   // ⭐ NEW: Average episodes per anime
   const averageEpisodesPerAnime = totalAnime > 0 ? (totalEpisodes / totalAnime).toFixed(1) : 0;
 
-  return {
+  // ⭐ ADVANCED: Watch time breakdown by genre
+  const watchTimeByGenre = {};
+  watchedAnime.forEach(anime => {
+    const minutes = parseDurationToMinutes(anime.duration, Number(anime.episodesWatched) || 0);
+    if (anime.genres && Array.isArray(anime.genres)) {
+      anime.genres.forEach(genre => {
+        watchTimeByGenre[genre] = (watchTimeByGenre[genre] || 0) + minutes;
+      });
+    }
+  });
+
+  // ⭐ ADVANCED: Watch time breakdown by year
+  const watchTimeByYear = {};
+  watchedAnime.forEach(anime => {
+    const minutes = parseDurationToMinutes(anime.duration, Number(anime.episodesWatched) || 0);
+    // Try to get year from completedAt or startedAt
+    let year = null;
+    if (anime.completedAt && anime.completedAt.year) {
+      year = anime.completedAt.year;
+    } else if (anime.startedAt && anime.startedAt.year) {
+      year = anime.startedAt.year;
+    } else if (anime.year) {
+      year = anime.year;
+    }
+    if (year) {
+      watchTimeByYear[year] = (watchTimeByYear[year] || 0) + minutes;
+    }
+  });
+
+  // ⭐ ADVANCED: Average episode length
+  const episodeLengths = watchedAnime
+    .map(anime => {
+      const duration = anime.duration;
+      if (duration && typeof duration === 'string') {
+        const match = duration.match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+      }
+      return null;
+    })
+    .filter(length => length !== null);
+  const averageEpisodeLength = episodeLengths.length > 0
+    ? (episodeLengths.reduce((sum, len) => sum + len, 0) / episodeLengths.length).toFixed(1)
+    : '24'; // Default to 24 minutes if no data
+
+  // ⭐ ADVANCED: Most watched studios (by watch time, not just count)
+  const studioWatchTime = {};
+  watchedAnime.forEach(anime => {
+    const minutes = parseDurationToMinutes(anime.duration, Number(anime.episodesWatched) || 0);
+    if (anime.studios && Array.isArray(anime.studios)) {
+      anime.studios.forEach(studio => {
+        studioWatchTime[studio] = (studioWatchTime[studio] || 0) + minutes;
+      });
+    }
+  });
+  const topStudioByWatchTime = Object.entries(studioWatchTime)
+    .sort(([, a], [, b]) => b - a)[0]?.[0] || null;
+
+  // ⭐ ADVANCED: Anime watched the longest (time between start and complete)
+  const longestWatchedAnime = data
+    .filter(anime => anime.startedAt && anime.completedAt && 
+                     anime.startedAt.year && anime.completedAt.year)
+    .map(anime => {
+      const startDate = new Date(
+        anime.startedAt.year,
+        (anime.startedAt.month || 1) - 1,
+        anime.startedAt.day || 1
+      );
+      const endDate = new Date(
+        anime.completedAt.year,
+        (anime.completedAt.month || 1) - 1,
+        anime.completedAt.day || 1
+      );
+      const daysDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+      return {
+        ...anime,
+        daysToComplete: daysDiff,
+        title: anime.title || anime._romaji || anime._english || 'Unknown'
+      };
+    })
+    .sort((a, b) => b.daysToComplete - a.daysToComplete)
+    .slice(0, 10); // Top 10 longest
+
+  // ⭐ ADVANCED: Genre evolution over time (anime completed per year by genre)
+  const genreEvolutionByYear = {};
+  const completedAnimeWithDates = data.filter(a => 
+    a.status && a.status.toLowerCase() === 'completed' &&
+    a.completedAt && a.completedAt.year
+  );
+  
+  completedAnimeWithDates.forEach(anime => {
+    const year = anime.completedAt.year;
+    if (!genreEvolutionByYear[year]) {
+      genreEvolutionByYear[year] = {};
+    }
+    if (anime.genres && Array.isArray(anime.genres)) {
+      anime.genres.forEach(genre => {
+        genreEvolutionByYear[year][genre] = (genreEvolutionByYear[year][genre] || 0) + 1;
+      });
+    }
+  });
+
+  // ⭐ NEW: Score trends over time (average score by year)
+  const scoreTrendsByYear = {};
+  const scoredCompletedAnime = completedAnimeWithDates.filter(a => a.score > 0);
+  
+  scoredCompletedAnime.forEach(anime => {
+    const year = anime.completedAt.year;
+    if (!scoreTrendsByYear[year]) {
+      scoreTrendsByYear[year] = { total: 0, count: 0 };
+    }
+    scoreTrendsByYear[year].total += anime.score;
+    scoreTrendsByYear[year].count += 1;
+  });
+  
+  const averageScoreByYear = {};
+  Object.keys(scoreTrendsByYear).forEach(year => {
+    const data = scoreTrendsByYear[year];
+    if (data.count > 0) {
+      averageScoreByYear[year] = (data.total / data.count).toFixed(2);
+    }
+  });
+
+  // ⭐ NEW: Completion rate by genre
+  const completionRateByGenre = {};
+  const genreStarted = {};
+  const genreCompleted = {};
+  
+  data.forEach(anime => {
+    const status = (anime.status || '').toLowerCase();
+    const isStarted = ['completed', 'current', 'dropped', 'paused'].includes(status);
+    const isCompleted = status === 'completed';
+    
+    if (anime.genres && Array.isArray(anime.genres)) {
+      anime.genres.forEach(genre => {
+        if (isStarted) {
+          genreStarted[genre] = (genreStarted[genre] || 0) + 1;
+        }
+        if (isCompleted) {
+          genreCompleted[genre] = (genreCompleted[genre] || 0) + 1;
+        }
+      });
+    }
+  });
+  
+  Object.keys(genreStarted).forEach(genre => {
+    const started = genreStarted[genre];
+    const completed = genreCompleted[genre] || 0;
+    if (started > 0) {
+      completionRateByGenre[genre] = ((completed / started) * 100).toFixed(1);
+    }
+  });
+
+  // ⭐ NEW: Anime completed per year
+  const completedPerYear = {};
+  completedAnimeWithDates.forEach(anime => {
+    const year = anime.completedAt.year;
+    completedPerYear[year] = (completedPerYear[year] || 0) + 1;
+  });
+
+  const stats = {
     totalAnime,
     totalEpisodes,
     timeWatchedDays,
@@ -201,8 +382,25 @@ export function calculateStatistics(data) {
     completionRate,
     topStudio,
     highestRatedGenre,
-    averageEpisodesPerAnime
+    averageEpisodesPerAnime,
+    // Advanced statistics
+    watchTimeByGenre,
+    watchTimeByYear,
+    averageEpisodeLength,
+    topStudioByWatchTime,
+    longestWatchedAnime,
+    genreEvolutionByYear,
+    // New statistics
+    averageScoreByYear,
+    completionRateByGenre,
+    completedPerYear
   };
+
+  // Cache the result
+  statsCache.dataHash = dataHash;
+  statsCache.stats = stats;
+  
+  return stats;
 }
 
 /**

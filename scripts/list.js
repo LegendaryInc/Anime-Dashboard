@@ -6,6 +6,7 @@
 
 import { renderAnimeTable, renderAnimeGrid } from './ui.js';
 import { showToast } from './toast.js';
+import { debounce } from './utils.js';
 
 // =====================================================================
 // STATE MANAGEMENT
@@ -99,15 +100,13 @@ export function initListTab() {
 function initSearchBar() {
   const searchBar = document.getElementById('search-bar');
   if (searchBar) {
-    // Debounce search input
-    let searchTimeout;
-    searchBar.addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        filterState.search = e.target.value.toLowerCase();
-        applyFilters();
-      }, 300);
-    });
+    // Debounce search input using utility function
+    const debouncedSearch = debounce((e) => {
+      filterState.search = e.target.value.toLowerCase();
+      applyFilters();
+    }, 300);
+    
+    searchBar.addEventListener('input', debouncedSearch);
   }
 }
 
@@ -515,8 +514,10 @@ function loadSavedFilters() {
   }
 }
 
-function deleteCustomPreset(presetKey) {
-  if (!confirm('Delete this preset?')) return;
+async function deleteCustomPreset(presetKey) {
+  const { showConfirm } = await import('./toast.js');
+  const confirmed = await showConfirm('Are you sure you want to delete this preset?');
+  if (!confirmed) return;
   
   const customPresets = getCustomPresets();
   delete customPresets[presetKey];
@@ -578,7 +579,19 @@ function updateMultiSelect(elementId, selectedValues) {
 // FILTER APPLICATION
 // =====================================================================
 
+// Debounce filter application for better performance
+const debouncedApplyFilters = debounce(() => {
+  applyFiltersImmediate();
+}, 150);
+
 function applyFilters() {
+  if (!window.animeData) return;
+  
+  // Use debounced filter application
+  debouncedApplyFilters();
+}
+
+function applyFiltersImmediate() {
   if (!window.animeData) return;
   
   let filtered = [...window.animeData];
@@ -655,15 +668,30 @@ function applyFilters() {
   // Apply sorting
   filtered = sortAnime(filtered, sortState);
 
-  // Render based on current view mode
-  const currentView = localStorage.getItem('animeViewMode') || 'table';
-  if (currentView === 'grid') {
-    renderAnimeGrid(filtered, sortState);
-  } else {
-    renderAnimeTable(filtered, sortState);
-  }
+  // Use requestAnimationFrame to batch DOM updates
+  requestAnimationFrame(() => {
+    // Render based on current view mode
+    const currentView = localStorage.getItem('animeViewMode') || 'table';
+    if (currentView === 'grid') {
+      renderAnimeGrid(filtered, sortState);
+    } else {
+      renderAnimeTable(filtered, sortState);
+    }
 
-  // Update result count
+    // Populate "Add to List" buttons after rendering
+    requestAnimationFrame(async () => {
+      try {
+        const { populateAddToListButtons } = await import('./ui.js');
+        if (populateAddToListButtons) {
+          await populateAddToListButtons();
+        }
+      } catch (error) {
+        console.warn('Could not populate add to list buttons:', error);
+      }
+    });
+  });
+
+  // Update result count immediately (lightweight)
   updateResultCount(filtered.length);
   
   // Save current filters
@@ -788,7 +816,10 @@ export function clearAllFilters() {
 }
 
 export function triggerFilterUpdate() {
-  applyFilters();
+  // Use immediate application for programmatic updates
+  // Cancel any pending debounced filter updates
+  debouncedApplyFilters.cancel?.();
+  applyFiltersImmediate();
 }
 
 export function getFilterState() {

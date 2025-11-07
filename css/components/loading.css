@@ -33,11 +33,7 @@
   border-width: 4px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* @keyframes spin is defined in themes/animations.css */
 
 /* ------------------------------------------------------------------- 
    DEFAULT THEME LOADING

@@ -7,9 +7,16 @@
    WATCHING CONTENT GRID - MORE CARDS PER ROW
    ------------------------------------------------------------------- */
 #watching-content {
+  display: block;
+}
+
+/* ------------------------------------------------------------------- 
+   WATCHING GRID - UNIFIED LAYOUT
+   ------------------------------------------------------------------- */
+.watching-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--gap-md);
 }
 
 /* ------------------------------------------------------------------- 
@@ -18,19 +25,102 @@
 .watch-card {
   display: flex;
   flex-direction: row;
+  align-items: stretch;
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   border: 1px solid transparent;
-  min-height: 140px;
+  min-height: 120px;
+  position: relative;
 }
 
 .watch-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   border-color: var(--accent);
+}
+
+/* Priority highlighting for anime airing soon */
+.watch-card.airing-today {
+  border: 2px solid var(--accent);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, var(--card-bg), rgba(99, 102, 241, 0.05));
+}
+
+body.theme-neon .watch-card.airing-today {
+  border-color: #ff006e;
+  box-shadow: 
+    0 4px 20px rgba(255, 0, 110, 0.4),
+    0 0 24px rgba(255, 0, 110, 0.2);
+  background: linear-gradient(135deg, rgba(10, 5, 30, 0.6), rgba(255, 0, 110, 0.1));
+}
+
+.watch-card.airing-today::before {
+  content: '🔥 TODAY';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--accent);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  z-index: 5;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+body.theme-neon .watch-card.airing-today::before {
+  background: #ff006e;
+  box-shadow: 0 0 8px rgba(255, 0, 110, 0.6);
+}
+
+.watch-card.airing-tomorrow {
+  border: 2px solid rgba(99, 102, 241, 0.6);
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.2);
+  background: linear-gradient(135deg, var(--card-bg), rgba(99, 102, 241, 0.03));
+}
+
+body.theme-neon .watch-card.airing-tomorrow {
+  border-color: rgba(255, 0, 110, 0.6);
+  box-shadow: 
+    0 2px 16px rgba(255, 0, 110, 0.3),
+    0 0 16px rgba(255, 0, 110, 0.15);
+  background: linear-gradient(135deg, rgba(10, 5, 30, 0.6), rgba(255, 0, 110, 0.08));
+}
+
+.watch-card.airing-tomorrow::before {
+  content: '⏰ TOMORROW';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(99, 102, 241, 0.8);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  z-index: 5;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+body.theme-neon .watch-card.airing-tomorrow::before {
+  background: rgba(255, 0, 110, 0.8);
+  box-shadow: 0 0 6px rgba(255, 0, 110, 0.5);
+}
+
+.watch-card.airing-soon {
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+
+body.theme-neon .watch-card.airing-soon {
+  border-color: rgba(255, 0, 110, 0.4);
+  box-shadow: 0 2px 12px rgba(255, 0, 110, 0.2);
 }
 
 body.theme-neon .watch-card {
@@ -54,9 +144,9 @@ body.theme-neon .watch-card:hover {
    ------------------------------------------------------------------- */
 .watch-thumb {
   flex-shrink: 0;
-  width: 70px;
+  width: 60px;
   height: 100%;
-  min-height: 140px;
+  min-height: 120px;
   overflow: hidden;
   transition: transform 0.2s ease;
 }
@@ -78,8 +168,118 @@ body.theme-neon .watch-card:hover {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
+  justify-content: space-between;
+  padding: var(--gap-sm) var(--gap-md);
   min-width: 0;
+}
+
+/* ------------------------------------------------------------------- 
+   WEEKLY CALENDAR VIEW - DAY SECTIONS
+   ------------------------------------------------------------------- */
+.watch-day-section {
+  margin-bottom: var(--gap-lg);
+}
+
+.watch-day-section:last-child {
+  margin-bottom: 0;
+}
+
+.watch-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--gap-sm) var(--gap-md);
+  margin-bottom: var(--gap-sm);
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.watch-day-header.today {
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  border-color: var(--accent);
+  color: white;
+}
+
+body.theme-neon .watch-day-header.today {
+  background: linear-gradient(135deg, rgba(255, 0, 110, 0.8), rgba(255, 51, 133, 0.8));
+  border-color: rgba(255, 0, 110, 0.6);
+  box-shadow: 
+    0 4px 16px rgba(255, 0, 110, 0.4),
+    0 0 20px rgba(255, 0, 110, 0.2);
+}
+
+.watch-day-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.watch-day-header.today .watch-day-title {
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.today-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  margin-left: var(--gap-sm);
+}
+
+.watch-day-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.watch-day-header.today .watch-day-count {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ------------------------------------------------------------------- 
+   EPISODE PROGRESS INDICATOR
+   ------------------------------------------------------------------- */
+.watch-progress-indicator {
+  margin-top: 2px;
+  margin-bottom: var(--gap-xs);
+}
+
+.watch-progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.watch-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.watch-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  border-radius: var(--radius-sm);
+  transition: width 0.3s ease;
+}
+
+body.theme-neon .watch-progress-fill {
+  background: linear-gradient(90deg, #ff006e, #ff3385);
+  box-shadow: 0 0 8px rgba(255, 0, 110, 0.6);
 }
 
 /* ------------------------------------------------------------------- 
@@ -122,13 +322,13 @@ body.theme-neon .watch-progress {
    AIRING INFORMATION - COMPACT BOX
    ------------------------------------------------------------------- */
 .watch-airing {
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
   background: linear-gradient(135deg, 
     rgba(99, 102, 241, 0.06), 
     rgba(168, 85, 247, 0.06));
   border: 1px solid rgba(99, 102, 241, 0.15);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   flex: 1;
 }
 
@@ -212,7 +412,7 @@ body.theme-neon .notify-toggle-btn.notify-enabled {
    COUNTDOWN TIMER - COMPACT BUT PROMINENT
    ------------------------------------------------------------------- */
 .countdown-timer {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
@@ -501,6 +701,47 @@ body.theme-neon .rewatch-badge {
 }
 
 /* ------------------------------------------------------------------- 
+   📋 PLAN TO WATCH BADGE
+   ------------------------------------------------------------------- */
+.planning-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+  z-index: 10;
+}
+
+body.theme-neon .planning-badge {
+  background: rgba(59, 130, 246, 0.9);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+}
+
+/* ------------------------------------------------------------------- 
+   📋 PLAN TO WATCH CARD STYLING
+   ------------------------------------------------------------------- */
+.watch-card.planning {
+  border-left: 3px solid rgba(59, 130, 246, 0.5);
+  opacity: 0.9;
+}
+
+.watch-card.planning:hover {
+  opacity: 1;
+  border-left-color: rgba(59, 130, 246, 0.8);
+  transform: translateY(-2px);
+}
+
+body.theme-neon .watch-card.planning {
+  border-left-color: rgba(59, 130, 246, 0.4);
+}
+
+
+/* ------------------------------------------------------------------- 
    🆕 REWATCHING CARD HIGHLIGHT
    ------------------------------------------------------------------- */
 .watch-card.rewatching {
@@ -580,11 +821,7 @@ body.theme-neon .watch-card.rewatching::before {
   animation: spin 0.6s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* @keyframes spin is defined in themes/animations.css */
 
 .loading-skeleton {
   display: inline-block;

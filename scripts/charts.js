@@ -1,190 +1,163 @@
-// =====================================================================
+﻿// =====================================================================
 // --- CHARTS MODULE (charts.js) ---
 // =====================================================================
-// Handles the rendering and updating of all Chart.js instances.
+// Chart.js integration for visualizing anime statistics
 // =====================================================================
 
-// Chart.js is loaded from CDN in index.html (no bundler needed)
-// Chart is available globally as window.Chart
-const Chart = window.Chart || window.Chartjs;
+import { loadChartJS } from './utils.js';
 
-if (!Chart) {
-  console.error('❌ Chart.js not loaded! Make sure the CDN script is in index.html');
+// Cache for Chart.js library
+let ChartLib = null;
+
+/**
+ * Ensure Chart.js is loaded
+ * @returns {Promise<Object>} Chart.js library
+ */
+async function ensureChartJS() {
+  if (ChartLib) {
+    return ChartLib;
+  }
+  ChartLib = await loadChartJS();
+  return ChartLib;
 }
 
 /**
- * Renders all charts on the Visualizations tab
- * @param {object} stats - The calculated statistics object.
- * @param {Chart | null} genreChartInstance - Existing genre chart instance
- * @param {Chart | null} scoreChartInstance - Existing score chart instance
- * @returns {object} An object containing all chart instances
+ * Helper to create a Chart instance with lazy-loaded Chart.js
+ * @param {HTMLCanvasElement} canvas - Canvas element
+ * @param {Object} config - Chart configuration
+ * @returns {Promise<Object>} Chart instance
  */
-export function renderCharts(stats, genreChartInstance, scoreChartInstance) {
-  // Destroy old charts
-  if (genreChartInstance) genreChartInstance.destroy();
-  if (scoreChartInstance) scoreChartInstance.destroy();
-  
-  // Destroy additional chart instances if they exist
-  if (window.studioChartInstance) window.studioChartInstance.destroy();
-  if (window.formatChartInstance) window.formatChartInstance.destroy();
-  if (window.statusChartInstance) window.statusChartInstance.destroy();
-  if (window.genreScoreChartInstance) window.genreScoreChartInstance.destroy();
+async function createChart(canvas, config) {
+  const Chart = await ensureChartJS();
+  return new Chart(canvas.getContext('2d'), config);
+}
 
-  // Get theme styling
-  const theme = getThemeStyles();
-  
-  // Render stat cards
-  renderStatCards(stats);
-  
-  // Render all charts
-  const newGenreChart = renderGenreChart(stats, theme);
-  const newScoreChart = renderScoreChart(stats, theme);
-  const newStudioChart = renderStudioChart(stats, theme);
-  const newFormatChart = renderFormatChart(stats, theme);
-  const newStatusChart = renderStatusChart(stats, theme);
-  const newGenreScoreChart = renderGenreScoreChart(stats, theme);
+/**
+ * Get theme colors from CSS variables or use defaults
+ */
+function getThemeColors() {
+  const root = document.documentElement;
+  const isNeon = document.body.classList.contains('theme-neon');
+  const getColor = (varName, fallback) => {
+    return getComputedStyle(root).getPropertyValue(varName).trim() || fallback;
+  };
 
-  // Store instances globally for destruction later
-  window.studioChartInstance = newStudioChart;
-  window.formatChartInstance = newFormatChart;
-  window.statusChartInstance = newStatusChart;
-  window.genreScoreChartInstance = newGenreScoreChart;
+  // Use brighter, more vibrant colors for neon theme
+  if (isNeon) {
+    return {
+      primaryColor: '#e879f9', // Bright pink/purple for neon
+      borderColor: '#a855f7', // Purple border
+      gridColor: 'rgba(139, 92, 246, 0.2)', // Lighter purple grid
+      fontColor: '#ffffff',
+      fontColorBright: '#ffffff',
+      mutedColor: '#c084fc',
+      accentColor: '#e879f9',
+      // Brighter colors for chart elements
+      chartColors: [
+        '#e879f9', // Bright pink
+        '#a855f7', // Purple
+        '#3b82f6', // Blue
+        '#10b981', // Green
+        '#f59e0b', // Orange
+        '#ef4444', // Red
+        '#06b6d4', // Cyan
+        '#8b5cf6'  // Violet
+      ]
+    };
+  }
 
   return {
-    genreChartInstance: newGenreChart,
-    scoreChartInstance: newScoreChart
+    primaryColor: getColor('--primary-color', '#6366f1'),
+    borderColor: getColor('--border-color', '#374151'),
+    gridColor: getColor('--grid-color', '#1f2937'),
+    fontColor: getColor('--text-primary', '#f3f4f6'),
+    fontColorBright: getColor('--text-primary', '#ffffff'),
+    mutedColor: getColor('--text-muted', '#9ca3af'),
+    accentColor: getColor('--accent', '#e879f9'),
+    // Standard colors for other themes
+    chartColors: [
+      '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'
+    ]
   };
 }
 
 /**
- * Get theme-based styling
- */
-function getThemeStyles() {
-  const themeClass = document.body.className;
-  const isNeon = themeClass.includes('neon');
-  const isSakura = themeClass.includes('sakura');
-  const isSky = themeClass.includes('sky');
-  
-  return {
-    fontColor: isNeon ? '#e2e8f0' : '#4A5568',
-    gridColor: isNeon ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb',
-    borderColor: isNeon ? '#0f172a' : isSakura ? '#fff1f2' : isSky ? '#f0f9ff' : '#F0F4F8',
-    primaryColor: isNeon ? '#e879f9' : isSakura ? '#F472B6' : isSky ? '#38BDF8' : '#6366F1',
-    isNeon,
-    isSakura,
-    isSky
-  };
-}
-
-/**
- * Render stat cards at the top
+ * Render stat cards at the top of the charts tab
  */
 function renderStatCards(stats) {
   const container = document.getElementById('charts-stat-cards');
-  if (!container) return;
-  
+  if (!container || !stats) return;
+
+  // Get top genre by count
+  const topGenre = stats.genreCounts && Object.keys(stats.genreCounts).length > 0
+    ? Object.entries(stats.genreCounts).sort(([, a], [, b]) => b - a)[0][0]
+    : '—';
+
+  // Get top studio
+  const topStudio = stats.topStudio || '—';
+
+  // Get highest rated genre
+  const highestRatedGenre = stats.highestRatedGenre || '—';
+
+  // Get completion rate
+  const completionRate = stats.completionRate 
+    ? `${parseFloat(stats.completionRate).toFixed(1)}%`
+    : '—';
+
+  // Get top genre by watch time
+  const topGenreByWatchTime = stats.watchTimeByGenre && Object.keys(stats.watchTimeByGenre).length > 0
+    ? Object.entries(stats.watchTimeByGenre)
+        .map(([genre, minutes]) => ({ genre, hours: minutes / 60 }))
+        .sort((a, b) => b.hours - a.hours)[0]?.genre
+    : '—';
+
   container.innerHTML = `
     <div class="stat-card-mini">
-      <div class="stat-label">Completion Rate</div>
-      <div class="stat-value">${stats.completionRate}%</div>
+      <div class="stat-label">Top Genre</div>
+      <div class="stat-value">${topGenre}</div>
     </div>
     <div class="stat-card-mini">
       <div class="stat-label">Top Studio</div>
-      <div class="stat-value">${stats.topStudio || 'N/A'}</div>
+      <div class="stat-value">${topStudio}</div>
     </div>
     <div class="stat-card-mini">
-      <div class="stat-label">Best Genre</div>
-      <div class="stat-value">${stats.highestRatedGenre || 'N/A'}</div>
+      <div class="stat-label">Highest Rated Genre</div>
+      <div class="stat-value">${highestRatedGenre}</div>
     </div>
     <div class="stat-card-mini">
-      <div class="stat-label">Avg Episodes/Anime</div>
-      <div class="stat-value">${stats.averageEpisodesPerAnime}</div>
+      <div class="stat-label">Completion Rate</div>
+      <div class="stat-value">${completionRate}</div>
     </div>
   `;
 }
 
 /**
- * Render Genre Distribution Chart (existing)
+ * Render Score Distribution Chart
  */
-function renderGenreChart(stats, theme) {
-  const canvas = document.getElementById('genre-chart');
-  const fallback = document.getElementById('genre-chart-fallback');
-  if (!canvas) return null;
-
-  const sortedGenres = Object.entries(stats.genreCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, window.CONFIG.CHART_GENRE_LIMIT || 10);
-
-  if (sortedGenres.length === 0) {
-    canvas.style.display = 'none';
-    if (fallback) fallback.classList.remove('hidden');
-    return null;
-  }
-
-  canvas.style.display = 'block';
-  if (fallback) fallback.classList.add('hidden');
-
-  return new Chart(canvas.getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: sortedGenres.map(g => g[0]),
-      datasets: [{
-        data: sortedGenres.map(g => g[1]),
-        backgroundColor: [
-          '#818cf8', '#f472b6', '#60a5fa', '#fb923c',
-          '#a78bfa', '#f87171', '#4ade80', '#2dd4bf',
-          '#fbbf24', '#93c5fd', '#fde047', '#d946ef'
-        ],
-        borderColor: theme.borderColor,
-        borderWidth: 3,
-        hoverOffset: 3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            color: theme.fontColor,
-            boxWidth: 12,
-            padding: 10
-          }
-        },
-        tooltip: {
-          bodyFont: { size: 12 },
-          titleFont: { size: 14 }
-        }
-      }
-    }
-  });
-}
-
-/**
- * Render Score Distribution Chart (existing, but exclude 0)
- */
-function renderScoreChart(stats, theme) {
+async function renderScoreChart(stats, theme) {
   const canvas = document.getElementById('score-chart');
   if (!canvas) return null;
 
-  const scoreLabels = Object.keys(stats.scoreCounts)
-    .filter(score => Number(score) !== 0)
-    .sort((a, b) => Number(a) - Number(b));
-  
-  const scoreData = scoreLabels.map(label => stats.scoreCounts[label]);
+  if (!stats?.scoreCounts || Object.keys(stats.scoreCounts).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No score data available</p>';
+    return null;
+  }
 
-  return new Chart(canvas.getContext('2d'), {
+  const themeColors = getThemeColors();
+  const labels = Object.keys(stats.scoreCounts).sort((a, b) => parseInt(a) - parseInt(b));
+  const data = labels.map(label => stats.scoreCounts[label]);
+
+  return await createChart(canvas, {
     type: 'bar',
     data: {
-      labels: scoreLabels,
+      labels: labels,
       datasets: [{
-        label: 'Number of Anime',
-        data: scoreData,
-        backgroundColor: theme.primaryColor,
-        borderColor: theme.primaryColor,
-        borderWidth: 1,
-        borderRadius: 4
+        label: 'Anime Count',
+        data: data,
+        backgroundColor: themeColors.primaryColor + '80',
+        borderColor: themeColors.primaryColor,
+        borderWidth: 2,
+        borderRadius: 6
       }]
     },
     options: {
@@ -194,29 +167,23 @@ function renderScoreChart(stats, theme) {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (context) => `Count: ${context.parsed.y}`
+            label: (context) => `${context.parsed.y} anime`
           }
         }
       },
       scales: {
         y: {
           beginAtZero: true,
-          grid: { color: theme.gridColor },
-          ticks: { color: theme.fontColor, precision: 0 },
-          title: {
-            display: true,
-            text: 'Count',
-            color: theme.fontColor,
-            font: { size: 12 }
-          }
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, precision: 0 }
         },
         x: {
-          grid: { display: false },
-          ticks: { color: theme.fontColor },
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright },
           title: {
             display: true,
             text: 'Score',
-            color: theme.fontColor,
+            color: themeColors.fontColorBright,
             font: { size: 12 }
           }
         }
@@ -226,38 +193,538 @@ function renderScoreChart(stats, theme) {
 }
 
 /**
- * ⭐ NEW: Render Top Studios Chart
+ * Render Status Distribution Chart
  */
-function renderStudioChart(stats, theme) {
-  const canvas = document.getElementById('studio-chart');
+async function renderStatusChart(stats, theme) {
+  const canvas = document.getElementById('status-chart');
   if (!canvas) return null;
 
-  const sortedStudios = Object.entries(stats.studioCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 10);
-
-  if (sortedStudios.length === 0) {
-    canvas.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No studio data available</p>';
+  if (!stats?.statusCounts || Object.keys(stats.statusCounts).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No status data available</p>';
     return null;
   }
 
-  return new Chart(canvas.getContext('2d'), {
-    type: 'bar',
+  const themeColors = getThemeColors();
+  const colors = themeColors.chartColors || [
+    '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'
+  ];
+
+  const labels = Object.keys(stats.statusCounts);
+  const data = labels.map(label => stats.statusCounts[label]);
+  const backgroundColors = labels.map((_, i) => colors[i % colors.length] + '80');
+  const borderColors = labels.map((_, i) => colors[i % colors.length]);
+
+  return await createChart(canvas, {
+    type: 'doughnut',
     data: {
-      labels: sortedStudios.map(([name]) => name),
+      labels: labels,
       datasets: [{
         label: 'Anime Count',
-        data: sortedStudios.map(([, count]) => count),
-        backgroundColor: theme.primaryColor,
-        borderColor: theme.primaryColor,
-        borderWidth: 1,
-        borderRadius: 4
+        data: data,
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
+        borderWidth: 2
       }]
     },
     options: {
-      indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { color: themeColors.fontColorBright }
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.label}: ${context.parsed} anime`
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render Watch Time by Year Chart
+ */
+async function renderWatchTimeYearChart(stats, theme) {
+  const canvas = document.getElementById('watch-time-year-chart');
+  if (!canvas) return null;
+
+  if (!stats?.watchTimeByYear || Object.keys(stats.watchTimeByYear).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No watch time data available</p>';
+    return null;
+  }
+
+  const themeColors = getThemeColors();
+  const years = Object.keys(stats.watchTimeByYear).sort((a, b) => parseInt(a) - parseInt(b));
+  const hours = years.map(year => (stats.watchTimeByYear[year] / 60).toFixed(1));
+
+  return await createChart(canvas, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: 'Watch Time (hours)',
+        data: hours,
+        borderColor: themeColors.primaryColor,
+        backgroundColor: themeColors.primaryColor + '20',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: themeColors.primaryColor,
+        pointBorderColor: themeColors.borderColor,
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `Watch Time: ${context.parsed.y} hours`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright },
+          title: {
+            display: true,
+            text: 'Hours',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        },
+        x: {
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright },
+          title: {
+            display: true,
+            text: 'Year',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render Score Trends Over Time Chart
+ */
+async function renderScoreTrendsChart(stats, theme) {
+  const canvas = document.getElementById('score-trends-chart');
+  if (!canvas) return null;
+
+  if (!stats?.averageScoreByYear || Object.keys(stats.averageScoreByYear).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No score trend data available</p>';
+    return null;
+  }
+
+  const themeColors = getThemeColors();
+  const years = Object.keys(stats.averageScoreByYear).sort((a, b) => parseInt(a) - parseInt(b));
+  const scores = years.map(year => parseFloat(stats.averageScoreByYear[year]));
+
+  return await createChart(canvas, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: 'Average Score',
+        data: scores,
+        borderColor: themeColors.primaryColor,
+        backgroundColor: themeColors.primaryColor + '20',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: themeColors.primaryColor,
+        pointBorderColor: themeColors.borderColor,
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `Average Score: ${context.parsed.y.toFixed(1)}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          min: 0,
+          max: 10,
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, precision: 1 },
+          title: {
+            display: true,
+            text: 'Average Score',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        },
+        x: {
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright },
+          title: {
+            display: true,
+            text: 'Year',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render Watch Time by Genre Chart
+ */
+async function renderWatchTimeGenreChart(stats, theme) {
+  const canvas = document.getElementById('watch-time-genre-chart');
+  if (!canvas) return null;
+
+  if (!stats?.watchTimeByGenre || Object.keys(stats.watchTimeByGenre).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No watch time data available</p>';
+    return null;
+  }
+
+  const themeColors = getThemeColors();
+  const genreData = Object.entries(stats.watchTimeByGenre)
+    .map(([genre, minutes]) => ({ genre, hours: minutes / 60 }))
+    .sort((a, b) => b.hours - a.hours)
+    .slice(0, 10); // Top 10 genres
+
+  const labels = genreData.map(d => d.genre);
+  const data = genreData.map(d => d.hours.toFixed(1));
+
+  return await createChart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Watch Time (hours)',
+        data: data,
+        backgroundColor: themeColors.primaryColor + '80',
+        borderColor: themeColors.primaryColor,
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `Watch Time: ${context.parsed.x} hours`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright },
+          title: {
+            display: true,
+            text: 'Hours',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        },
+        y: {
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, maxRotation: 45, minRotation: 0 }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render Average Score by Genre Chart
+ */
+async function renderGenreScoreChart(stats, theme) {
+  const canvas = document.getElementById('genre-score-chart');
+  if (!canvas) return null;
+
+  if (!stats?.averageScoreByGenre || Object.keys(stats.averageScoreByGenre).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No score data available</p>';
+    return null;
+  }
+
+  const themeColors = getThemeColors();
+  const genreData = Object.entries(stats.averageScoreByGenre)
+    .map(([genre, score]) => ({ genre, score: parseFloat(score) }))
+    .filter(d => d.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10); // Top 10 genres
+
+  const labels = genreData.map(d => d.genre);
+  const data = genreData.map(d => d.score);
+
+  return await createChart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Average Score',
+        data: data,
+        backgroundColor: themeColors.primaryColor + '80',
+        borderColor: themeColors.primaryColor,
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `Average Score: ${context.parsed.x.toFixed(1)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: false,
+          min: 0,
+          max: 10,
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, precision: 1 },
+          title: {
+            display: true,
+            text: 'Average Score',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        },
+        y: {
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, maxRotation: 45, minRotation: 0 }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render Completion Rate by Genre Chart
+ */
+async function renderCompletionRateGenreChart(stats, theme) {
+  const canvas = document.getElementById('completion-rate-genre-chart');
+  if (!canvas) return null;
+
+  if (!stats?.completionRateByGenre || Object.keys(stats.completionRateByGenre).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No completion rate data available</p>';
+    return null;
+  }
+
+  const themeColors = getThemeColors();
+  const genreData = Object.entries(stats.completionRateByGenre)
+    .map(([genre, rate]) => ({ genre, rate: parseFloat(rate) }))
+    .sort((a, b) => b.rate - a.rate)
+    .slice(0, 10); // Top 10 genres
+
+  const labels = genreData.map(d => d.genre);
+  const data = genreData.map(d => d.rate);
+
+  return await createChart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Completion Rate (%)',
+        data: data,
+        backgroundColor: themeColors.primaryColor + '80',
+        borderColor: themeColors.primaryColor,
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => `Completion Rate: ${context.parsed.x.toFixed(1)}%`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 100,
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, callback: (value) => `${value}%` },
+          title: {
+            display: true,
+            text: 'Completion Rate (%)',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        },
+        y: {
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, maxRotation: 45, minRotation: 0 }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render Genre Evolution Over Time Chart
+ */
+async function renderGenreEvolutionChart(stats, theme) {
+  const canvas = document.getElementById('genre-evolution-chart');
+  if (!canvas) return null;
+
+  if (!stats?.genreEvolutionByYear || Object.keys(stats.genreEvolutionByYear).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No genre evolution data available</p>';
+    return null;
+  }
+
+  const themeColors = getThemeColors();
+  const colors = themeColors.chartColors || [
+    '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6'
+  ];
+
+  const years = Object.keys(stats.genreEvolutionByYear).sort((a, b) => parseInt(a) - parseInt(b));
+  const allGenres = new Set();
+  years.forEach(year => {
+    Object.keys(stats.genreEvolutionByYear[year]).forEach(genre => allGenres.add(genre));
+  });
+
+  const topGenres = Array.from(allGenres)
+    .map(genre => {
+      const total = years.reduce((sum, year) => sum + (stats.genreEvolutionByYear[year][genre] || 0), 0);
+      return { genre, total };
+    })
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 8)
+    .map(d => d.genre);
+
+  const datasets = topGenres.map((genre, i) => ({
+    label: genre,
+    data: years.map(year => stats.genreEvolutionByYear[year][genre] || 0),
+    borderColor: colors[i % colors.length],
+    backgroundColor: colors[i % colors.length] + '20',
+    borderWidth: 2,
+    fill: false,
+    tension: 0.4
+  }));
+
+  return await createChart(canvas, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { color: themeColors.fontColorBright }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, precision: 0 },
+          title: {
+            display: true,
+            text: 'Anime Count',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        },
+        x: {
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright },
+          title: {
+            display: true,
+            text: 'Year',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Render Top 10 Studios Chart
+ */
+async function renderStudioChart(stats, theme) {
+  const canvas = document.getElementById('studio-chart');
+  if (!canvas) return null;
+
+  if (!stats?.studioCounts || Object.keys(stats.studioCounts).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No studio data available</p>';
+    return null;
+  }
+
+  const themeColors = getThemeColors();
+  const studioData = Object.entries(stats.studioCounts)
+    .map(([studio, count]) => ({ studio, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10); // Top 10 studios
+
+  const labels = studioData.map(d => d.studio);
+  const data = studioData.map(d => d.count);
+
+  return await createChart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Anime Count',
+        data: data,
+        backgroundColor: themeColors.primaryColor + '80',
+        borderColor: themeColors.primaryColor,
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -269,21 +736,18 @@ function renderStudioChart(stats, theme) {
       scales: {
         x: {
           beginAtZero: true,
-          grid: { color: theme.gridColor },
-          ticks: { color: theme.fontColor, precision: 0 },
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, precision: 0 },
           title: {
             display: true,
-            text: 'Number of Anime',
-            color: theme.fontColor,
+            text: 'Anime Count',
+            color: themeColors.fontColorBright,
             font: { size: 12 }
           }
         },
         y: {
-          grid: { display: false },
-          ticks: { 
-            color: theme.fontColor,
-            font: { size: 11 }
-          }
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, maxRotation: 45, minRotation: 0 }
         }
       }
     }
@@ -291,149 +755,32 @@ function renderStudioChart(stats, theme) {
 }
 
 /**
- * ⭐ NEW: Render Format Distribution Chart
+ * Render Anime Completed Per Year Chart
  */
-function renderFormatChart(stats, theme) {
-  const canvas = document.getElementById('format-chart');
+async function renderCompletedPerYearChart(stats, theme) {
+  const canvas = document.getElementById('completed-per-year-chart');
   if (!canvas) return null;
 
-  const formatData = Object.entries(stats.formatCounts)
-    .sort(([, a], [, b]) => b - a);
-
-  if (formatData.length === 0) {
-    canvas.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No format data available</p>';
+  if (!stats?.completedPerYear || Object.keys(stats.completedPerYear).length === 0) {
+    canvas.parentElement.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No completion data available</p>';
     return null;
   }
 
-  return new Chart(canvas.getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: formatData.map(([name]) => name),
-      datasets: [{
-        data: formatData.map(([, count]) => count),
-        backgroundColor: [
-          '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b',
-          '#10b981', '#3b82f6', '#ef4444', '#14b8a6'
-        ],
-        borderColor: theme.borderColor,
-        borderWidth: 3,
-        hoverOffset: 3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            color: theme.fontColor,
-            boxWidth: 12,
-            padding: 10
-          }
-        },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.label}: ${context.parsed} (${((context.parsed / formatData.reduce((sum, [, count]) => sum + count, 0)) * 100).toFixed(1)}%)`
-          }
-        }
-      }
-    }
-  });
-}
+  const themeColors = getThemeColors();
+  const years = Object.keys(stats.completedPerYear).sort((a, b) => parseInt(a) - parseInt(b));
+  const counts = years.map(year => stats.completedPerYear[year]);
 
-/**
- * ⭐ NEW: Render Status Distribution Chart
- */
-function renderStatusChart(stats, theme) {
-  const canvas = document.getElementById('status-chart');
-  if (!canvas) return null;
-
-  const statusData = Object.entries(stats.statusCounts)
-    .sort(([, a], [, b]) => b - a);
-
-  if (statusData.length === 0) {
-    canvas.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No status data available</p>';
-    return null;
-  }
-
-  // Status-specific colors
-  const statusColors = {
-    'Completed': '#10b981',
-    'Current': '#3b82f6',
-    'Watching': '#3b82f6',
-    'Planning': '#f59e0b',
-    'Paused': '#f97316',
-    'Dropped': '#ef4444',
-    'Repeating': '#8b5cf6'
-  };
-
-  return new Chart(canvas.getContext('2d'), {
-    type: 'pie',
-    data: {
-      labels: statusData.map(([name]) => name),
-      datasets: [{
-        data: statusData.map(([, count]) => count),
-        backgroundColor: statusData.map(([name]) => statusColors[name] || '#6b7280'),
-        borderColor: theme.borderColor,
-        borderWidth: 2,
-        hoverOffset: 3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            color: theme.fontColor,
-            boxWidth: 12,
-            padding: 10
-          }
-        },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.label}: ${context.parsed} (${((context.parsed / statusData.reduce((sum, [, count]) => sum + count, 0)) * 100).toFixed(1)}%)`
-          }
-        }
-      }
-    }
-  });
-}
-
-/**
- * ⭐ NEW: Render Average Score by Genre Chart
- */
-function renderGenreScoreChart(stats, theme) {
-  const canvas = document.getElementById('genre-score-chart');
-  if (!canvas) return null;
-
-  const genreScores = Object.entries(stats.averageScoreByGenre)
-    .sort(([, a], [, b]) => parseFloat(b) - parseFloat(a))
-    .slice(0, 10);
-
-  if (genreScores.length === 0) {
-    canvas.parentElement.innerHTML = '<p class="text-center p-8 theme-text-muted">No genre score data available</p>';
-    return null;
-  }
-
-  return new Chart(canvas.getContext('2d'), {
+  return await createChart(canvas, {
     type: 'bar',
     data: {
-      labels: genreScores.map(([name]) => name),
+      labels: years,
       datasets: [{
-        label: 'Average Score',
-        data: genreScores.map(([, score]) => parseFloat(score)),
-        backgroundColor: genreScores.map(([, score]) => {
-          const s = parseFloat(score);
-          if (s >= 8) return '#10b981';
-          if (s >= 6) return '#3b82f6';
-          if (s >= 4) return '#f59e0b';
-          return '#ef4444';
-        }),
-        borderWidth: 1,
-        borderRadius: 4
+        label: 'Anime Completed',
+        data: counts,
+        backgroundColor: themeColors.primaryColor + '80',
+        borderColor: themeColors.primaryColor,
+        borderWidth: 2,
+        borderRadius: 6
       }]
     },
     options: {
@@ -443,31 +790,115 @@ function renderGenreScoreChart(stats, theme) {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (context) => `Avg Score: ${context.parsed.y.toFixed(2)}`
+            label: (context) => `${context.parsed.y} anime completed`
           }
         }
       },
       scales: {
         y: {
           beginAtZero: true,
-          max: 10,
-          grid: { color: theme.gridColor },
-          ticks: { color: theme.fontColor },
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright, precision: 0 },
           title: {
             display: true,
-            text: 'Average Score',
-            color: theme.fontColor,
+            text: 'Anime Completed',
+            color: themeColors.fontColorBright,
             font: { size: 12 }
           }
         },
         x: {
-          grid: { display: false },
-          ticks: { 
-            color: theme.fontColor,
-            font: { size: 11 }
+          grid: { color: themeColors.gridColor },
+          ticks: { color: themeColors.fontColorBright },
+          title: {
+            display: true,
+            text: 'Year',
+            color: themeColors.fontColorBright,
+            font: { size: 12 }
           }
         }
       }
     }
   });
+}
+
+/**
+ * Main function to render all charts
+ * @param {Object} stats - Statistics object from calculateStatistics
+ * @param {Object} theme - Theme object (currently unused, kept for compatibility)
+ * @param {Object} scoreChartInstance - Existing score chart instance to destroy
+ * @returns {Object} Object containing all chart instances
+ */
+// Store chart instances for cleanup
+let chartInstances = {};
+
+/**
+ * Destroy all existing chart instances
+ */
+async function destroyAllCharts() {
+  Object.values(chartInstances).forEach(chart => {
+    if (chart && typeof chart.destroy === 'function') {
+      try {
+        chart.destroy();
+      } catch (e) {
+        console.warn('Failed to destroy chart:', e);
+      }
+    }
+  });
+  chartInstances = {};
+  
+  // Only destroy Chart.js charts if Chart.js is loaded
+  if (ChartLib || window.Chart) {
+    const Chart = ChartLib || window.Chart;
+    const chartIds = [
+      'score-chart', 'status-chart', 'watch-time-year-chart',
+      'score-trends-chart', 'watch-time-genre-chart', 'genre-score-chart',
+      'completion-rate-genre-chart', 'genre-evolution-chart',
+      'studio-chart', 'completed-per-year-chart'
+    ];
+    
+    chartIds.forEach(id => {
+      const chart = Chart.getChart(id);
+      if (chart) {
+        try {
+          chart.destroy();
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+    });
+  }
+}
+
+export async function renderCharts(stats, theme, scoreChartInstance) {
+  // Ensure Chart.js is loaded first
+  await ensureChartJS();
+  
+  // Render stat cards first
+  renderStatCards(stats);
+
+  // Destroy all existing charts before creating new ones
+  await destroyAllCharts();
+
+  // Render all charts and store instances
+  chartInstances = {
+    scoreChartInstance: await renderScoreChart(stats, theme),
+    statusChart: await renderStatusChart(stats, theme),
+    watchTimeYearChart: await renderWatchTimeYearChart(stats, theme),
+    scoreTrendsChart: await renderScoreTrendsChart(stats, theme),
+    watchTimeGenreChart: await renderWatchTimeGenreChart(stats, theme),
+    genreScoreChart: await renderGenreScoreChart(stats, theme),
+    completionRateGenreChart: await renderCompletionRateGenreChart(stats, theme),
+    genreEvolutionChart: await renderGenreEvolutionChart(stats, theme),
+    studioChart: await renderStudioChart(stats, theme),
+    completedPerYearChart: await renderCompletedPerYearChart(stats, theme)
+  };
+
+  return chartInstances;
+}
+
+/**
+ * Cleanup function to destroy all charts (for memory management)
+ */
+export function cleanupCharts() {
+  destroyAllCharts();
 }

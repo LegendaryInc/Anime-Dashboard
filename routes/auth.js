@@ -17,9 +17,15 @@ router.use((req, res, next) => {
 const prisma = new PrismaClient();
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 // In development, redirect to Vite dev server (port 3001) after OAuth
+// In production, use FRONTEND_URL environment variable (separate frontend/backend)
 // Check if NODE_ENV is explicitly set to 'production', otherwise use dev server
 const isProduction = process.env.NODE_ENV === 'production';
 const getFrontendUrl = () => {
+  // If FRONTEND_URL is set (separate frontend/backend), use it
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL;
+  }
+  
   if (isProduction) {
     return BASE_URL;
   }
@@ -28,7 +34,7 @@ const getFrontendUrl = () => {
 };
 
 const FRONTEND_URL = getFrontendUrl();
-console.log(`🔗 Frontend URL configured: ${FRONTEND_URL} (NODE_ENV: ${process.env.NODE_ENV || 'development'}, isProduction: ${isProduction})`);
+console.log(`🔗 Frontend URL configured: ${FRONTEND_URL} (NODE_ENV: ${process.env.NODE_ENV || 'development'}, isProduction: ${isProduction}, FRONTEND_URL: ${process.env.FRONTEND_URL || 'not set'})`);
 
 /* ------------------------- Helpers / Shared ------------------------- */
 

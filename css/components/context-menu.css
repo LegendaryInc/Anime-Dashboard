@@ -1,0 +1,206 @@
+/* ===================================================================
+   CONTEXT MENU (Quick Actions Menu)
+   =================================================================== */
+
+/* Context Menu Container */
+.anime-context-menu {
+  position: fixed;
+  z-index: 10002; /* Above modals (9999) and tooltips (10001) */
+  min-width: 200px;
+  max-width: 280px;
+  background: var(--theme-bg, #ffffff);
+  border: 1px solid var(--theme-border, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  overflow: hidden;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.anime-context-menu:not(.hidden) {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* Context Menu Items */
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--theme-text-primary, #111827);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.context-menu-item:hover {
+  background: var(--theme-hover, #f3f4f6);
+}
+
+.context-menu-item:active {
+  background: var(--theme-active, #e5e7eb);
+}
+
+.context-menu-item:focus {
+  outline: 2px solid var(--theme-primary, #6366f1);
+  outline-offset: -2px;
+  background: var(--theme-hover, #f3f4f6);
+}
+
+.context-menu-item-focused {
+  background: var(--theme-hover, #f3f4f6);
+  outline: 2px solid var(--theme-primary, #6366f1);
+  outline-offset: -2px;
+}
+
+/* Context Menu Icons */
+.context-menu-icon {
+  font-size: 0.9rem;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.75;
+  line-height: 1;
+}
+
+/* Context Menu Labels */
+.context-menu-label {
+  flex: 1;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Context Menu Shortcuts */
+.context-menu-shortcut {
+  font-size: 0.7rem;
+  color: var(--theme-text-muted, #6b7280);
+  font-weight: 400;
+  padding: 2px 5px;
+  background: var(--theme-hover, #f3f4f6);
+  border-radius: 3px;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+/* Context Menu Divider */
+.context-menu-divider {
+  height: 1px;
+  background: var(--theme-border, #e5e7eb);
+  margin: 3px 4px;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .anime-context-menu {
+    background: var(--theme-bg, #1f2937);
+    border-color: var(--theme-border, #374151);
+  }
+
+  .context-menu-item {
+    color: var(--theme-text-primary, #f9fafb);
+  }
+
+  .context-menu-item:hover {
+    background: var(--theme-hover, #374151);
+  }
+
+  .context-menu-item:active {
+    background: var(--theme-active, #4b5563);
+  }
+
+  .context-menu-shortcut {
+    background: var(--theme-hover, #374151);
+    color: var(--theme-text-muted, #9ca3af);
+  }
+
+  .context-menu-divider {
+    background: var(--theme-border, #374151);
+  }
+}
+
+/* Theme-specific styling */
+body.theme-neon .anime-context-menu {
+  background: rgba(30, 20, 60, 0.98);
+  backdrop-filter: blur(15px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3), 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-neon .context-menu-item {
+  color: #e0e7ff;
+}
+
+body.theme-neon .context-menu-item:hover {
+  background: rgba(139, 92, 246, 0.2);
+}
+
+body.theme-neon .context-menu-item:active {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+body.theme-neon .context-menu-shortcut {
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+}
+
+body.theme-neon .context-menu-divider {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+body.theme-sakura .anime-context-menu {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border-color: rgba(236, 72, 153, 0.3);
+  box-shadow: 0 10px 25px rgba(236, 72, 153, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+body.theme-sky .anime-context-menu {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border-color: rgba(14, 165, 233, 0.3);
+  box-shadow: 0 10px 25px rgba(14, 165, 233, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .anime-context-menu {
+    min-width: 180px;
+    max-width: 240px;
+  }
+
+  .context-menu-item {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .context-menu-shortcut {
+    display: none; /* Hide shortcuts on mobile */
+  }
+}
+
+/* Ensure menu doesn't interfere with other UI */
+.anime-context-menu {
+  isolation: isolate;
+}
+
+/* Prevent text selection in menu */
+.anime-context-menu {
+  user-select: none;
+  -webkit-user-select: none;
+}
+

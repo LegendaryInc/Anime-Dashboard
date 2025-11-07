@@ -2,6 +2,47 @@
 // --- TOAST NOTIFICATION MODULE (toast.js) ---
 // =====================================================================
 
+import { escapeHtml } from './utils.js';
+
+/**
+ * Show an achievement unlock notification
+ * @param {Object} achievement - The achievement object
+ * @param {number} duration - Duration in milliseconds (default: 5000)
+ */
+export function showAchievementToast(achievement, duration = 5000) {
+  const container = document.querySelector('.toast-container') || createToastContainer();
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-achievement';
+  
+  const rarityClass = `achievement-${achievement.rarity || 'common'}`;
+  
+  toast.innerHTML = `
+    <div class="toast-achievement-content">
+      <div class="toast-achievement-icon ${rarityClass}">${achievement.icon || '🏆'}</div>
+      <div class="toast-achievement-text">
+        <div class="toast-achievement-title">Achievement Unlocked!</div>
+        <div class="toast-achievement-name">${escapeHtml(achievement.name)}</div>
+        <div class="toast-achievement-desc">${escapeHtml(achievement.description)}</div>
+      </div>
+    </div>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Trigger animation
+  setTimeout(() => toast.classList.add('toast-show'), 10);
+  
+  // Auto-remove
+  setTimeout(() => {
+    toast.classList.remove('toast-show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// Make available globally for achievements module
+window.showAchievementToast = showAchievementToast;
+
 /**
  * Show a toast notification
  * @param {string} message - The message to display
@@ -100,11 +141,4 @@ function createToastContainer() {
   return container;
 }
 
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+// escapeHtml is now imported from utils.js

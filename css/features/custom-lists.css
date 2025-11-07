@@ -1,0 +1,333 @@
+/* =====================================================================
+   Custom Lists Styles
+   ===================================================================== */
+
+.custom-list-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.custom-list-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.custom-list-actions {
+  display: flex;
+  gap: var(--gap-sm);
+  align-items: center;
+}
+
+.custom-list-action-btn {
+  padding: var(--spacing-xs) var(--gap-sm);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+  font-size: 0.875rem;
+}
+
+.custom-list-action-btn:hover {
+  background-color: var(--theme-bg-hover, #f3f4f6);
+}
+
+.custom-list-action-btn.delete {
+  color: #dc2626;
+}
+
+.custom-list-action-btn.delete:hover {
+  background-color: #fee2e2;
+}
+
+.custom-list-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--theme-text-muted, #9ca3af);
+  margin-top: 0.5rem;
+}
+
+.custom-list-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.custom-list-empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.custom-list-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.custom-list-detail-info {
+  flex: 1;
+}
+
+.custom-list-detail-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--theme-text-primary, #111827);
+  margin-bottom: 0.5rem;
+}
+
+.custom-list-detail-description {
+  color: var(--theme-text-secondary, #6b7280);
+  margin-bottom: 0.5rem;
+}
+
+.custom-list-detail-meta {
+  font-size: 0.875rem;
+  color: var(--theme-text-muted, #9ca3af);
+}
+
+.custom-list-anime-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-md);
+  padding: var(--card-padding-md);
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s;
+}
+
+.custom-list-anime-item:hover {
+  background-color: var(--theme-bg-hover, #f3f4f0);
+}
+
+.custom-list-anime-cover {
+  width: 4rem;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.custom-list-anime-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-list-anime-title {
+  font-weight: 600;
+  color: var(--theme-text-primary, #111827);
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-list-anime-meta {
+  font-size: 0.875rem;
+  color: var(--theme-text-secondary, #6b7280);
+  margin-bottom: 0.5rem;
+}
+
+.custom-list-anime-actions {
+  display: flex;
+  gap: var(--gap-sm);
+}
+
+.custom-list-anime-remove-btn {
+  font-size: 0.875rem;
+  color: #dc2626;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--gap-sm);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
+
+.custom-list-anime-remove-btn:hover {
+  background-color: #fee2e2;
+}
+
+/* Create/Edit List Modal */
+.custom-list-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.custom-list-modal-content {
+  background: var(--theme-bg, #ffffff);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2xl);
+  max-width: 28rem;
+  width: 100%;
+  margin: var(--card-padding-md);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.custom-list-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--theme-text-primary, #111827);
+  margin-bottom: 1rem;
+}
+
+.custom-list-form-group {
+  margin-bottom: 1rem;
+}
+
+.custom-list-form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--theme-text-primary, #111827);
+  margin-bottom: 0.5rem;
+}
+
+.custom-list-form-input,
+.custom-list-form-textarea {
+  width: 100%;
+  padding: var(--gap-sm) var(--gap-md);
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-md);
+  background: var(--theme-bg, #ffffff);
+  color: var(--theme-text-primary, #111827);
+  font-size: 0.875rem;
+}
+
+.custom-list-form-textarea {
+  resize: vertical;
+  min-height: 4rem;
+}
+
+.custom-list-form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.custom-list-form-checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.custom-list-modal-actions {
+  display: flex;
+  gap: var(--gap-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-2xl);
+}
+
+/* Add to List Dropdown */
+.add-to-list-container {
+  position: relative;
+  z-index: 100;
+}
+
+.add-to-list-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  max-width: 300px;
+  margin-top: var(--spacing-xs);
+  z-index: 10000;
+  background: var(--theme-bg, #ffffff);
+  border: 1px solid var(--theme-border, #e5e7eb);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: var(--spacing-xs) 0;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: nowrap;
+}
+
+/* Ensure dropdown appears above table rows */
+#anime-table tbody tr .add-to-list-container {
+  z-index: 100;
+}
+
+#anime-table tbody tr:hover .add-to-list-container {
+  z-index: 101;
+}
+
+.add-to-list-option {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  width: 100%;
+  text-align: left;
+  padding: var(--gap-md) var(--card-padding-md);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  color: var(--theme-text-primary, #111827);
+}
+
+.add-to-list-option:hover {
+  background-color: var(--theme-bg-hover, #f3f4f6);
+}
+
+.add-to-list-option:first-child {
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.add-to-list-option:last-child {
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.add-to-list-option.create-new {
+  font-weight: 600;
+  color: var(--theme-primary, #6366f1);
+  border-top: 1px solid var(--theme-border, #e5e7eb);
+  margin-top: var(--spacing-xs);
+  padding-top: var(--gap-md);
+}
+
+.add-to-list-option.create-new:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .custom-list-detail-header {
+    flex-direction: column;
+  }
+
+  .custom-list-anime-item {
+    flex-direction: column;
+  }
+
+  .custom-list-anime-cover {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+  }
+
+  .custom-list-modal-content {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .custom-list-action-btn:hover {
+    background-color: #374151;
+  }
+
+  .custom-list-anime-item:hover {
+    background-color: #374151;
+  }
+
+  .add-to-list-option:hover {
+    background-color: #374151;
+  }
+}
+

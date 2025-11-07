@@ -9,15 +9,15 @@
 .stat-cards-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: var(--gap-lg);
+  margin-bottom: var(--spacing-2xl);
 }
 
 .stat-card-mini {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: var(--radius-lg);
+  padding: var(--card-padding-md);
   text-align: center;
   transition: all 0.3s ease;
 }
@@ -45,7 +45,7 @@ body.theme-neon .stat-card-mini:hover {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
-  margin-bottom: 8px;
+  margin-bottom: var(--gap-sm);
 }
 
 .stat-value {
@@ -65,7 +65,7 @@ body.theme-neon .stat-value {
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-  gap: 24px;
+  gap: var(--spacing-2xl);
   align-items: start;
 }
 
@@ -76,8 +76,8 @@ body.theme-neon .stat-value {
   background: var(--card-bg);
   backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: var(--radius-xl);
+  padding: var(--card-padding-lg);
   box-shadow: 0 8px 16px rgba(0,0,0,0.15);
   transition: all 0.3s ease;
 }
@@ -106,7 +106,7 @@ body.theme-neon .chart-container:hover {
   color: var(--text-primary);
   font-weight: 700;
   font-size: 1.125rem;
-  margin-bottom: 16px;
+  margin-bottom: var(--gap-lg);
   text-align: center;
 }
 
@@ -129,15 +129,15 @@ body.theme-neon .chart-title {
 .chart-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--gap-md);
   justify-content: center;
-  margin-top: 16px;
+  margin-top: var(--gap-lg);
 }
 
 .chart-legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--gap-xs);
   font-size: 0.875rem;
   color: var(--text-secondary);
 }
@@ -163,7 +163,7 @@ body.theme-neon .chart-title {
   }
   
   .chart-container {
-    padding: 16px;
+    padding: var(--card-padding-md);
   }
   
   .chart-wrapper {
@@ -175,7 +175,7 @@ body.theme-neon .chart-title {
   }
   
   .charts-grid {
-    gap: 16px;
+    gap: var(--gap-lg);
   }
 }
 
@@ -185,7 +185,7 @@ body.theme-neon .chart-title {
   }
   
   .stat-card-mini {
-    padding: 12px;
+    padding: var(--card-padding-sm);
   }
   
   .stat-value {

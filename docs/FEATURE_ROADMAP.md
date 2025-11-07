@@ -2,48 +2,145 @@
 
 A comprehensive list of potential new features for the Anime Dashboard, organized by priority and category.
 
+## 🎉 Recently Completed (Latest Updates)
+
+The following major features have been **fully implemented** in recent updates:
+
+1. ✅ **Charts & Visualizations** - Enhanced chart system with theme support:
+   - Restored and improved `scripts/charts.js` with full Chart.js integration
+   - Quick look stat cards at top of Visualizations tab (Top Genre, Top Studio, Highest Rated Genre, Completion Rate)
+   - Theme-aware chart colors (brighter colors for neon theme)
+   - Improved text visibility across all themes
+   - 10+ interactive charts (Score Distribution, Status Distribution, Watch Time by Year, Score Trends, Genre Insights, Studio Insights, etc.)
+   - Responsive chart grid layout
+   - Chart colors automatically adapt to current theme
+
+2. ✅ **Bulk Operations** - Complete bulk selection and management system:
+   - Select multiple anime with checkboxes (table and grid views)
+   - Bulk update status for multiple anime
+   - Bulk update score for multiple anime
+   - Bulk add to custom lists
+   - Select all/none functionality
+   - Bulk actions toolbar with selection count
+   - Progress feedback with success/failure counts
+
+2. ✅ **Custom Lists/Collections** - Complete list management system:
+   - Create, edit, and delete custom lists
+   - Add/remove anime from lists
+   - "Add to List" functionality on anime cards and details modal
+   - List view with entry counts
+   - Full-screen modals for list management
+   - Integration with anime cards and table view
+
+3. ✅ **Advanced Statistics** - Enhanced analytics:
+   - Watch time breakdown by genre and year
+   - Genre evolution over time (chart)
+   - Average episode length calculation
+   - Most watched studios by watch time
+   - Longest watched anime tracking
+   - Advanced statistics cards and charts
+
+4. ✅ **Performance Optimizations** - Improved responsiveness:
+   - Debounced filter updates (150ms)
+   - requestAnimationFrame for DOM batching
+   - Deferred heavy calculations (statistics, charts)
+   - Optimized filter application
+   - Batched button population
+
+5. ✅ **UI/UX Improvements**:
+   - Fixed modal positioning (centered in viewport)
+   - Fixed genre tooltip z-index (appears above other rows)
+   - Improved modal scrolling
+   - Better bulk selection UI
+   - Quick Actions context menu with keyboard navigation
+
+6. ✅ **Achievements/Badges System** - Complete gamification system:
+   - 20+ achievements across multiple categories
+   - Achievement tracking with localStorage persistence
+   - Unlock notifications and progress tracking
+   - Rarity system (common to legendary)
+   - Achievement view with filtering
+
+7. ✅ **Export Features** - Comprehensive export functionality:
+   - JSON export (full data)
+   - CSV export (spreadsheet compatible)
+   - MyAnimeList XML export (for MAL import)
+   - Watch history export (JSON/CSV)
+   - Export menu in UI
+
+8. ✅ **Watch History** - Enhanced tracking:
+   - Monthly and yearly summaries
+   - Export functionality for watch history
+   - History view tab with date selectors
+
+9. ✅ **Watch Queue/Planner** - Integrated into Watching tab:
+   - Unified view showing Currently Watching, Rewatching, and Plan to Watch
+   - Visual badges to differentiate status types
+   - "Start Watching" button for PTW items
+   - Queue integration for priority ordering
+   - Clean, unified grid layout
+
+10. ✅ **Personal Goals & Targets** - Goal tracking system:
+    - Create yearly and monthly goals (watch time or completion targets)
+    - Progress tracking with visual indicators
+    - Goals view with filtering and management
+
+**Files Created/Modified:**
+- `scripts/charts.js` - **Restored and enhanced** with full Chart.js integration, theme-aware colors, and stat cards
+- `scripts/bulk-operations.js` (integrated into `ui.js`) - Bulk selection and operations
+- `scripts/custom-lists.js` - Custom list management logic
+- `scripts/custom-lists-view.js` - Custom list UI rendering
+- `scripts/context-menu.js` - Quick Actions context menu with keyboard navigation
+- `css/features/bulk-operations.css` - Bulk operations styling
+- `css/features/custom-lists.css` - Custom lists styling
+- `css/components/context-menu.css` - Context menu styling
+- `css/features/charts.css` - Chart styling and stat cards
+- `prisma/schema.prisma` - Added CustomList and CustomListEntry models
+- `routes/api.js` - Added custom lists CRUD endpoints
+- `scripts/data.js` - Extended with advanced statistics
+- `scripts/keyboard.js` - Updated keyboard shortcuts (Tab 8 for My Lists, context menu shortcuts)
+
+---
+
 ## 📊 Current Features
 
 - ✅ AniList OAuth integration
-- ✅ Multiple themes (Default, Sakura, Sky, Neon)
-- ✅ Statistics dashboard with charts
+- ✅ Multiple themes (Default, Sakura, Sky, Neon) with theme-aware chart colors
+- ✅ Statistics dashboard with **10+ interactive charts** (Chart.js integration)
+- ✅ **Quick look stat cards** in Visualizations tab (Top Genre, Top Studio, Highest Rated Genre, Completion Rate)
 - ✅ Calendar view for airing anime
 - ✅ Advanced filtering and search
 - ✅ Grid/List view toggle
 - ✅ AI-powered recommendations (Insights tab)
 - ✅ Notes feature (in anime details modal)
+- ✅ Watch dates feature (startedAt, completedAt) in anime details modal
+- ✅ Watch history summaries (monthly/yearly) with export functionality
+- ✅ **Achievements/Badges System** - Fully implemented with 20+ achievements
+- ✅ **Export Features** - JSON, CSV, and MAL XML export functionality
 - ✅ Anime details modal with related anime
 - ✅ Streaming links integration
 - ✅ Responsive design
-- ✅ Keyboard shortcuts
+- ✅ Keyboard shortcuts (including context menu navigation)
+- ✅ **Quick Actions Menu** - Right-click context menu with keyboard support
 
 ---
 
 ## 🎯 Priority 1: High-Value Features (Recommended First)
 
 ### 1. **Watch History Tracking** ⭐⭐⭐
-**Impact**: High | **Complexity**: Medium
+**Status**: ✅ **Partially Implemented** (Simplified version)
 
-Track when you watched each anime and generate a watch history timeline.
+**Completed:**
+- ✅ Date Started and Date Completed fields in anime details modal
+- ✅ API endpoints to save/retrieve watch dates from AniList
+- ✅ Monthly/Yearly watch summaries
+- ✅ Export watch history as CSV/JSON
 
-**Features:**
-- Add "Date Started" and "Date Completed" fields
-- Visual timeline showing when you watched each anime
-- "Watching Streak" counter (days in a row)
-- Monthly/Yearly watch summaries
-- Export watch history as CSV/JSON
+**Removed (inaccurate with batch updates):**
+- ❌ Timeline visualization (dates may be inaccurate)
+- ❌ Streak calculation (requires accurate daily tracking)
 
-**Implementation:**
-- Store watch dates in localStorage or backend
-- Add date pickers to anime details modal
-- Create timeline visualization component
-- Add streak calculation logic
-
-**Files to Create/Modify:**
-- `scripts/watch-history.js` (new)
-- `scripts/anime-modal.js` (add date fields)
-- `routes/api.js` (add watch history endpoints)
-- `css/features/timeline.css` (new)
+**Note**: Simplified to focus on summaries and export, as most users batch update their AniList making precise timelines/streaks inaccurate.
 
 ---
 
@@ -95,71 +192,75 @@ Connect with friends and share your anime journey.
 ---
 
 ### 4. **Achievements/Badges System** ⭐⭐
-**Impact**: Medium-High | **Complexity**: Low-Medium
+**Status**: ✅ **Fully Implemented!**
 
-Gamify your anime watching experience with achievements.
+**Completed Features:**
+- ✅ Achievement tracking system with localStorage persistence
+- ✅ 20+ achievements across multiple categories (milestone, genre, score, diversity, studio, format, seasonal)
+- ✅ Achievement unlock notifications with toast system
+- ✅ Achievement view with filtering (all, unlocked, by category)
+- ✅ Progress tracking for locked achievements
+- ✅ Rarity system (common, uncommon, rare, epic, legendary)
+- ✅ Achievement showcase with progress bars
 
-**Features:**
-- Unlock badges for milestones (100 anime, 1000 episodes, etc.)
-- Genre master badges (completed 10+ anime in a genre)
-- Streak achievements
-- Seasonal badges (watched 10+ seasonal anime)
-- Achievement showcase on profile
+**Files Created:**
+- ✅ `scripts/achievements.js` - Achievement tracking and unlocking logic
+- ✅ `scripts/achievements-view.js` - Achievement UI rendering
+- ✅ `data/achievements.json` - Achievement definitions (20+ achievements)
+- ✅ `css/features/achievements.css` - Achievement styling with rarity colors
 
-**Implementation:**
-- Define achievement rules in config
-- Track achievements in localStorage or backend
-- Create badge display component
-- Add achievement notifications
-
-**Files to Create/Modify:**
-- `scripts/achievements.js` (new)
-- `data/achievements.json` (new)
-- `css/features/achievements.css` (new)
-- `routes/api.js` (add achievement tracking)
+**Potential Enhancements (Optional):**
+- Backend achievement tracking (currently localStorage)
+- Achievement sharing
+- Achievement leaderboards
+- More achievement categories
 
 ---
 
 ## 🎨 Priority 2: Enhanced User Experience
 
 ### 5. **Custom Lists/Collections** ⭐⭐
-**Impact**: Medium | **Complexity**: Medium
+**Status**: ✅ **Fully Implemented!**
 
-Create custom lists to organize your anime (e.g., "Favorites", "Rewatch Later", "Seasonal 2024").
+**Completed Features:**
+- ✅ Create, edit, and delete custom lists
+- ✅ Add/remove anime from lists
+- ✅ "Add to List" functionality on anime cards, table view, and details modal
+- ✅ List view with entry counts
+- ✅ Full-screen modals for list management
+- ✅ Database persistence with Prisma
+- ✅ API endpoints for all CRUD operations
 
-**Features:**
-- Create unlimited custom lists
-- Add/remove anime from lists
+**Files Created:**
+- ✅ `scripts/custom-lists.js` - List management logic
+- ✅ `scripts/custom-lists-view.js` - List UI rendering
+- ✅ `css/features/custom-lists.css` - List styling
+- ✅ `prisma/schema.prisma` - CustomList and CustomListEntry models
+- ✅ `routes/api.js` - List CRUD endpoints
+
+**Potential Enhancements (Optional):**
 - Drag-and-drop list organization
 - Share lists publicly
 - List templates (e.g., "Top 10 Favorites")
-
-**Implementation:**
-- Add `CustomList` model to Prisma
-- Create list management UI
-- Add list filtering to main list view
 - Export lists as JSON
-
-**Files to Create/Modify:**
-- `prisma/schema.prisma` (add CustomList model)
-- `scripts/custom-lists.js` (new)
-- `routes/api.js` (add list CRUD endpoints)
-- `css/features/lists.css` (new)
+- List filtering in main list view
 
 ---
 
 ### 6. **Notes & Reviews System** ⭐⭐
-**Status**: ⚠️ **Partially Implemented**
+**Status**: ✅ **Fully Implemented**
 
 **Current Implementation:**
-- ✅ Notes feature exists in anime details modal
+- ✅ Notes feature in anime details modal
   - ✅ Notes tab (📝) in anime modal
   - ✅ Textarea with 2000 character limit
   - ✅ Character count display
   - ✅ Save notes functionality
   - ✅ Syncing with AniList (notes stored on AniList)
+  - ✅ Watch dates (startedAt, completedAt) in anime details modal
+  - ✅ Save dates functionality synced with AniList
 
-**Missing Features (Potential Enhancements):**
+**Potential Enhancements (Optional):**
 - ❌ Full reviews system (with ratings breakdown)
 - ❌ "My Reviews" section (view all reviews)
 - ❌ Export reviews as blog post format
@@ -167,156 +268,112 @@ Create custom lists to organize your anime (e.g., "Favorites", "Rewatch Later", 
 - ❌ Rich text editor for reviews (currently plain text)
 - ❌ Review search/filter
 
-**Note**: The notes feature is already fully functional and synced with AniList. This could be enhanced with a full reviews system, but the basic notes functionality is complete.
+**Note**: The notes and dates features are fully functional and synced with AniList. The basic functionality is complete.
 
 ---
 
-### 7. **Advanced Statistics** ⭐⭐
-**Impact**: Medium | **Complexity**: Low-Medium
+### 7. **Advanced Statistics & Charts** ⭐⭐
+**Status**: ✅ **Fully Implemented!**
 
-More detailed statistics and analytics.
+**Completed Features:**
+- ✅ Watch time breakdown by genre and year
+- ✅ Genre evolution over time (chart)
+- ✅ Average episode length calculation
+- ✅ Most watched studios by watch time
+- ✅ Longest watched anime tracking
+- ✅ Advanced statistics cards and charts
+- ✅ **Quick look stat cards** in Visualizations tab (Top Genre, Top Studio, Highest Rated Genre, Completion Rate)
+- ✅ **Theme-aware chart colors** (brighter colors for neon theme, improved visibility)
+- ✅ **10+ interactive charts** with Chart.js:
+  - Score Distribution (bar chart)
+  - Status Distribution (doughnut chart)
+  - Watch Time by Year (line chart)
+  - Score Trends Over Time (line chart)
+  - Watch Time by Genre (horizontal bar chart)
+  - Average Score by Genre (horizontal bar chart)
+  - Completion Rate by Genre (horizontal bar chart)
+  - Genre Evolution Over Time (multi-line chart)
+  - Top 10 Studios (horizontal bar chart)
+  - Anime Completed Per Year (bar chart)
 
-**Features:**
-- Watch time breakdown by genre/year
-- Completion rate statistics
-- Average episode length
-- Most watched studios/directors
-- Genre evolution over time (chart)
-- "Anime you've watched the longest" (time between start and complete)
+**Files Modified:**
+- ✅ `scripts/data.js` - Extended statistics calculation
+- ✅ `scripts/charts.js` - **Restored and enhanced** with full Chart.js integration, theme detection, and improved colors
 
-**Implementation:**
-- Extend existing statistics calculation
-- Add new chart types
-- Create advanced stats component
-- Add time-based analytics
+**Potential Enhancements (Optional - Need to evaluate data limits):**
+- Most watched directors
+- Additional time-based analytics
+- Chart export functionality (PNG/PDF)
 
-**Files to Create/Modify:**
-- `scripts/data.js` (extend statistics)
-- `scripts/charts.js` (add new chart types)
-- `css/features/advanced-stats.css` (new)
+**Note**: Charts now automatically adapt to theme colors, with special handling for neon theme for better visibility.
 
 ---
 
-### 8. **Export & Import Features** ⭐⭐
-**Impact**: Medium | **Complexity**: Low
+### 8. **Export Features** ⭐⭐
+**Status**: ✅ **Fully Implemented** (Export features complete)
 
-Enhanced export/import capabilities.
+**Completed Features:**
+- ✅ Export to JSON format (full data with all fields)
+- ✅ Export to CSV format (spreadsheet compatible)
+- ✅ Export to MyAnimeList XML format (for MAL import)
+- ✅ Export watch history as JSON/CSV
+- ✅ Export menu in UI with format selection
+- ✅ Download functionality for all export formats
 
-**Features:**
-- Export to CSV/Excel
-- Export to MyAnimeList XML format
-- Import from MAL XML
-- Export watch history
-- Export statistics as PDF
-- Backup/restore functionality
+**Files Created:**
+- ✅ `scripts/export.js` - Export functions for JSON, CSV, and MAL XML
+- ✅ `css/features/export.css` - Export menu styling
 
-**Implementation:**
-- Add export functions to data.js
-- Create CSV/XML parsers
-- Add import UI
-- PDF generation library
-
-**Files to Create/Modify:**
-- `scripts/export.js` (new)
-- `scripts/import.js` (new)
-- `routes/api.js` (add import endpoint)
+**Note**: Import features are not needed - users already sync with AniList.
 
 ---
 
 ## 🔧 Priority 3: Quality of Life Improvements
 
 ### 9. **Bulk Operations** ⭐
-**Impact**: Medium | **Complexity**: Low
+**Status**: ✅ **Fully Implemented!**
 
-Perform actions on multiple anime at once.
+**Completed Features:**
+- ✅ Select multiple anime with checkboxes (table and grid views)
+- ✅ Bulk update status for multiple anime
+- ✅ Bulk update score for multiple anime
+- ✅ Bulk add to custom lists
+- ✅ Select all/none functionality
+- ✅ Bulk actions toolbar with selection count
+- ✅ Progress feedback with success/failure counts
 
-**Features:**
-- Select multiple anime (checkboxes)
-- Bulk update status/score
-- Bulk add to custom lists
+**Files Created/Modified:**
+- ✅ `scripts/ui.js` - Added bulk selection and operations
+- ✅ `css/features/bulk-operations.css` - Bulk operations styling
+- ✅ `index.html` - Added bulk actions toolbar
+
+**Potential Enhancements (Optional):**
 - Bulk export selected anime
-- Bulk delete from list (if custom lists)
-
-**Implementation:**
-- Add selection mode to list view
-- Create bulk action menu
-- Add confirmation dialogs
-- Batch API endpoints
-
-**Files to Create/Modify:**
-- `scripts/list.js` (add selection mode)
-- `scripts/bulk-operations.js` (new)
-- `routes/api.js` (add bulk endpoints)
+- Bulk delete from custom lists
+- Batch API endpoints for better performance
 
 ---
 
 ### 10. **Quick Actions Menu** ⭐
-**Impact**: Low-Medium | **Complexity**: Low
+**Status**: ✅ **Fully Implemented!**
 
-Right-click context menu for quick actions.
+**Completed Features:**
+- ✅ Right-click context menu on anime cards and table rows
+- ✅ Quick actions: "View Details", "Update Status", "Update Score", "Add Episode", "Add to List", "Open on AniList"
+- ✅ Keyboard shortcuts: Enter (open details), Arrow keys (navigate), Esc (close)
+- ✅ Clean, minimal design with icons and labels
+- ✅ Intelligent positioning to avoid viewport overflow
+- ✅ Focus management for keyboard navigation
 
-**Features:**
-- Right-click on anime card for menu
-- Quick actions: "Update Status", "Add Note", "Add to List", "Open Streaming Links"
-- Keyboard shortcuts for common actions
-- Customizable quick actions
+**Files Created:**
+- ✅ `scripts/context-menu.js` - Context menu logic and keyboard handling
+- ✅ `css/components/context-menu.css` - Context menu styling
 
-**Implementation:**
-- Create context menu component
-- Add event listeners to anime cards
-- Keyboard shortcut mapping
-
-**Files to Create/Modify:**
-- `scripts/context-menu.js` (new)
-- `css/components/context-menu.css` (new)
+**Note**: "Find Similar" feature was removed from the context menu and table view as it was not working properly.
 
 ---
 
-### 11. **Dark Mode Toggle** ⭐
-**Impact**: Low-Medium | **Complexity**: Low
 
-Add a dedicated dark mode (separate from themes).
-
-**Features:**
-- Toggle dark/light mode
-- Remember preference
-- Auto-detect system preference
-- Smooth transitions
-
-**Implementation:**
-- Add dark mode CSS variables
-- Create theme toggle component
-- Store preference in localStorage
-
-**Files to Create/Modify:**
-- `scripts/themes.js` (add dark mode)
-- `css/themes/dark-mode.css` (new)
-
----
-
-### 12. **Anime Details Enhancement** ⭐
-**Impact**: Low-Medium | **Complexity**: Low
-
-Enhanced anime details modal with more information.
-
-**Features:**
-- Character list with images
-- Staff information (director, writer, etc.)
-- Related anime (sequels, prequels, spin-offs)
-- External links (MAL, AniList, official site)
-- Trailers/PV links
-- Studio information
-
-**Implementation:**
-- Fetch additional data from AniList API
-- Enhance anime-modal.js
-- Add character/staff display components
-
-**Files to Create/Modify:**
-- `scripts/anime-modal.js` (enhance)
-- `routes/api.js` (add detailed info endpoint)
-
----
 
 ## 🎮 Priority 4: Advanced Features
 
@@ -344,32 +401,9 @@ Watch anime "together" with friends remotely.
 
 ---
 
-### 14. **Mobile App (PWA)** ⭐
-**Impact**: Medium | **Complexity**: Medium
-
-Convert to Progressive Web App for mobile installation.
-
-**Features:**
-- Install as mobile app
-- Offline mode
-- Push notifications for new episodes
-- Mobile-optimized UI
-
-**Implementation:**
-- Add service worker
-- Create manifest.json
-- Optimize for mobile
-- Add offline caching
-
-**Files to Create/Modify:**
-- `public/manifest.json` (new)
-- `public/sw.js` (service worker)
-- `vite.config.js` (PWA plugin)
-
----
 
 ### 15. **AI-Powered List Analysis** ⭐
-**Impact**: Low | **Complexity**: Medium
+**Status**: Not needed currently | **Impact**: Low | **Complexity**: Medium
 
 Use AI to analyze your list and provide insights.
 
@@ -388,50 +422,80 @@ Use AI to analyze your list and provide insights.
 - `scripts/ai.js` (add analysis functions)
 - `scripts/insights.js` (enhance)
 
+**Note**: Can be implemented later if desired.
+
 ---
 
 ## 📝 Implementation Recommendations
 
-### Start with These (Easy Wins):
-1. **Watch History Tracking** - High value, medium complexity
-2. **Achievements System** - Fun, low-medium complexity
-3. **Notes & Reviews** - Useful, low-medium complexity
+### Recently Completed ✅:
+1. ✅ **Charts & Visualizations** - Restored and enhanced chart system with theme-aware colors, quick look stat cards, and 10+ interactive charts
+2. ✅ **Bulk Operations** - Fully implemented with selection, bulk updates, and list management
+3. ✅ **Custom Lists/Collections** - Fully implemented with CRUD operations, list management, and UI
+4. ✅ **Advanced Statistics** - Watch time by genre/year, genre evolution, longest watched anime, and more
+5. ✅ **Performance Optimizations** - Debounced filters, requestAnimationFrame batching, deferred calculations
+6. ✅ **UI/UX Improvements** - Fixed modal positioning, genre tooltips, improved scrolling, context menu, improved chart visibility
+7. ✅ **Achievements System** - Fully implemented with 20+ achievements
+8. ✅ **Export Features** - JSON, CSV, and MAL XML export complete
+9. ✅ **Watch History** - Monthly/yearly summaries with export
+10. ✅ **Quick Actions Menu** - Right-click context menu with keyboard navigation (Enter, Arrow keys, Esc)
+11. ✅ **Watch Queue/Planner** - Integrated into Watching tab with unified view
+12. ✅ **Personal Goals & Targets** - Goal tracking with progress indicators
 
-### Next Steps (Medium Effort):
-4. **Anime Recommendations** - High value, medium complexity
-5. **Custom Lists** - Very useful, medium complexity
-6. **Advanced Statistics** - Extend existing features
+### Next Steps (Recommended Priority):
 
-### Future (Long-term):
-7. **Social Features** - Requires infrastructure
-8. **Watch Together** - Complex real-time features
+1. **Statistics Enhancements** ⭐⭐ (User Interest: Medium)
+   - Completion rate statistics
+   - Most watched directors
+   - Additional time-based analytics
+   - **Note**: Need to evaluate data limits and performance impact
+   - **Good for**: Personal use, single-user setup
+
+2. **AI-Powered List Analysis** ⭐ (User Interest: Low - Not needed currently)
+   - "What does your list say about you?" analysis
+   - Genre diversity analysis
+   - Watch pattern analysis
+   - Can be implemented later if desired
+
+3. **Social Features** ⭐ (User Interest: Low - Not needed for self-hosted single-user)
+   - Friend system
+   - Share lists publicly
+   - Compare lists with friends
+   - Requires infrastructure, high complexity
+   - **Note**: Not needed for personal use
+
+4. **Watch Together/Collaborative Lists** ⭐ (User Interest: Low - Not needed for self-hosted single-user)
+   - Watch parties
+   - Synchronized playback
+   - Group chat
+   - Complex real-time features
+   - **Note**: Not needed for personal use
 
 ---
 
-## 💡 Quick Feature Ideas (Low Effort)
+## 🎯 Suggested Next Features
 
-- **Anime of the Day** - Randomly show one anime from your list each day
-- **Completion Tracker** - Visual progress bar for completion percentage
-- **Genre Wheel** - Visual representation of genre distribution
-- **Seasonal Planner** - Plan what to watch each season
-- **Rewatch Tracker** - Track how many times you've rewatched an anime
-- **Episode Counter Widget** - Small widget showing daily/weekly episode count
-- **Quote Collection** - Save favorite quotes from anime
-- **Soundtrack Links** - Quick links to anime soundtracks on Spotify/YouTube
+### Priority 1: Personal Use Features
+1. **Statistics Enhancements** - Additional analytics (need to evaluate data limits)
+   - Completion rate statistics
+   - Most watched directors
+   - Additional time-based analytics
+   - Good for single-user, self-hosted setup
+
+### Priority 2: Low Priority / Not Needed Currently
+2. **AI-Powered List Analysis** - Not needed currently, can be implemented later
+3. **Social Features** - Not needed for self-hosted single-user setup
+4. **Watch Together/Collaborative Lists** - Not needed for self-hosted single-user setup
 
 ---
 
-## 🎯 Suggested Next Feature
+## 🚫 Do Not Suggest
 
-Based on complexity, impact, and user value, I recommend starting with:
+The following features should **not** be suggested or implemented:
 
-**🎯 Watch History Tracking**
-
-This feature:
-- ✅ Provides immediate value (tracking when you watched things)
-- ✅ Medium complexity (not too hard, not too easy)
-- ✅ Builds on existing infrastructure
-- ✅ Can be extended later (timeline, streaks, etc.)
-
-Would you like me to start implementing this feature, or would you prefer to begin with a different one from the list?
+1. **Dark Mode Toggle** - User does not want dark mode
+2. **Import Features** - Not needed (users already sync with AniList)
+3. **Enhancements to Existing Features** (Section 3) - User does not like this category
+4. **Social Features** - Not needed for self-hosted single-user setup
+5. **Watch Together/Collaborative Lists** - Not needed for self-hosted single-user setup
 

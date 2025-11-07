@@ -1,0 +1,672 @@
+/* ===================================================================
+   UI TRANSITIONS & ANIMATIONS
+   Smooth transitions, loading animations, hover/focus effects,
+   page transitions, and micro-interactions
+   =================================================================== */
+
+/* ------------------------------------------------------------------- 
+   STANDARDIZED TRANSITION TIMING
+   Consistent timing across all components
+   ------------------------------------------------------------------- */
+:root {
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s ease;
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED BUTTON TRANSITIONS & MICRO-INTERACTIONS
+   ------------------------------------------------------------------- */
+.btn-primary,
+.btn-secondary,
+.btn-watch-now,
+.add-episode-btn,
+.similar-btn,
+.export-calendar-btn,
+.add-to-planning-btn,
+.notify-toggle-btn,
+.buy-pack-btn,
+.confirm-btn {
+  transition: all var(--transition-base),
+              transform var(--transition-fast),
+              box-shadow var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Button click feedback - subtle scale */
+.btn-primary:active,
+.btn-secondary:active,
+.btn-watch-now:active,
+.add-episode-btn:active,
+.similar-btn:active {
+  transform: scale(0.98);
+}
+
+/* Button hover enhancement */
+.btn-primary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+/* Button focus ring enhancement */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED FORM INPUT TRANSITIONS
+   ------------------------------------------------------------------- */
+.filter-select,
+#search-bar,
+input[type="text"],
+input[type="password"],
+input[type="number"],
+textarea {
+  transition: all var(--transition-base),
+              border-color var(--transition-fast),
+              box-shadow var(--transition-base);
+}
+
+/* Input focus enhancement */
+.filter-select:focus,
+#search-bar:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow),
+              0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+/* Input hover state */
+.filter-select:hover:not(:focus),
+#search-bar:hover:not(:focus) {
+  border-color: var(--input-focus-border);
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED CARD TRANSITIONS & HOVER EFFECTS
+   ------------------------------------------------------------------- */
+.anime-card,
+.stat-card,
+.watch-card,
+.rec-item,
+.calendar-card {
+  transition: all var(--transition-smooth),
+              transform var(--transition-base),
+              box-shadow var(--transition-smooth);
+}
+
+.anime-card:hover,
+.stat-card:hover,
+.watch-card:hover,
+.rec-item:hover,
+.calendar-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Card focus state for keyboard navigation */
+.anime-card:focus-visible,
+.stat-card:focus-visible,
+.watch-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED TABLE ROW TRANSITIONS
+   ------------------------------------------------------------------- */
+.table-row {
+  transition: all var(--transition-base),
+              background-color var(--transition-fast);
+  pointer-events: auto; /* Ensure clicks work */
+  position: relative; /* Ensure proper stacking */
+}
+
+.table-row:hover {
+  transform: translateX(2px);
+  box-shadow: -2px 0 8px rgba(99, 102, 241, 0.1);
+}
+
+.table-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  transform: translateX(2px);
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED TAB TRANSITIONS
+   ------------------------------------------------------------------- */
+.tab-btn {
+  transition: all var(--transition-smooth),
+              color var(--transition-base),
+              border-color var(--transition-base);
+  position: relative;
+}
+
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform var(--transition-smooth);
+}
+
+.tab-btn:hover:not(.active-tab)::after {
+  transform: scaleX(0.5);
+}
+
+.active-tab::after {
+  transform: scaleX(1);
+}
+
+/* Tab content fade transition - removed to avoid conflicts */
+/* Animation is now handled via .content-updated class below */
+
+/* ------------------------------------------------------------------- 
+   ENHANCED BADGE & TAG TRANSITIONS
+   ------------------------------------------------------------------- */
+.badge,
+.genre-tag,
+.score-badge,
+.episode-badge {
+  transition: all var(--transition-base),
+              transform var(--transition-fast);
+}
+
+.badge:hover,
+.genre-tag:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED LOADING ANIMATIONS
+   ------------------------------------------------------------------- */
+
+/* Form submit button loading state */
+.btn-primary.loading,
+.btn-secondary.loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.btn-primary.loading::after,
+.btn-secondary.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Input loading state */
+.filter-select.loading,
+#search-bar.loading {
+  position: relative;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'/%3e%3c/svg%3e");
+  background-position: right 0.6rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+/* Table row loading state */
+.table-row.loading {
+  opacity: 0.6;
+  position: relative;
+}
+
+.table-row.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* Card loading skeleton */
+.anime-card.loading-skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.anime-card.loading-skeleton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED TOAST ANIMATIONS
+   ------------------------------------------------------------------- */
+.toast {
+  animation: toastSlideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(400px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.toast.toast-hide {
+  animation: toastSlideOut 0.2s ease-in forwards;
+}
+
+@keyframes toastSlideOut {
+  to {
+    opacity: 0;
+    transform: translateX(400px) scale(0.9);
+  }
+}
+
+/* Toast success animation */
+.toast-success {
+  animation: toastSlideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+             toastPulse 0.3s ease-out 0.3s;
+}
+
+@keyframes toastPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED MODAL TRANSITIONS
+   ------------------------------------------------------------------- */
+/* Animation disabled temporarily to fix modal display issue */
+/* .modal-backdrop.show {
+  animation: backdropFadeIn 0.2s ease-out;
+} */
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-backdrop.hide {
+  animation: backdropFadeOut 0.2s ease-in forwards;
+}
+
+@keyframes backdropFadeOut {
+  to { opacity: 0; }
+}
+
+/* Only animate content when modal is showing */
+.modal-backdrop.show .modal-content {
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-backdrop.hide .modal-content {
+  animation: modalSlideOut 0.2s ease-in forwards;
+}
+
+@keyframes modalSlideOut {
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED CONTEXT MENU TRANSITIONS
+   ------------------------------------------------------------------- */
+.anime-context-menu:not(.hidden) {
+  animation: contextMenuFadeIn 0.15s ease-out;
+}
+
+@keyframes contextMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.context-menu-item {
+  transition: all var(--transition-fast);
+}
+
+.context-menu-item:hover {
+  transform: translateX(4px);
+}
+
+.context-menu-item:active {
+  transform: translateX(2px) scale(0.98);
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED CHECKBOX & RADIO TRANSITIONS
+   ------------------------------------------------------------------- */
+input[type="checkbox"],
+input[type="radio"] {
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+  transform: scale(1.1);
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  animation: checkmarkPop 0.2s ease-out;
+}
+
+@keyframes checkmarkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED TOOLTIP TRANSITIONS
+   ------------------------------------------------------------------- */
+.tooltip {
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED ACHIEVEMENT UNLOCK ANIMATION
+   ------------------------------------------------------------------- */
+.achievement-card.unlocked {
+  animation: achievementUnlock 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes achievementUnlock {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Achievement progress bar animation */
+.achievement-progress-bar {
+  transition: width var(--transition-smooth);
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED BULK OPERATIONS ANIMATIONS
+   ------------------------------------------------------------------- */
+#bulk-actions-toolbar {
+  animation: slideDownBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideDownBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bulk-select-checkbox:checked {
+  animation: checkboxCheck 0.2s ease-out;
+}
+
+@keyframes checkboxCheck {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED PAGE TRANSITIONS (Lightweight)
+   ------------------------------------------------------------------- */
+
+/* Tab content switching - disabled to prevent interference with tab display */
+/* Animation removed to ensure tabs display correctly */
+
+/* History view switching */
+.history-view-content:not(.hidden) {
+  animation: viewFadeIn 0.25s ease-out;
+}
+
+@keyframes viewFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Content update animation */
+.content-updated {
+  animation: contentUpdate 0.3s ease-out;
+}
+
+@keyframes contentUpdate {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED FILTER & SEARCH TRANSITIONS
+   ------------------------------------------------------------------- */
+.filter-select:focus,
+#search-bar:focus {
+  animation: inputFocus 0.2s ease-out;
+}
+
+@keyframes inputFocus {
+  0% {
+    box-shadow: 0 0 0 0 var(--input-focus-shadow);
+  }
+  100% {
+    box-shadow: 0 0 0 3px var(--input-focus-shadow);
+  }
+}
+
+/* Search results highlight */
+.search-highlight {
+  animation: highlightPulse 0.5s ease-out;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(255, 255, 0, 0.3);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED EXPORT BUTTON ANIMATIONS
+   ------------------------------------------------------------------- */
+.export-btn:active {
+  animation: exportClick 0.2s ease-out;
+}
+
+@keyframes exportClick {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED LAZY LOADING ANIMATIONS
+   ------------------------------------------------------------------- */
+.lazy-load {
+  opacity: 0;
+  transition: opacity var(--transition-smooth);
+}
+
+.lazy-load.loaded {
+  opacity: 1;
+  animation: lazyLoadFadeIn 0.4s ease-out;
+}
+
+@keyframes lazyLoadFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   ENHANCED SCROLL ANIMATIONS
+   ------------------------------------------------------------------- */
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scroll to top button animation */
+.scroll-to-top {
+  transition: all var(--transition-smooth);
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-3px) scale(1.1);
+}
+
+/* ------------------------------------------------------------------- 
+   RESPECT REDUCED MOTION PREFERENCE
+   ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .toast,
+  .modal-content,
+  .anime-context-menu,
+  .tab-content,
+  .history-view-content {
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------- 
+   PERFORMANCE OPTIMIZATIONS
+   Use transform and opacity for better performance
+   ------------------------------------------------------------------- */
+.anime-card,
+.stat-card,
+.watch-card,
+.table-row,
+.btn-primary,
+.btn-secondary {
+  will-change: transform;
+}
+
+/* Only enable will-change on hover */
+.anime-card:hover,
+.stat-card:hover,
+.watch-card:hover,
+.table-row:hover,
+.btn-primary:hover,
+.btn-secondary:hover {
+  will-change: transform;
+}
+
+/* Remove will-change when not needed */
+.anime-card:not(:hover),
+.stat-card:not(:hover),
+.watch-card:not(:hover),
+.table-row:not(:hover),
+.btn-primary:not(:hover),
+.btn-secondary:not(:hover) {
+  will-change: auto;
+}
+

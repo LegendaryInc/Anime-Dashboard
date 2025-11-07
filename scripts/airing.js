@@ -7,8 +7,56 @@
 import { showToast } from './toast.js';
 import { observeNewImages } from './lazy-loading.js';
 
+// Lazy import for custom lists (to avoid circular dependencies)
+let renderAddToListButton = null;
+async function getAddToListButton(animeId) {
+  if (!renderAddToListButton) {
+    const module = await import('./custom-lists-view.js');
+    renderAddToListButton = module.renderAddToListButton;
+  }
+  if (renderAddToListButton) {
+    return renderAddToListButton(animeId);
+  }
+  return ''; // Return empty if not available
+}
+
+/**
+ * Populate "Add to List" buttons in placeholders
+ */
+async function populateAddToListButtons() {
+  const placeholders = document.querySelectorAll('.add-to-list-placeholder');
+  if (placeholders.length === 0) return;
+  
+  // Load custom lists first
+  try {
+    const { loadCustomLists } = await import('./custom-lists.js');
+    await loadCustomLists();
+  } catch (error) {
+    console.warn('Could not load custom lists:', error);
+  }
+  
+  // Populate each placeholder
+  for (const placeholder of placeholders) {
+    // Check if placeholder is still in the DOM
+    if (!placeholder.parentNode) continue;
+    
+    const animeId = parseInt(placeholder.dataset.animeId);
+    if (animeId) {
+      try {
+        const buttonHtml = await getAddToListButton(animeId);
+        if (buttonHtml && placeholder.parentNode) {
+          placeholder.outerHTML = buttonHtml;
+        }
+      } catch (error) {
+        console.warn('Could not populate add to list button:', error);
+      }
+    }
+  }
+}
+
 // --- State Management ---
 let countdownIntervals = new Map();
+let notificationInterval = null; // Store notification interval for cleanup
 let notificationPermission = 'default';
 let notificationSettings = {
   enabled: false,
@@ -418,14 +466,28 @@ function stopAllCountdowns() {
 /**
  * Render a single anime card (used for progressive updates)
  */
-function renderAnimeCard(anime, index, streamingInfo = null) {
+function renderAnimeCard(anime, index, streamingInfo = null, statusType = null) {
   const airingInfo = getNextAiring(anime);
   const title = anime.title || 'Unknown';
   const progress = anime.episodesWatched ?? anime.progress ?? 0;
   const img = anime.coverImage || 'https://placehold.co/70x140/1f2937/94a3b8?text=No+Image';
   const countdownId = `countdown-${index}`;
   const isNotifyEnabled = notificationSettings.enabledAnime.has(title);
-  const isRewatching = (anime.status || '').toLowerCase() === 'repeating';
+  
+  // Determine status type if not provided
+  if (!statusType) {
+    const status = (anime.status || '').toLowerCase();
+    if (status === 'repeating' || status === 're-watching') {
+      statusType = 'rewatching';
+    } else if (status === 'planning' || status === 'plan to watch') {
+      statusType = 'planning';
+    } else {
+      statusType = 'watching';
+    }
+  }
+  
+  const isRewatching = statusType === 'rewatching';
+  const isPlanning = statusType === 'planning';
   
   const malId = anime.idMal || anime.malId;
   const malIdNum = malId ? (typeof malId === 'string' ? parseInt(malId, 10) : malId) : null;
@@ -463,80 +525,177 @@ function renderAnimeCard(anime, index, streamingInfo = null) {
       </div>`;
   }
   
-  // Build streaming links section
+  // Build streaming links section - different for PTW vs Watching
   const isLoading = streamingInfo === null || (malIdNum && !streamingLinksCache.has(malIdNum));
-  let streamingHTML = `
-    <div class="watch-actions">
-      ${isLoading ? `
-        <button class="btn-watch-now loading" disabled>
-          <span class="loading-spinner"></span> Loading links...
-        </button>
-      ` : `
-        <a href="${freeLinks.hianime}" target="_blank" rel="noopener" class="btn-watch-now">
-          ▶️ Watch on HiAnime
-        </a>
-      `}
-      <button class="btn-primary add-episode-btn" data-title="${title.replace(/"/g, '&quot;')}" data-watched="${progress}" data-total="${anime.totalEpisodes || 0}">
-        +1 Episode
-      </button>
-    </div>
-    
-    <div class="text-xs mt-2 space-y-1">
-      ${isLoading ? `
-        <div class="opacity-60">
-          <span class="font-medium">Free sites:</span>
-          <span class="loading-skeleton">Loading...</span>
-        </div>
-      ` : `
-        <div class="opacity-60 hover:opacity-100 transition-opacity">
-          <span class="font-medium">Free sites:</span>
-          <a href="${freeLinks.gogoanime}" target="_blank" rel="noopener" class="hover:underline">Gogo</a> • 
-          <a href="${freeLinks.animepahe}" target="_blank" rel="noopener" class="hover:underline">Pahe</a> • 
-          <a href="${freeLinks.aniwave}" target="_blank" rel="noopener" class="hover:underline">AniWave</a> •
-          <a href="${freeLinks.animixplay}" target="_blank" rel="noopener" class="hover:underline">AnimixPlay</a>
-        </div>
-      `}`;
+  let streamingHTML = '';
   
-  // Add official links if available
-  if (!isLoading && officialLinks.length > 0) {
-    const officialLinksHTML = officialLinks
-      .map(link => {
-        if (!link.url || !link.name) return '';
-        const url = link.url.startsWith('http') ? link.url : `https://${link.url}`;
-        return `<a href="${url}" target="_blank" rel="noopener" class="hover:underline text-green-600">${link.name}</a>`;
-      })
-      .filter(html => html.length > 0)
-      .join(' • ');
+  if (isPlanning) {
+    // PTW items: Show "Start Watching" button and basic info
+    streamingHTML = `
+      <div class="watch-actions">
+        <button class="btn-primary start-watching-btn" data-anime-id="${anime.id}" data-anime-title="${title.replace(/"/g, '&quot;')}">
+          ▶️ Start Watching
+        </button>
+        <div class="add-to-list-placeholder" data-anime-id="${anime.id}"></div>
+      </div>
+      <div class="text-xs mt-2 theme-text-muted">
+        ${anime.totalEpisodes ? `${anime.totalEpisodes} episodes` : 'Episodes unknown'} • 
+        ${anime.score ? `⭐ ${anime.score}` : 'No score'}
+      </div>
+    `;
+  } else {
+    // Watching/Rewatching items: Show streaming links and episode controls
+    streamingHTML = `
+      <div class="watch-actions">
+        ${isLoading ? `
+          <button class="btn-watch-now loading" disabled>
+            <span class="loading-spinner"></span> Loading links...
+          </button>
+        ` : `
+          <a href="${freeLinks.hianime}" target="_blank" rel="noopener" class="btn-watch-now">
+            ▶️ Watch on HiAnime
+          </a>
+        `}
+        <button class="btn-primary add-episode-btn" data-title="${title.replace(/"/g, '&quot;')}" data-watched="${progress}" data-total="${anime.totalEpisodes || 0}">
+          +1 Episode
+        </button>
+        <div class="add-to-list-placeholder" data-anime-id="${anime.id}"></div>
+      </div>
+      
+      <div class="text-xs mt-1">
+        ${isLoading ? `
+          <div class="opacity-60">
+            <span class="loading-skeleton">Loading...</span>
+          </div>
+        ` : `
+          <div class="opacity-60 hover:opacity-100 transition-opacity">
+            <a href="${freeLinks.gogoanime}" target="_blank" rel="noopener" class="hover:underline">Gogo</a> • 
+            <a href="${freeLinks.animepahe}" target="_blank" rel="noopener" class="hover:underline">Pahe</a> • 
+            <a href="${freeLinks.aniwave}" target="_blank" rel="noopener" class="hover:underline">AniWave</a> •
+            <a href="${freeLinks.animixplay}" target="_blank" rel="noopener" class="hover:underline">AnimixPlay</a>
+          </div>
+        `}`;
     
-    if (officialLinksHTML) {
-      streamingHTML += `
-        <div class="opacity-70 hover:opacity-100 transition-opacity text-green-600">
-          <span class="font-medium">Official:</span>
-          ${officialLinksHTML}
-        </div>`;
+    streamingHTML += `</div>`;
+  }
+  
+  // Check if anime is airing soon (today, tomorrow, or within 3 days)
+  let priorityClass = '';
+  if (airingInfo && airingInfo.ts) {
+    const now = Date.now();
+    const airingTime = airingInfo.ts < 2e12 ? airingInfo.ts * 1000 : airingInfo.ts;
+    const timeUntilAiring = airingTime - now;
+    const daysUntilAiring = timeUntilAiring / (1000 * 60 * 60 * 24);
+    
+    if (daysUntilAiring < 0) {
+      // Already aired today or past
+      priorityClass = 'airing-today';
+    } else if (daysUntilAiring < 1) {
+      // Airing today
+      priorityClass = 'airing-today';
+    } else if (daysUntilAiring < 2) {
+      // Airing tomorrow
+      priorityClass = 'airing-tomorrow';
+    } else if (daysUntilAiring < 4) {
+      // Airing within 3 days
+      priorityClass = 'airing-soon';
     }
   }
   
-  streamingHTML += `</div>`;
+  // Different card styling for PTW
+  const cardClass = isPlanning 
+    ? `watch-card planning ${isLoading ? 'loading' : ''} ${priorityClass}` 
+    : `watch-card ${isRewatching ? 'rewatching' : ''} ${isLoading ? 'loading' : ''} ${priorityClass}`;
+  
+  // Episode progress indicator
+  const totalEpisodes = anime.totalEpisodes || null;
+  const progressIndicator = !isPlanning && totalEpisodes 
+    ? `<div class="watch-progress-indicator">
+         <span class="watch-progress-text">Episode ${progress}/${totalEpisodes}</span>
+         <div class="watch-progress-bar">
+           <div class="watch-progress-fill" style="width: ${(progress / totalEpisodes) * 100}%"></div>
+         </div>
+       </div>`
+    : !isPlanning 
+    ? `<div class="watch-progress-indicator">
+         <span class="watch-progress-text">Episode ${progress}</span>
+       </div>`
+    : '';
   
   return `
-    <div class="watch-card ${isRewatching ? 'rewatching' : ''} ${isLoading ? 'loading' : ''}" data-anime-id="${malIdNum || ''}" data-index="${index}">
+    <div class="${cardClass}" data-anime-id="${anime.id}" data-index="${index}">
       <a class="watch-thumb" href="${anime.externalLinks?.[0]?.url || '#'}" target="_blank" rel="noopener">
-        <img src="${img}" alt="${title.replace(/"/g, '&quot;')}" referrerpolicy="no-referrer"
-             onerror="this.onerror=null;this.src='https://placehold.co/70x140/1f2937/94a3b8?text=No+Image';">
+        <img data-src="${img}" 
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 140'%3E%3Crect fill='%231f2937' width='70' height='140'/%3E%3C/svg%3E"
+             data-error-src="https://placehold.co/70x140/1f2937/94a3b8?text=No+Image"
+             alt="${title.replace(/"/g, '&quot;')}" 
+             referrerpolicy="no-referrer">
         ${isRewatching ? '<div class="rewatch-badge">🔁 REWATCH</div>' : ''}
+        ${isPlanning ? '<div class="planning-badge">📋 PLAN TO WATCH</div>' : ''}
       </a>
       
       <div class="watch-card-content">
         <a class="watch-title" href="${anime.externalLinks?.[0]?.url || '#'}" target="_blank" rel="noopener">
           ${title}
         </a>
-        <div class="watch-progress">Progress: ${progress} episodes</div>
+        ${progressIndicator}
         
         ${airingHTML}
         ${streamingHTML}
       </div>
     </div>`;
+}
+
+/**
+ * Get day of week from timestamp
+ */
+function getDayOfWeekFromTimestamp(timestamp) {
+  const date = new Date(timestamp < 2e12 ? timestamp * 1000 : timestamp);
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[date.getDay()];
+}
+
+/**
+ * Group anime by day of week
+ */
+function groupAnimeByDay(animeList) {
+  const grouped = {
+    'Sunday': [],
+    'Monday': [],
+    'Tuesday': [],
+    'Wednesday': [],
+    'Thursday': [],
+    'Friday': [],
+    'Saturday': [],
+    'No Schedule': []
+  };
+  
+  animeList.forEach(anime => {
+    const airingInfo = getNextAiring(anime);
+    if (airingInfo && airingInfo.ts) {
+      const day = getDayOfWeekFromTimestamp(airingInfo.ts);
+      if (grouped[day]) {
+        grouped[day].push(anime);
+      } else {
+        grouped['No Schedule'].push(anime);
+      }
+    } else {
+      grouped['No Schedule'].push(anime);
+    }
+  });
+  
+  // Sort each day's anime by airing time
+  Object.keys(grouped).forEach(day => {
+    grouped[day].sort((a, b) => {
+      const aTime = getNextAiring(a);
+      const bTime = getNextAiring(b);
+      if (!aTime) return 1;
+      if (!bTime) return -1;
+      return aTime.ts - bTime.ts;
+    });
+  });
+  
+  return grouped;
 }
 
 export async function renderEnhancedWatchingTab(data = []) {
@@ -545,25 +704,39 @@ export async function renderEnhancedWatchingTab(data = []) {
   
   stopAllCountdowns();
   
-  const watching = data.filter(a =>
-    (a.status || '').toLowerCase() === 'current' ||
-    (a.status || '').toLowerCase() === 'watching' ||
-    (a.status || '').toLowerCase() === 'repeating'
-  );
+  // Separate into different status groups
+  const currentlyWatching = data.filter(a => {
+    const status = (a.status || '').toLowerCase();
+    return status === 'current' || status === 'watching';
+  });
   
-  if (watching.length === 0) {
+  const rewatching = data.filter(a => {
+    const status = (a.status || '').toLowerCase();
+    return status === 'repeating' || status === 're-watching';
+  });
+  
+  const planToWatch = data.filter(a => {
+    const status = (a.status || '').toLowerCase();
+    return status === 'planning' || status === 'plan to watch';
+  });
+  
+  // Combine all items into one list, prioritizing currently watching
+  const allWatching = [...currentlyWatching, ...rewatching];
+  const allItems = [...allWatching, ...planToWatch];
+  
+  if (allItems.length === 0) {
     container.innerHTML = `
       <div class="watch-empty-state">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
-        <p class="text-lg">No anime currently watching</p>
+        <p class="text-lg">No anime currently watching or planned</p>
       </div>`;
     return;
   }
   
-  // Sort by airing time
-  watching.sort((a, b) => {
+  // Sort currently watching by airing time
+  currentlyWatching.sort((a, b) => {
     const aTime = getNextAiring(a);
     const bTime = getNextAiring(b);
     if (!aTime) return 1;
@@ -571,70 +744,139 @@ export async function renderEnhancedWatchingTab(data = []) {
     return aTime.ts - bTime.ts;
   });
   
-  // Render skeleton cards immediately (with loading state)
-  console.log('📺 Rendering', watching.length, 'anime cards (loading state)...');
-  container.innerHTML = watching.map((anime, index) => renderAnimeCard(anime, index, null)).join('');
+  // Sort rewatching by airing time
+  rewatching.sort((a, b) => {
+    const aTime = getNextAiring(a);
+    const bTime = getNextAiring(b);
+    if (!aTime) return 1;
+    if (!bTime) return -1;
+    return aTime.ts - bTime.ts;
+  });
   
-  // Initialize lazy loading for new images
-  observeNewImages(container);
+  // Render all items in a unified grid
+  let html = '<div class="watching-grid">';
+  let cardIndex = 0;
   
-  // Start countdowns immediately (they don't need streaming data)
-  watching.forEach((anime, index) => {
+  allItems.forEach(anime => {
+    // Determine status type
+    const status = (anime.status || '').toLowerCase();
+    let statusType = 'watching';
+    if (status === 'repeating' || status === 're-watching') {
+      statusType = 'rewatching';
+    } else if (status === 'planning' || status === 'plan to watch') {
+      statusType = 'planning';
+    }
+    
+    html += renderAnimeCard(anime, cardIndex++, null, statusType);
+  });
+  
+  html += '</div>';
+  
+  console.log('📺 Rendering', allItems.length, 'anime cards (watching + PTW)...');
+  container.innerHTML = html;
+  
+  // Initialize lazy loading for new images after DOM is updated
+  // Use double RAF to ensure layout is complete
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      observeNewImages(container);
+    });
+  });
+  
+  // Populate "Add to List" buttons
+  populateAddToListButtons();
+  
+  // Setup "Start Watching" buttons for PTW items
+  setupStartWatchingButtons();
+  
+  // Start countdowns for currently watching and rewatching
+  allWatching.forEach((anime, index) => {
     const airingInfo = getNextAiring(anime);
     if (airingInfo) {
       startCountdown(`countdown-${index}`, airingInfo.ts);
     }
   });
   
-  checkForNotifications(watching);
+  checkForNotifications(allWatching);
   
-  // Fetch streaming links progressively and update cards as they arrive
-  console.log('📺 Fetching streaming links for', watching.length, 'anime...');
-  console.log('📋 Watching anime MAL IDs:', watching.map(a => a.idMal || a.malId).filter(Boolean));
-  
-  // Start batch fetch in background
-  batchFetchStreamingLinks(watching).then(batchResults => {
+  // Fetch streaming links for watching/rewatching items only
+  if (allWatching.length > 0) {
+    console.log('📺 Fetching streaming links for', allWatching.length, 'anime...');
+    console.log('📋 Watching anime MAL IDs:', allWatching.map(a => a.idMal || a.malId).filter(Boolean));
+    
+    // Start batch fetch in background
+    batchFetchStreamingLinks(allWatching).then(batchResults => {
     console.log(`✅ Batch fetch completed. Received ${batchResults?.length || 0} results.`);
     
-    // Update each card as streaming data becomes available
-    watching.forEach((anime, index) => {
-      const malId = anime.idMal || anime.malId;
-      const malIdNum = malId ? (typeof malId === 'string' ? parseInt(malId, 10) : malId) : null;
-      
-      if (malIdNum && streamingLinksCache.has(malIdNum)) {
-        const streamingInfo = streamingLinksCache.get(malIdNum);
-        const cardElement = container.querySelector(`[data-anime-id="${malIdNum}"]`);
-        if (cardElement) {
-          // Update the card with streaming data
-          const newCardHTML = renderAnimeCard(anime, index, streamingInfo);
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = newCardHTML;
-          const newCard = tempDiv.firstElementChild;
-          
-          // Preserve countdown timer if it exists
-          const existingCountdown = cardElement.querySelector('.countdown-timer');
-          if (existingCountdown && newCard.querySelector('.countdown-timer')) {
-            newCard.querySelector('.countdown-timer').id = existingCountdown.id;
-            newCard.querySelector('.countdown-timer').textContent = existingCountdown.textContent;
-          }
-          
-          cardElement.replaceWith(newCard);
-          
-          // Restart countdown if needed
-          const airingInfo = getNextAiring(anime);
-          if (airingInfo) {
-            startCountdown(`countdown-${index}`, airingInfo.ts);
+      // Update each card as streaming data becomes available
+      allWatching.forEach((anime, index) => {
+        const malId = anime.idMal || anime.malId;
+        const malIdNum = malId ? (typeof malId === 'string' ? parseInt(malId, 10) : malId) : null;
+        
+        if (malIdNum && streamingLinksCache.has(malIdNum)) {
+          const streamingInfo = streamingLinksCache.get(malIdNum);
+          const cardElement = container.querySelector(`[data-anime-id="${anime.id}"]`);
+          if (cardElement) {
+            // Determine status type
+            const status = (anime.status || '').toLowerCase();
+            const statusType = status === 'repeating' || status === 're-watching' ? 'rewatching' : 'watching';
+            
+            // Update the card with streaming data
+            const newCardHTML = renderAnimeCard(anime, index, streamingInfo, statusType);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newCardHTML;
+            const newCard = tempDiv.firstElementChild;
+            
+            // Preserve countdown timer if it exists
+            const existingCountdown = cardElement.querySelector('.countdown-timer');
+            const newCountdown = newCard.querySelector('.countdown-timer');
+            let countdownId = `countdown-${index}`;
+            
+            if (existingCountdown && newCountdown) {
+              // Preserve the existing countdown ID
+              countdownId = existingCountdown.id || countdownId;
+              newCountdown.id = countdownId;
+              // Don't preserve text if it's "Loading..." - let it restart
+              if (existingCountdown.textContent !== 'Loading...') {
+                newCountdown.textContent = existingCountdown.textContent;
+              }
+            }
+            
+            // Preserve loaded image if it exists
+            const existingImg = cardElement.querySelector('img');
+            const newImg = newCard.querySelector('img');
+            if (existingImg && newImg) {
+              // If the existing image has loaded (not a placeholder), preserve it
+              if (existingImg.src && 
+                  !existingImg.src.startsWith('data:image/svg+xml') && 
+                  !existingImg.classList.contains('lazy-loading')) {
+                newImg.src = existingImg.src;
+                newImg.classList.remove('lazy-loading');
+                newImg.classList.add('lazy-loaded');
+                // Remove data-src so it doesn't try to reload
+                delete newImg.dataset.src;
+              }
+            }
+            
+            cardElement.replaceWith(newCard);
+            
+            // Restart countdown if needed (use preserved ID)
+            const airingInfo = getNextAiring(anime);
+            if (airingInfo) {
+              startCountdown(countdownId, airingInfo.ts);
+            } else if (newCountdown) {
+              // If no airing info, show a message instead of "Loading..."
+              newCountdown.textContent = 'No airing data';
+            }
           }
         }
-      }
+      });
+    }).catch(error => {
+      console.error('❌ Batch fetch failed:', error);
     });
-  }).catch(error => {
-    console.error('❌ Batch fetch failed:', error);
-  });
-  
-  // Also fetch individual streaming links as they become available (progressive)
-  // This allows cards to update one-by-one as data arrives
-  watching.forEach((anime, index) => {
+    
+    // Also fetch individual streaming links as they become available (progressive)
+    allWatching.forEach((anime, index) => {
     const malId = anime.idMal || anime.malId;
     if (!malId) return;
     
@@ -644,27 +886,58 @@ export async function renderEnhancedWatchingTab(data = []) {
         const malIdNum = typeof malId === 'string' ? parseInt(malId, 10) : malId;
         if (malIdNum && streamingLinksCache.has(malIdNum)) {
           const streamingInfo = streamingLinksCache.get(malIdNum);
-          const cardElement = container.querySelector(`[data-anime-id="${malIdNum}"]`);
+          const cardElement = container.querySelector(`[data-anime-id="${anime.id}"]`);
           if (cardElement) {
+            // Determine status type
+            const status = (anime.status || '').toLowerCase();
+            const statusType = status === 'repeating' || status === 're-watching' ? 'rewatching' : 'watching';
+            
             // Update the card with streaming data
-            const newCardHTML = renderAnimeCard(anime, index, streamingInfo);
+            const newCardHTML = renderAnimeCard(anime, index, streamingInfo, statusType);
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = newCardHTML;
             const newCard = tempDiv.firstElementChild;
             
             // Preserve countdown timer
             const existingCountdown = cardElement.querySelector('.countdown-timer');
-            if (existingCountdown && newCard.querySelector('.countdown-timer')) {
-              newCard.querySelector('.countdown-timer').id = existingCountdown.id;
-              newCard.querySelector('.countdown-timer').textContent = existingCountdown.textContent;
+            const newCountdown = newCard.querySelector('.countdown-timer');
+            let countdownId = `countdown-${index}`;
+            
+            if (existingCountdown && newCountdown) {
+              // Preserve the existing countdown ID
+              countdownId = existingCountdown.id || countdownId;
+              newCountdown.id = countdownId;
+              // Don't preserve text if it's "Loading..." - let it restart
+              if (existingCountdown.textContent !== 'Loading...') {
+                newCountdown.textContent = existingCountdown.textContent;
+              }
+            }
+            
+            // Preserve loaded image if it exists
+            const existingImg = cardElement.querySelector('img');
+            const newImg = newCard.querySelector('img');
+            if (existingImg && newImg) {
+              // If the existing image has loaded (not a placeholder), preserve it
+              if (existingImg.src && 
+                  !existingImg.src.startsWith('data:image/svg+xml') && 
+                  !existingImg.classList.contains('lazy-loading')) {
+                newImg.src = existingImg.src;
+                newImg.classList.remove('lazy-loading');
+                newImg.classList.add('lazy-loaded');
+                // Remove data-src so it doesn't try to reload
+                delete newImg.dataset.src;
+              }
             }
             
             cardElement.replaceWith(newCard);
             
-            // Restart countdown if needed
+            // Restart countdown if needed (use preserved ID)
             const airingInfo = getNextAiring(anime);
             if (airingInfo) {
-              startCountdown(`countdown-${index}`, airingInfo.ts);
+              startCountdown(countdownId, airingInfo.ts);
+            } else if (newCountdown) {
+              // If no airing info, show a message instead of "Loading..."
+              newCountdown.textContent = 'No airing data';
             }
           }
         }
@@ -672,6 +945,67 @@ export async function renderEnhancedWatchingTab(data = []) {
     }).catch(error => {
       console.error(`Failed to fetch streaming links for ${anime.title}:`, error);
     });
+    });
+  }
+}
+
+/**
+ * Setup "Start Watching" buttons for PTW items
+ */
+function setupStartWatchingButtons() {
+  document.addEventListener('click', async (e) => {
+    if (e.target.matches('.start-watching-btn') || e.target.closest('.start-watching-btn')) {
+      const button = e.target.closest('.start-watching-btn') || e.target;
+      const animeId = parseInt(button.dataset.animeId);
+      const animeTitle = button.dataset.animeTitle || 'Anime';
+      
+      if (!animeId) return;
+      
+      try {
+        // Update status to "Current" via API
+        const response = await fetch('/api/anilist/update-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            mediaId: animeId,
+            status: 'Current'
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update status');
+        }
+        
+        // Remove from queue if it was in there
+        try {
+          const { removeFromQueue } = await import('./watch-queue.js');
+          await removeFromQueue(animeId);
+        } catch (error) {
+          // Ignore if not in queue
+        }
+        
+        // Show success message
+        const { showToast } = await import('./toast.js');
+        showToast(`Started watching "${animeTitle}"!`, 'success');
+        
+        // Re-render the watching tab
+        if (window.animeData) {
+          // Update the status in the data
+          const anime = window.animeData.find(a => a.id === animeId);
+          if (anime) {
+            anime.status = 'Current';
+          }
+          await renderEnhancedWatchingTab(window.animeData);
+        }
+      } catch (error) {
+        const { handleError } = await import('./error-handler.js');
+        handleError(error, 'starting to watch', {
+          showToast: true
+        });
+      }
+    }
   });
 }
 
@@ -737,7 +1071,13 @@ export function initNotificationSettings() {
     });
   }
   
-  setInterval(() => {
+  // Clear existing interval if any
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+  }
+  
+  // Set up notification check interval
+  notificationInterval = setInterval(() => {
     if (notificationSettings.enabled) {
       const watchingContent = document.getElementById('watching-content');
       if (watchingContent && !watchingContent.classList.contains('hidden')) {
@@ -750,6 +1090,17 @@ export function initNotificationSettings() {
       }
     }
   }, 60000);
+}
+
+/**
+ * Cleanup function to clear all intervals
+ */
+export function cleanupAiringIntervals() {
+  stopAllCountdowns();
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+    notificationInterval = null;
+  }
 }
 
 export function toggleAnimeNotifications(animeTitle) {
@@ -843,5 +1194,5 @@ export function initAiringSchedule() {
 }
 
 window.addEventListener('beforeunload', () => {
-  stopAllCountdowns();
+  cleanupAiringIntervals();
 });

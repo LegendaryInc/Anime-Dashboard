@@ -111,6 +111,135 @@ body.theme-neon .calendar-nav button:hover {
 }
 
 /* ------------------------------------------------------------------- 
+   CALENDAR SEARCH BAR
+   ------------------------------------------------------------------- */
+.calendar-search-container {
+  width: 100%;
+}
+
+.calendar-search-input {
+  width: 100%;
+  padding: var(--gap-sm) var(--gap-md);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.calendar-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon .calendar-search-input {
+  background: rgba(10, 5, 30, 0.6);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #e0e7ff;
+}
+
+body.theme-neon .calendar-search-input:focus {
+  border-color: rgba(255, 0, 110, 0.6);
+  box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.2);
+}
+
+/* ------------------------------------------------------------------- 
+   CALENDAR QUICK FILTER BUTTONS
+   ------------------------------------------------------------------- */
+.calendar-quick-filters {
+  width: 100%;
+}
+
+.calendar-quick-filter-btn {
+  padding: var(--gap-xs) var(--gap-md);
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-quick-filter-btn:hover {
+  background: var(--btn-secondary-hover);
+  transform: translateY(-1px);
+}
+
+.calendar-quick-filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+body.theme-neon .calendar-quick-filter-btn {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #e0e7ff;
+}
+
+body.theme-neon .calendar-quick-filter-btn:hover {
+  background: rgba(139, 92, 246, 0.35);
+  border-color: rgba(168, 85, 247, 0.6);
+}
+
+body.theme-neon .calendar-quick-filter-btn.active {
+  background: linear-gradient(135deg, #ff006e, #ff3385);
+  border-color: #ff006e;
+  color: white;
+  box-shadow: 0 4px 16px rgba(255, 0, 110, 0.4);
+}
+
+/* ------------------------------------------------------------------- 
+   CALENDAR STATS SUMMARY
+   ------------------------------------------------------------------- */
+.calendar-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-md);
+  margin-top: var(--gap-sm);
+}
+
+.calendar-stat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: 4px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.calendar-stat-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.calendar-stat-value {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+body.theme-neon .calendar-stat-item {
+  background: rgba(10, 5, 30, 0.4);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+body.theme-neon .calendar-stat-label {
+  color: #c4b5fd;
+}
+
+body.theme-neon .calendar-stat-value {
+  color: #ff006e;
+  text-shadow: 0 0 8px rgba(255, 0, 110, 0.5);
+}
+
+/* ------------------------------------------------------------------- 
    CALENDAR FILTERS
    ------------------------------------------------------------------- */
 .calendar-filters {
@@ -121,9 +250,69 @@ body.theme-neon .calendar-nav button:hover {
   justify-content: flex-end;
 }
 
+.calendar-advanced-filters {
+  width: 100%;
+  padding-top: var(--gap-md);
+  border-top: 1px solid var(--border-color);
+}
+
+body.theme-neon .calendar-advanced-filters {
+  border-top-color: rgba(139, 92, 246, 0.3);
+}
+
+/* Better organization for advanced filters */
+.calendar-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-md);
+  align-items: flex-end;
+}
+
+.calendar-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  flex-shrink: 0;
+}
+
+.calendar-filter-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+body.theme-neon .calendar-filter-group label {
+  color: #c4b5fd;
+}
+
+.calendar-filter-group .calendar-filter-select {
+  min-width: 140px;
+}
+
+/* Navigation buttons container */
+.calendar-nav-group {
+  margin-left: auto;
+  display: flex;
+  gap: var(--gap-xs);
+  align-items: center;
+  flex-shrink: 0;
+}
+
 /* Calendar filter dropdowns */
 .calendar-filter-select {
   min-width: 140px;
+  /* Ensure it uses the same arrow removal as filter-select */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-clip: padding-box !important;
+}
+
+/* Remove native arrows for calendar selects */
+.calendar-filter-select::-ms-expand {
+  display: none;
 }
 
 /* ------------------------------------------------------------------- 
@@ -137,18 +326,39 @@ body.theme-neon .calendar-nav button:hover {
 }
 
 /* ------------------------------------------------------------------- 
-   CALENDAR ANIME CARDS - Ultra compact design
+   CALENDAR ANIME CARDS - Improved design
    ------------------------------------------------------------------- */
 .calendar-card {
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s ease;
   position: relative;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .calendar-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent);
   z-index: 10;
+}
+
+body.theme-neon .calendar-card {
+  background: rgba(10, 5, 30, 0.6);
+  backdrop-filter: blur(20px);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 
+    0 2px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.theme-neon .calendar-card:hover {
+  border-color: rgba(255, 0, 110, 0.6);
+  box-shadow: 
+    0 8px 24px rgba(255, 0, 110, 0.3),
+    0 0 20px rgba(255, 0, 110, 0.2);
 }
 
 /* Calendar card image container - Much smaller height */

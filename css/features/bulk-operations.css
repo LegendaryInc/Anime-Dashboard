@@ -1,0 +1,85 @@
+/* =====================================================================
+   Bulk Operations Styles
+   ===================================================================== */
+
+/* Bulk Actions Toolbar */
+#bulk-actions-toolbar {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Bulk Selection Checkboxes */
+.bulk-select-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: var(--theme-primary, #6366f1);
+}
+
+.bulk-select-checkbox:hover {
+  transform: scale(1.1);
+  transition: transform 0.15s;
+}
+
+/* Grid card checkbox positioning */
+.grid-card-cover .bulk-select-checkbox {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.grid-card:hover .bulk-select-checkbox {
+  opacity: 1;
+}
+
+.grid-card .bulk-select-checkbox {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+/* Table row selection state */
+#anime-table tbody tr:has(.anime-select-checkbox:checked) {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+body.theme-neon #anime-table tbody tr:has(.anime-select-checkbox:checked) {
+  background: rgba(232, 121, 249, 0.2);
+  border-left: 2px solid rgba(232, 121, 249, 0.5);
+}
+
+/* Bulk action modals */
+.bulk-action-modal {
+  z-index: 100;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #bulk-actions-toolbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  #bulk-actions-toolbar > div {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  #bulk-actions-toolbar .flex.gap-2 {
+    flex-wrap: wrap;
+  }
+}
+

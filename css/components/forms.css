@@ -10,13 +10,15 @@
 #search-bar {
   background: var(--input-bg);
   border: 1px solid var(--input-border);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--gap-md);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   transition: all 0.2s ease;
   line-height: 1.4;
   min-height: 34px;
+  position: relative;
+  z-index: 1;
 }
 
 .filter-select:focus,
@@ -24,6 +26,30 @@
   outline: none;
   border-color: var(--input-focus-border);
   box-shadow: 0 0 0 3px var(--input-focus-shadow);
+  z-index: 10;
+}
+
+/* Ensure select dropdowns appear above other elements when open */
+.filter-select:active,
+.filter-select:focus {
+  z-index: 10;
+  position: relative;
+}
+
+/* History page specific: Year dropdown should always be above month dropdown */
+#monthly-year-select {
+  z-index: 10;
+  position: relative;
+}
+
+#monthly-month-select {
+  z-index: 1;
+  position: relative;
+}
+
+/* When month dropdown is focused, it should also appear on top */
+#monthly-month-select:focus {
+  z-index: 10;
 }
 
 /* -------------------------------------------------------------------
@@ -65,6 +91,18 @@
 /* -------------------------------------------------------------------
    CALENDAR FILTER CONTROLS
    ------------------------------------------------------------------- */
+.calendar-filter-select {
+  /* Inherit all filter-select styles including arrow removal */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-clip: padding-box !important;
+}
+
+.calendar-filter-select::-ms-expand {
+  display: none;
+}
+
 .calendar-filter-select:focus {
   outline: none;
   border-color: var(--accent);
@@ -198,6 +236,246 @@ body.theme-neon #settings-modal-content label {
 }
 
 /* -------------------------------------------------------------------
+   FORM VALIDATION STATES
+   Visual feedback for form inputs (error, success, invalid, valid)
+   ------------------------------------------------------------------- */
+
+/* Base validation styles for all inputs */
+input,
+textarea,
+select {
+  transition: all 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+/* Invalid/Error state */
+input:invalid:not(:placeholder-shown),
+textarea:invalid:not(:placeholder-shown),
+select:invalid:not(:placeholder-shown),
+input.is-invalid,
+textarea.is-invalid,
+select.is-invalid {
+  border-color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.05);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+input:invalid:not(:placeholder-shown):focus,
+textarea:invalid:not(:placeholder-shown):focus,
+select:invalid:not(:placeholder-shown):focus,
+input.is-invalid:focus,
+textarea.is-invalid:focus,
+select.is-invalid:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Valid/Success state */
+input:valid:not(:placeholder-shown):not(:required),
+textarea:valid:not(:placeholder-shown):not(:required),
+select:valid:not(:placeholder-shown):not(:required),
+input.is-valid,
+textarea.is-valid,
+select.is-valid {
+  border-color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+input:valid:not(:placeholder-shown):not(:required):focus,
+textarea:valid:not(:placeholder-shown):not(:required):focus,
+select:valid:not(:placeholder-shown):not(:required):focus,
+input.is-valid:focus,
+textarea.is-valid:focus,
+select.is-valid:focus {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* Validation icons - ::after only works on textarea, not input/select */
+.input-wrapper {
+  position: relative;
+}
+
+/* Error icon - show on invalid textareas (::after doesn't work on input/select) */
+textarea.is-invalid::after,
+.input-wrapper.has-error::after {
+  content: '✕';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ef4444;
+  font-size: 0.875rem;
+  font-weight: bold;
+  pointer-events: none;
+  opacity: 1;
+}
+
+/* Success icon - show on valid textareas */
+textarea.is-valid::after,
+.input-wrapper.has-success::after {
+  content: '✓';
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-size: 0.875rem;
+  font-weight: bold;
+  pointer-events: none;
+  opacity: 1;
+}
+
+/* Ensure textareas with icons have padding for the icon */
+textarea.is-invalid,
+textarea.is-valid {
+  padding-right: 2.5rem;
+}
+
+/* Error message styling */
+.error-message {
+  display: none;
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  margin-left: 0.25rem;
+  animation: slideDown 0.2s ease;
+}
+
+.error-message.show {
+  display: block;
+}
+
+/* Success message styling */
+.success-message {
+  display: none;
+  color: #10b981;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  margin-left: 0.25rem;
+  animation: slideDown 0.2s ease;
+}
+
+.success-message.show {
+  display: block;
+}
+
+/* Helper text styling */
+.helper-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  margin-left: 0.25rem;
+}
+
+/* Required field indicator */
+label.required::after {
+  content: ' *';
+  color: #ef4444;
+}
+
+/* Neon theme validation states */
+body.theme-neon input:invalid:not(:placeholder-shown),
+body.theme-neon textarea:invalid:not(:placeholder-shown),
+body.theme-neon select:invalid:not(:placeholder-shown),
+body.theme-neon input.is-invalid,
+body.theme-neon textarea.is-invalid,
+body.theme-neon select.is-invalid {
+  border-color: #ff006e !important;
+  background-color: rgba(255, 0, 110, 0.1);
+  box-shadow: 
+    0 0 10px rgba(255, 0, 110, 0.4),
+    0 0 20px rgba(255, 0, 110, 0.2);
+}
+
+body.theme-neon input:valid:not(:placeholder-shown):not(:required),
+body.theme-neon textarea:valid:not(:placeholder-shown):not(:required),
+body.theme-neon select:valid:not(:placeholder-shown):not(:required),
+body.theme-neon input.is-valid,
+body.theme-neon textarea.is-valid,
+body.theme-neon select.is-valid {
+  border-color: #00ff88 !important;
+  background-color: rgba(0, 255, 136, 0.1);
+  box-shadow: 
+    0 0 10px rgba(0, 255, 136, 0.4),
+    0 0 20px rgba(0, 255, 136, 0.2);
+}
+
+body.theme-neon .error-message {
+  color: #ff006e;
+  text-shadow: 0 0 8px rgba(255, 0, 110, 0.6);
+}
+
+body.theme-neon .success-message {
+  color: #00ff88;
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+}
+
+/* Sakura theme validation states */
+body.theme-sakura input:invalid:not(:placeholder-shown),
+body.theme-sakura textarea:invalid:not(:placeholder-shown),
+body.theme-sakura select:invalid:not(:placeholder-shown),
+body.theme-sakura input.is-invalid,
+body.theme-sakura textarea.is-invalid,
+body.theme-sakura select.is-invalid {
+  border-color: #f43f5e !important;
+  background-color: rgba(244, 63, 94, 0.05);
+}
+
+body.theme-sakura input:valid:not(:placeholder-shown):not(:required),
+body.theme-sakura textarea:valid:not(:placeholder-shown):not(:required),
+body.theme-sakura select:valid:not(:placeholder-shown):not(:required),
+body.theme-sakura input.is-valid,
+body.theme-sakura textarea.is-valid,
+body.theme-sakura select.is-valid {
+  border-color: #ec4899 !important;
+  background-color: rgba(236, 72, 153, 0.05);
+}
+
+/* Sky theme validation states */
+body.theme-sky input:invalid:not(:placeholder-shown),
+body.theme-sky textarea:invalid:not(:placeholder-shown),
+body.theme-sky select:invalid:not(:placeholder-shown),
+body.theme-sky input.is-invalid,
+body.theme-sky textarea.is-invalid,
+body.theme-sky select.is-invalid {
+  border-color: #f87171 !important;
+  background-color: rgba(248, 113, 113, 0.05);
+}
+
+body.theme-sky input:valid:not(:placeholder-shown):not(:required),
+body.theme-sky textarea:valid:not(:placeholder-shown):not(:required),
+body.theme-sky select:valid:not(:placeholder-shown):not(:required),
+body.theme-sky input.is-valid,
+body.theme-sky textarea.is-valid,
+body.theme-sky select.is-valid {
+  border-color: #0ea5e9 !important;
+  background-color: rgba(14, 165, 233, 0.05);
+}
+
+/* Animation for error messages */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disabled state styling */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--input-bg);
+}
+
+/* -------------------------------------------------------------------
    MOBILE RESPONSIVENESS
    ------------------------------------------------------------------- */
 @media (max-width: 768px) {
@@ -218,39 +496,4 @@ body.theme-neon #settings-modal-content label {
       0 0 10px rgba(255, 0, 110, 0.2),
       inset 0 0 15px rgba(255, 51, 255, 0.08);
   }
-}-select {
-  padding: 8px 12px;
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.4;
-  min-height: 34px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  /* Remove native arrows - COMPREHENSIVE approach */
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  background-clip: padding-box !important;
-
-  /* Ensure only ONE background image */
-  background-color: white;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
-  background-position: right 0.6rem center !important;
-  background-repeat: no-repeat !important;
-  background-size: 1.25em !important;
-  padding-right: 2.2rem;
-}
-
-/* Legacy Edge/IE: hide native arrow */
-.calendar-filter-select::-ms-expand {
-  display: none;
-}
-
-/* Firefox specific fix */
-.calendar-filter-select:-moz-focusring {
-  color: transparent;
-  text-shadow: 0 0 0 var(--text-primary);
 }

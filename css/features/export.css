@@ -1,0 +1,78 @@
+/* =====================================================================
+   Export Menu Styles
+   ===================================================================== */
+
+.export-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  z-index: 1000;
+  background: var(--theme-bg, #ffffff);
+  border: 1px solid var(--theme-border, #e5e7eb);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 0.25rem 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.export-menu:not(.hidden) {
+  display: block;
+}
+
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  color: var(--theme-text-primary, #111827);
+}
+
+.export-option:first-child {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.export-option:last-child {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.export-option:hover {
+  background-color: var(--theme-bg-hover, #f3f4f6);
+}
+
+.export-option .font-semibold {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.export-option .text-xs {
+  font-size: 0.75rem;
+  color: var(--theme-text-secondary, #6b7280);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .export-menu {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .export-option {
+    color: #f9fafb;
+  }
+
+  .export-option:hover {
+    background-color: #374151;
+  }
+}
+

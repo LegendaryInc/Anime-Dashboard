@@ -49,14 +49,7 @@ export default defineConfig({
         ws: true,
         configure: (proxy, _options) => {
           proxy.on('error', (err, req, res) => {
-            console.error('❌ Vite proxy error:', err.message);
-            console.error('   Request:', req.method, req.url);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('✅ Vite proxying:', req.method, req.url, '→ http://localhost:3000' + req.url);
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('📥 Vite proxy response:', req.method, req.url, 'Status:', proxyRes.statusCode);
+            console.error('Vite proxy error:', err.message);
           });
         }
       },

@@ -7,12 +7,16 @@
    PRIMARY BUTTONS (Main actions)
    ------------------------------------------------------------------- */
 .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xs);
   background: linear-gradient(90deg, var(--accent), var(--accent-hover));
   color: white;
   border: none;
-  border-radius: 999px;
-  font-weight: 800;
-  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  font-weight: var(--font-weight-extrabold);
+  padding: var(--btn-padding-lg);
   box-shadow: 0 10px 20px var(--accent-shadow);
   transition: all 0.2s ease;
   cursor: pointer;
@@ -53,14 +57,18 @@ body.theme-neon .btn-primary:hover {
    SECONDARY BUTTONS (Less prominent actions)
    ------------------------------------------------------------------- */
 .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xs);
   background: var(--btn-secondary-bg);
   color: var(--text-primary);
   border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  padding: var(--btn-padding-md);
   transition: all 0.2s ease;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .btn-secondary:hover {
@@ -96,10 +104,10 @@ body.theme-neon .btn-secondary:hover {
    THEME SWITCHER BUTTONS
    ------------------------------------------------------------------- */
 .theme-btn {
-  padding: 8px 18px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: var(--btn-padding-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent;
@@ -248,10 +256,10 @@ body.theme-neon .theme-btn:hover:not(.active) {
    ------------------------------------------------------------------- */
 #anime-table .add-episode-btn,
 #anime-table .similar-btn {
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
+  padding: var(--btn-padding-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
   transition: all 0.2s ease;
   border: none;
   cursor: pointer;
@@ -313,7 +321,7 @@ body.theme-neon #anime-table .add-episode-btn {
   background: linear-gradient(135deg, #00ffff 0%, #00d9ff 100%);
   border: 1px solid rgba(0, 255, 255, 0.5);
   color: #0a0618;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
   box-shadow: 
     0 4px 12px rgba(0, 255, 255, 0.4),
@@ -352,13 +360,13 @@ body.theme-neon #anime-table .similar-btn:hover {
 .export-calendar-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: var(--gap-sm);
+  padding: var(--btn-padding-md);
   background: linear-gradient(135deg, var(--accent), var(--accent-light));
   color: white;
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px var(--accent-shadow);
@@ -409,9 +417,9 @@ body.theme-neon .export-calendar-btn:hover {
 .notify-toggle-btn {
   background: rgba(156, 163, 175, 0.2);
   border: 1px solid rgba(156, 163, 175, 0.3);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
   cursor: pointer;
   transition: all 0.2s ease;
   opacity: 0.6;
@@ -476,10 +484,10 @@ body.theme-neon .notify-toggle-btn.notify-enabled {
   background: #ef4444;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: var(--btn-padding-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -501,31 +509,4 @@ body.theme-neon #gacha-reset-button:hover {
     0 0 25px rgba(239, 68, 68, 0.5);
 }
 
-/* ------------------------------------------------------------------- 
-   SETTINGS BUTTON (Top-right gear icon)
-   ------------------------------------------------------------------- */
-#settings-button {
-  position: relative;
-  z-index: 2;
-  transition: all 0.2s ease;
-}
-
-#settings-button:hover {
-  transform: rotate(90deg);
-}
-
-body.theme-neon #settings-button {
-  color: var(--text-primary);
-  background: rgba(15, 10, 35, 0.7);
-  border: 1px solid rgba(139, 92, 246, 0.4);
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-}
-
-body.theme-neon #settings-button:hover {
-  background: rgba(15, 10, 35, 0.9);
-  border-color: rgba(168, 85, 247, 0.6);
-  box-shadow: 
-    0 0 20px rgba(168, 85, 247, 0.5),
-    0 0 35px rgba(168, 85, 247, 0.2);
-}
+/* Settings button styles moved to header.css */
